@@ -1,0 +1,12 @@
+{
+  "name": "TootDesk",
+  "displayName": "TootDesk",
+  "expo": {
+    "name": "TootDesk",
+    "slug": "TootDesk",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
