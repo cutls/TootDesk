@@ -3,6 +3,7 @@
   "displayName": "TootDesk",
   "expo": {
     "name": "TootDesk",
+    "scheme": "tootdesk",
     "slug": "TootDesk",
     "version": "1.0.0",
     "assetBundlePatterns": [
