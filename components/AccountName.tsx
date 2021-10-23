@@ -4,16 +4,16 @@ import {  Dimensions } from 'react-native'
 import { Text } from './Themed'
 const deviceWidth = Dimensions.get('window').width
 import twemoji from 'twemoji'
-import HTML, { extendDefaultRenderer, HTMLContentModel } from 'react-native-render-html'
+import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+const renderers = {
+    img: defaultHTMLElementModels.img.extend({
+        contentModel: HTMLContentModel.mixed,
+    })
+}
 interface FromTootToAcctName {
     account: M.Account
     miniEmoji?: boolean
     fontSize?: number
-}
-const renderers = {
-	img: extendDefaultRenderer('img', {
-		contentModel: HTMLContentModel.mixed,
-	}),
 }
 export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean) => {
     const twemojified = twemoji.parse(content).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
@@ -32,7 +32,7 @@ export const AccountName = (props: FromTootToAcctName) => {
         <HTML
             source={{ html: `<b style="font-size: ${fontSize}px">${emojify(account.display_name, account.emojis, miniEmoji)}</b>` }}
             tagsStyles={{ b: { fontWeight: 'bold' } }}
-            renderers={renderers}
+            customHTMLElementModels={renderers}
             contentWidth={deviceWidth - 50}
         />
     ) : (

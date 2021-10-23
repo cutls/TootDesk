@@ -7553,7 +7553,7 @@ react-native-reanimated@~1.13.0:
   dependencies:
     fbjs "^1.0.0"
 
-react-native-render-html@^6.0.0-alpha.14:
+react-native-render-html@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/react-native-render-html/-/react-native-render-html-6.2.0.tgz#f578f631c975ead0d5dba2c57b7e35e8e7257d58"
   integrity sha512-czqetQvnlPszsc2bUWnBzIkssYmuMHc0PpQEw+XzxT3t12tF7trrpN+/cX8vtk6J6HmONJP/HtAs7v32o2Gkhg==

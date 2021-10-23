@@ -19,12 +19,11 @@ import { AccountName, emojify } from '../components/AccountName'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
-import HTML, { extendDefaultRenderer, HTMLContentModel } from 'react-native-render-html'
-
+import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 const renderers = {
-    img: extendDefaultRenderer('img', {
+    img: defaultHTMLElementModels.img.extend({
         contentModel: HTMLContentModel.mixed,
-    }),
+    })
 }
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
@@ -153,9 +152,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
             <HTML
                 source={{ html: emojify(item.content, item.emojis) }}
                 tagsStyles={{ p: { margin: 0 } }}
-                renderers={renderers}
                 contentWidth={deviceWidth - 50}
-                onLinkPress={() => true}
+                customHTMLElementModels={renderers}
             />
         </TouchableOpacity>)
     }
@@ -181,9 +179,13 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
                 <HTML
                     source={{ html: field.value }}
                     tagsStyles={{ p: { margin: 0 } }}
-                    renderers={renderers}
                     contentWidth={deviceWidth - 150}
-                    onLinkPress={async (e, href) => await WebBrowser.openBrowserAsync(href)}
+                    customHTMLElementModels={renderers}
+                    renderersProps={{
+                        a: {
+                            onPress: async (e, href) => await WebBrowser.openBrowserAsync(href)
+                        }
+                    }}
                 />
             </View>
         </View>
@@ -202,14 +204,18 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
                         <HTML
                             source={{ html: emojify(account.note, account.emojis) }}
                             tagsStyles={{ p: { margin: 0 } }}
-                            renderers={renderers}
                             contentWidth={deviceWidth - 150}
-                            onLinkPress={async (e, href) => await WebBrowser.openBrowserAsync(href)}
+                            customHTMLElementModels={renderers}
+                            renderersProps={{
+                                a: {
+                                    onPress: async (e, href) => await WebBrowser.openBrowserAsync(href)
+                                }
+                            }}
                         />
                     </View>
                 </View>
             </View>
-            <View style={{height: 10}} />
+            <View style={{ height: 10 }} />
             {fields[0] ? <Fields field={fields[0]} /> : null}
             {fields[1] ? <Fields field={fields[1]} /> : null}
             {fields[2] ? <Fields field={fields[2]} /> : null}
@@ -229,20 +235,20 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
     )
 }
 const styles = StyleSheet.create({
-	fieldName: {
-		width: (deviceWidth - 20) / 3,
+    fieldName: {
+        width: (deviceWidth - 20) / 3,
         padding: 10,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#ddd'
-	},
+    },
     fieldValue: {
-		width: (deviceWidth - 20) / 3 * 2,
+        width: (deviceWidth - 20) / 3 * 2,
         padding: 10,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#eee'
-	}
+    }
 })

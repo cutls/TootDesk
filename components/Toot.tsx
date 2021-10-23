@@ -3,7 +3,6 @@ import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
-import HTML, { extendDefaultRenderer, HTMLContentModel } from 'react-native-render-html'
 import * as WebBrowser from 'expo-web-browser'
 import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -13,6 +12,12 @@ import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
+import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+const renderers = {
+	img: defaultHTMLElementModels.img.extend({
+		contentModel: HTMLContentModel.mixed,
+	})
+}
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 const deviceWidth = Dimensions.get('window').width
@@ -26,11 +31,6 @@ interface FromTimelineToToot {
 	acctId: string
 }
 
-const renderers = {
-	img: extendDefaultRenderer('img', {
-		contentModel: HTMLContentModel.mixed,
-	}),
-}
 
 export default (props: FromTimelineToToot) => {
 	const { toot: rawToot, imgModalTrigger, statusPost, reply, navigation, acctId, deletable } = props
@@ -85,7 +85,7 @@ export default (props: FromTimelineToToot) => {
 			break
 	}
 	const actionSheet = (id: string) => {
-		if(!deletable) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
+		if (!deletable) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
 		const options = ['詳細', '削除', 'キャンセル']
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
@@ -95,7 +95,7 @@ export default (props: FromTimelineToToot) => {
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-				if (buttonIndex === 1) return statusPost('delete', id, setFaved )
+				if (buttonIndex === 1) return statusPost('delete', id, setFaved)
 			})
 	}
 	return (
@@ -119,9 +119,13 @@ export default (props: FromTimelineToToot) => {
 					<HTML
 						source={{ html: emojify(toot.content, toot.emojis) }}
 						tagsStyles={{ p: { margin: 0 } }}
-						renderers={renderers}
+						customHTMLElementModels={renderers}
+						renderersProps={{
+							a: {
+								onPress: async (e, href) => await WebBrowser.openBrowserAsync(href)
+							}
+						}}
 						contentWidth={deviceWidth - 50}
-						onLinkPress={async (e, href) => await WebBrowser.openBrowserAsync(href)}
 					/>
 					{toot.card ? <Card card={toot.card} /> : null}
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments) : null}</View>

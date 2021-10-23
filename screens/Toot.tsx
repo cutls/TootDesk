@@ -16,14 +16,13 @@ import Toot from '../components/Toot'
 import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
 import { AccountName, emojify } from '../components/AccountName'
-import HTML, { extendDefaultRenderer, HTMLContentModel } from 'react-native-render-html'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Account from '../components/Account'
-
+import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 const renderers = {
-    img: extendDefaultRenderer('img', {
+    img: defaultHTMLElementModels.img.extend({
         contentModel: HTMLContentModel.mixed,
-    }),
+    })
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -167,9 +166,8 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
             <HTML
                 source={{ html: emojify(item.content, item.emojis) }}
                 tagsStyles={{ p: { margin: 0 } }}
-                renderers={renderers}
+                customHTMLElementModels={renderers}
                 contentWidth={deviceWidth - 50}
-                onLinkPress={(e, href) => true}
             />
         </TouchableOpacity>)
     }
