@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { Dimensions, StyleSheet } from 'react-native'
-import { TouchableOpacity, View } from '../components/Themed'
+import { TouchableOpacity, View } from '../Themed'
 import { WebView } from 'react-native-webview'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as WebBrowser from 'expo-web-browser'
+import { statusBarHeight, isIPhoneX } from '../../utils/statusBar'
 interface FromRootToImageModal {
 	url: string[]
 	i: number
@@ -15,6 +16,7 @@ export default (props: FromRootToImageModal) => {
 	const [i, setI] = useState(props.i)
 	return (
 		<View style={styles.container}>
+			<View style={{height: statusBarHeight()}} />
 			<WebView source={{ uri: url[i] }} />
 			<View style={styles.bottom}>
 				<TouchableOpacity onPress={() => imgModalTrigger(url, i, false)}>
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
 	bottom: {
 		position: 'absolute',
 		width: deviceWidth,
-		bottom: 0,
+		bottom: isIPhoneX ? 20 : 10,
 		height: 50,
 		flexDirection: 'row',
 		justifyContent: 'space-between',

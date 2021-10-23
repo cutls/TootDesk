@@ -25,29 +25,29 @@ export interface Account {
         value: string
         verified_at?: string | null
     }[]
-    [x: string]: any 
+    [x: string]: any
 }
 export interface Emoji {
     shortcode: string
     url: string
     static_url: string
     visible_in_picker?: boolean
-    [x: string]: any 
+    [x: string]: any
 }
-export interface Credential extends Account{
+export interface Credential extends Account {
     source: {
         privacy: string
         sensitive: boolean
         language: string
         note: string
-        fields? : {
+        fields?: {
             name: string
             value: string
             verified_at: string
-            [x: string]: any 
+            [x: string]: any
         }[]
         follow_requests_count?: number
-        [x: string]: any 
+        [x: string]: any
     }
 }
 export interface Toot {
@@ -78,7 +78,7 @@ export interface Toot {
     emojis: Emoji[] | []
     card: Card | null
     poll?: Poll | null
-    [x: string]: any 
+    [x: string]: any
 }
 export interface Attachment {
     id: string
@@ -90,14 +90,14 @@ export interface Attachment {
     meta: any //後で定義する
     description?: string | null
     blurhash?: string | null
-    [x: string]: any 
+    [x: string]: any
 }
 interface Mention {
     id: string
     usrename: string
     url: string
     acct: string
-    [x: string]: any 
+    [x: string]: any
 }
 interface Tag {
     name: string
@@ -106,9 +106,9 @@ interface Tag {
         day: string
         uses: string
         accounts: string
-        [x: string]: any 
+        [x: string]: any
     }[]
-    [x: string]: any 
+    [x: string]: any
 }
 export interface Card {
     url: string
@@ -122,7 +122,7 @@ export interface Card {
     height?: number
     image?: string | null
     blurhash?: string | null
-    [x: string]: any 
+    [x: string]: any
 }
 export interface Poll {
     id: string
@@ -138,5 +138,82 @@ export interface Poll {
         votes_count: number | null
     }[]
     emojis: Emoji[]
-    [x: string]: any 
+    [x: string]: any
+}
+export interface CustomEmoji {
+    shortcode: string
+    static_url: string
+    url: string
+    visible_in_picker?: boolean
+}
+export interface Media {
+    id: string
+    type: 'unknown' | 'image' | 'gifv' | 'video'
+    url: string
+    preview_url: string
+    remote_url: string | null
+    text_url: string
+    meta: {
+        focus: {
+            x: number
+            y: number
+        },
+        original?: {
+            width: number
+            height: number
+            size: string
+            aspect: number
+        },
+        small?: {
+            width: number
+            height: number
+            size: string
+            aspect: number
+        },
+    },
+    description: string | null
+    blurhash: string | null
+}
+export interface Notification {
+    id: string
+    type: 'follow' | 'follow_request' | 'mention' | 'reblog' | 'favourite' | 'poll' | 'status'
+    created_at: string
+    account: Account,
+    status?: Toot
+}
+export interface Relationship {
+    id: string,
+    following: boolean,
+    showing_reblogs: boolean,
+    notifying: boolean,
+    followed_by: boolean,
+    blocking: boolean,
+    blocked_by: boolean,
+    muting: boolean,
+    muting_notifications: boolean,
+    requested: boolean,
+    domain_blocking: boolean,
+    endorse: boolean,
+    note: string
+}
+export interface PushSubscription {
+    id: string
+    endpoint: string
+    alerts: {
+        poll?: boolean
+        follow: boolean
+        favourite: boolean
+        reblog: boolean
+        mention: boolean
+    }
+    server_key: string
+}
+export interface List {
+    replies_policy?: string
+    id: string
+    title: string
+}
+export interface Context {
+    descendants: Toot[]
+    ancestors: Toot[]
 }

@@ -55,10 +55,7 @@ type ThemeProps = {
 export type TextProps = ThemeProps & DefaultText['props']
 export type ViewProps = ThemeProps & DefaultView['props']
 export type TextInputProps = ThemeProps & DefaultTextInput['props']
-export interface TouchableOpacityProps extends ViewProps {
-	onPress?: ((ev: NativeSyntheticEvent<NativeTouchEvent>) => void)
-	activeOpacity?: number
-}
+export type TouchableOpacityProps = ThemeProps & DefaultTouchableOpacity['props']
 
 export function Text(props: TextProps) {
 	const { style, lightColor, darkColor, ...otherProps } = props

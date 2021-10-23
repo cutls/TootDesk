@@ -61,6 +61,14 @@ export const getIndexedItem = async (key: string, index: number) => {
         return false
     }
 }
+export const deleteAllItem = async () => {
+    try {
+        await AsyncStorage.clear()
+    } catch (e) {
+        console.error(e)
+        return false
+    }
+}
 export const deleteCertainItem = async (key: string, needle: string, searchedValue: string) => {
     try {
         const data = await getItem(key)

@@ -13,8 +13,7 @@ export const loginFirst = async (BASE_URL: string) => {
     let os = 'iOS'
     if (android) os = 'Android'
     const clientName = `TootDesk(${os})`
-    //const red = Linking.createURL('account')
-    const red = `urn:ietf:wg:oauth:2.0:oob`
+    const red = __DEV__ ? `urn:ietf:wg:oauth:2.0:oob` : Linking.createURL('account')
     const start: string = `https://${BASE_URL}/api/v1/apps`
     try {
         const appAxios = await axios.post(start, {
@@ -24,14 +23,14 @@ export const loginFirst = async (BASE_URL: string) => {
             website: 'https://toot.thedesk.top'
         })
         const app = appAxios.data
-        const auth = `https://${BASE_URL}/oauth/authorize?client_id=${app.client_id}&client_secret=${app.client_secret}&response_type=code&scope=read+write+follow&redirect_uri=${red}`
+        const auth = `https://${BASE_URL}/oauth/authorize?client_id=${app.client_id}&client_secret=${app.client_secret}&response_type=code&scope=read+write+follow+push&redirect_uri=${red}`
         await storage.setItem('tempLoginData', {
             redirect_uris: red,
             client_id: app.client_id,
             client_secret: app.client_secret,
             domain: BASE_URL
         })
-        await Linking.openURL(auth)
+        await WebBrowser.openBrowserAsync(auth)
         return true
     } catch (e) {
         return false
@@ -54,16 +53,17 @@ export const getAt = async (code: string) => {
         const token = tokenAxios.data
         const { access_token } = token
         const userData = await api.getV1AccountsVerifyCredentials(domain, access_token)
-        storage.pushItem('accounts', {
+        await storage.pushItem('accounts', {
             id: uuid(),
             name: userData.display_name ? userData.display_name : userData.acct,
-            acct: userData.acct,
+            acct: `@${userData.acct}@${domain}`,
             at: access_token,
             domain: domain
         } as S.Account)
-        return true
+        const accts = await storage.getItem('accounts') as S.Account[]
+        return accts
     } catch (e) {
         console.error(e)
-        return false
+        return []
     }
 }

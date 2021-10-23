@@ -63,3 +63,4 @@ buck-out/
 .expo/*
 web-build/
 init.js
+header.json
