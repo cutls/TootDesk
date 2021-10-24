@@ -37,7 +37,7 @@ export default function SelectCustomEmoji({ setShowNotif, acctId, imgModalTrigge
                     <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
-            <NotificationTimeline navigation={navigation} acctId={acctId} imgModalTrigger={imgModalTrigger} reply={reply} />
+            <NotificationTimeline navigation={navigation} acctId={acctId} imgModalTrigger={imgModalTrigger} reply={reply} dismiss={dismiss} />
         </Modal>
     )
 }

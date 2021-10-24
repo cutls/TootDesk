@@ -2,7 +2,7 @@ import axios from 'axios'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 const getApi = async (url: string, at: string, param?: any, needHeader?: boolean) => {
-    const searchParams = new URLSearchParams(param)
+    const searchParams = new URLSearchParams(param).toString()
     try {
         const api = await axios.get(`${url}?${searchParams}`, {
             headers: {
@@ -87,6 +87,7 @@ export const getV1Bted = async (domain: string, at: string, id: string) => { ret
 export const getV1Account = async (domain: string, at: string, id: string) => { return await getApi(`https://${domain}/api/v1/accounts/${id}`, at, {}) as M.Account }
 export const getV1Follows = async (domain: string, at: string, id: string) => { return await getApi(`https://${domain}/api/v1/accounts/${id}/following`, at, {}) as M.Account[] }
 export const getV1Follower = async (domain: string, at: string, id: string) => { return await getApi(`https://${domain}/api/v1/accounts/${id}/followers`, at, {}) as M.Account[] }
+export const getV1Relationships = async (domain: string, at: string, ids: string[]) => { return await getApi(`https://${domain}/api/v1/accounts/relationships`, at, { id: ids }) as M.Relationship[] }
 
 
 export const postV2Media = async (domain: string, at: string, form: FormData) => { return await postApiMedia(`https://${domain}/api/v2/media`, at, form) as M.Media }
@@ -99,3 +100,11 @@ export const postV1FRReject = async (domain: string, at: string, id: string) => 
 export const postV1Statuses = async (domain: string, at: string, param: R.Status) => { return await postApi(`https://${domain}/api/v1/statuses`, at, param) as M.Toot }
 export const postV1PushSubscribe = async (domain: string, at: string, param: R.PushSubscription) => { return await postApi(`https://${domain}/api/v1/push/subscription`, at, param) as M.PushSubscription }
 export const deleteV1Status = async (domain: string, at: string, id: string) => { return await deleteApi(`https://${domain}/api/v1/statuses/${id}`, at) as {} }
+export const postV1Follow = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/follow`, at) as M.Relationship }
+export const postV1UnFollow = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unfollow`, at) as M.Relationship }
+export const postV1Mute = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/mute`, at) as M.Relationship }
+export const postV1UnMute = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unmute`, at) as M.Relationship }
+export const postV1Block = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/block`, at) as M.Relationship }
+export const postV1UnBlock = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unblock`, at) as M.Relationship }
+
+

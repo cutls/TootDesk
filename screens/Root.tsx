@@ -49,9 +49,9 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 		const tls = await storage.getItem('timelines')
 		setTimelines(tls)
 		if(requireSleep) await sleep(500)
+		setNowSelecting(tl)
 		setLoading('Change Timeline')
 		setNewNotif(false)
-		setNowSelecting(tl)
 	}
 	const reply = (id: string, acct: string) => {
 		setText(`@${acct} `)

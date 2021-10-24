@@ -11,20 +11,43 @@ import { Swipeable } from 'react-native-gesture-handler'
 import { commonStyle } from '../utils/styles'
 import axios from 'axios'
 import * as Notifications from 'expo-notifications'
+import * as Updates from 'expo-updates'
 
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = StatusBar.currentHeight ? StatusBar.currentHeight : 20
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
+	const allReset = () => {
+		Alert.alert(
+			'全てのデータを初期化します',
+			'この操作は取り消せません。実行後はアプリを再起動します。',
+			[
+				{
+					text: 'キャンセル',
+					onPress: () => true,
+					style: 'cancel',
+				},
+				{
+					text: '削除',
+					onPress: async () => {
+						storage.deleteAllItem()
+						Updates.reloadAsync()
+					},
+				},
+			],
+			{ cancelable: true }
+		)
+
+	}
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
+				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} onLongPress={allReset} style={{ marginLeft: 10 }}>
 					<Ionicons name="arrow-back" size={30} />
 				</TouchableOpacity>
 			),
 		});
-	}, [navigation]);
+	}, [navigation, allReset]);
 
 	const [accounts, setAccounts] = useState([] as S.Account[])
 	const [attemptingLogin, setAttemptingLogin] = useState(false)
@@ -78,8 +101,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							timelineData: {}
 						}
 					])
-					await sleep(1000)
-					navigation.replace('Root')
+					Updates.reloadAsync()
 				}
 			}
 		} catch (e) { }
@@ -124,27 +146,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						}
 						setAccounts(cl)
 						await storage.setItem('accounts', cl)
-					},
-				},
-			],
-			{ cancelable: true }
-		)
-
-	}
-	const allReset = () => {
-		Alert.alert(
-			'全てのデータを初期化します',
-			'この操作は取り消せません。実行後はアプリを再起動してください。',
-			[
-				{
-					text: 'キャンセル',
-					onPress: () => true,
-					style: 'cancel',
-				},
-				{
-					text: '削除',
-					onPress: async () => {
-						storage.deleteAllItem()
 					},
 				},
 			],
@@ -290,7 +291,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
 					</View>
 				)}
-				<Button onPress={() => allReset()} title="初期化" />
 			</View>
 		</View>
 	)

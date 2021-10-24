@@ -23,7 +23,7 @@
     "expo-linking": "^2.1.1",
     "expo-notifications": "~0.8.2",
     "expo-splash-screen": "~0.8.0",
-    "expo-updates": "~0.4.0",
+    "expo-updates": "~0.4.1",
     "expo-web-browser": "^9.0.0",
     "moment-timezone": "^0.5.33",
     "react": "16.13.1",

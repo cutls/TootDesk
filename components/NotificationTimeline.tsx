@@ -19,6 +19,7 @@ interface FromRootToTimeline {
     acctId: string
     imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
     reply: (id: string, acct: string) => void
+    dismiss?: () => void
     navigation: StackNavigationProp<ParamList, any>
 }
 export default (props: FromRootToTimeline) => {
@@ -31,7 +32,7 @@ export default (props: FromRootToTimeline) => {
         await loadTimeline()
         setRefreshing(false)
     }, [])
-    const { acctId, reply, navigation } = props
+    const { acctId, reply, navigation, dismiss } = props
     const renderItem = (e: any) => {
         const item = e.item as M.Notification
         let icon = <MaterialIcons name="help" size={27} style={styles.icon} color="#9a9da1" />
@@ -68,6 +69,10 @@ export default (props: FromRootToTimeline) => {
                     reply={reply} />
             </View>
         )
+        const gta = (id: string) => {
+            navigation.navigate('AccountDetails', { acctId, id, notification: false })
+            if(dismiss) dismiss()
+        }
         return (
             <View>
                 <View style={[commonStyle.horizonal, styles.notice]}>
@@ -75,10 +80,9 @@ export default (props: FromRootToTimeline) => {
                     <AccountName account={item.account} miniEmoji={true} />
                     <Text>さんが{label}</Text>
                 </View>
-                <Account account={item.account} key={`notification ${item.id}`} statusPost={statusPostAcct} isFR={item.type === 'follow_request'} />
+                <Account account={item.account} key={`notification ${item.id}`} statusPost={statusPostAcct} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
             </View>
         )
-
     }
     let ct = 0
     const loadTimeline = async () => {

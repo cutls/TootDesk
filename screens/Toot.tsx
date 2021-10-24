@@ -174,7 +174,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
     const compactAcct = (e: any) => {
         const item = e.item as M.Account
         return (<TouchableOpacity onPress={() => true}>
-            <Account account={item} key={`notification ${item.id}`} />
+            <Account account={item} key={`notification ${item.id}`} goToAccount={(id: string) => navigation.navigate('AccountDetails', { acctId, id, notification: false })} />
         </TouchableOpacity>)
     }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Image, FlatList } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Image, FlatList, ActionSheetIOS, Alert } from 'react-native'
 import * as Linking from 'expo-linking'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import { loginFirst, getAt } from '../utils/login'
@@ -20,6 +20,7 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+import { statusBarHeight } from '../utils/statusBar'
 const renderers = {
     img: defaultHTMLElementModels.img.extend({
         contentModel: HTMLContentModel.mixed,
@@ -44,6 +45,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
     const [deletable, setDeletable] = useState(false)
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [account, setAccount] = useState({} as M.Account)
+    const [relationship, setRelationship] = useState({} as M.Relationship)
     const [fffw, setFffw] = useState([{}, {}] as [M.Account[], M.Account[]])
     const [uTl, setUtl] = useState([] as M.Toot[])
     const [acctId, setAcctId] = useState('')
@@ -58,6 +60,9 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
             const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
             const acctData = await api.getV1Account(domain, at, id)
             const userTl = await api.getV1AccountsStatuses(domain, at, id)
+            const relationships = await api.getV1Relationships(domain, at, [id])
+            console.log(relationships)
+            setRelationship(relationships[0])
             setUtl(userTl)
             const fings = await api.getV1Follows(domain, at, id)
             const fers = await api.getV1Follower(domain, at, id)
@@ -105,6 +110,48 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
             <Text>Loading...</Text>
         </View>
     }
+    const accountAction = () => {
+        const { following, requested, muting, blocking, followed_by } = relationship
+        const options = [following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー', muting ? 'ミュート解除' : 'ミュート', blocking ? 'ブロック解除' : 'ブロック', 'キャンセル']
+        ActionSheetIOS.showActionSheetWithOptions(
+            {
+                options,
+                title: followed_by ? 'フォローされています' : 'フォローされていません',
+                destructiveButtonIndex: 2,
+                cancelButtonIndex: 3
+            },
+            (buttonIndex) => {
+                if (buttonIndex === 3) return true
+                Alert.alert(
+                    '確認',
+                    `${options[buttonIndex]}します。よろしいですか？`,
+                    [
+                        {
+                            text: 'キャンセル',
+                            onPress: () => true,
+                            style: 'cancel',
+                        },
+                        {
+                            text: '実行',
+                            onPress: async () => {
+                                const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+
+                                let newR = {} as M.Relationship
+                                if (buttonIndex === 0 && following) newR = await api.postV1UnFollow(domain, at, account.id)
+                                if (buttonIndex === 0 && !following && !requested) newR = await api.postV1Follow(domain, at, account.id)
+                                if (buttonIndex === 0 && !following && requested) newR = await api.postV1UnFollow(domain, at, account.id)
+                                if (buttonIndex === 1 && following) newR = await api.postV1UnMute(domain, at, account.id)
+                                if (buttonIndex === 1 && !following) newR = await api.postV1Mute(domain, at, account.id)
+                                if (buttonIndex === 2 && following) newR = await api.postV1UnBlock(domain, at, account.id)
+                                if (buttonIndex === 2 && !following) newR = await api.postV1Block(domain, at, account.id)
+                                setRelationship(newR)
+                            },
+                        },
+                    ],
+                    { cancelable: true }
+                )
+            })
+    }
     const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
         try {
             const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
@@ -142,7 +189,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
     const compactAcct = (e: any) => {
         const item = e.item as M.Account
         return (<TouchableOpacity onPress={() => init(acctId, item.id)}>
-            <Account account={item} key={`notification ${item.id}`} />
+            <Account account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} />
         </TouchableOpacity>)
     }
     const compactToot = (e: any) => {
@@ -168,7 +215,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
     interface ParamField {
         field: IField
     }
-    console.log(fields)
     const Fields = (fieldParam: ParamField) => {
         const { field } = fieldParam
         return <View style={commonStyle.horizonal}>
@@ -195,6 +241,10 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
             <Modal visible={imageModal.show} animationType="fade">
                 <ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
             </Modal>
+            <TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
+                <Text style={{ color: 'white' }}>→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}</Text>
+                <Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
+            </TouchableOpacity>
             <Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
             <View style={commonStyle.horizonal}>
                 <Image source={{ uri: account.avatar }} style={{ width: 100, height: 100 }} />
@@ -250,5 +300,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#eee'
+    },
+    followed: {
+        position: 'absolute',
+        right: 10,
+        top: statusBarHeight() + 10,
+        zIndex: 2,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        padding: 5,
+        borderRadius: 10,
+        display: 'flex',
+        alignItems: 'center'
     }
 })

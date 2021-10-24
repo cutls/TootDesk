@@ -56,7 +56,7 @@ export default (params: PropBottomFromRoot) => {
             <TouchableOpacity style={styles.config} onPress={() => showTrgNotif()}>
                 <Ionicons name="notifications" size={30} color={newNotif ? 'red' : 'black'} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.tlChanger} onPress={() => setNowSelecting(nowSelecting ? 0 : 1)}>
+            <TouchableOpacity style={styles.tlChanger} onPress={() => timelines.length > 1 ? setNowSelecting(nowSelecting ? 0 : 1) : true}>
                 <Text style={styles.tlChangerText}>{nowSelecting ? 1 : 2}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.centerMenu} onPress={() => setShowTL(true)}>
