@@ -2,7 +2,7 @@
   "expo": {
       "name": "TootDesk",
       "slug": "tootdesk",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "orientation": "default",
       "icon": "./assets/images/icon.png",
       "scheme": "tootdesk",
@@ -19,7 +19,7 @@
           "**/*"
       ],
       "ios": {
-          "buildNumber": "3",
+          "buildNumber": "4",
           "supportsTablet": true,
           "usesAppleSignIn": true,
           "bundleIdentifier": "top.thedesk.toot",
