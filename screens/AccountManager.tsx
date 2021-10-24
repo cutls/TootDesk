@@ -40,7 +40,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				const newAcct = await getAt(code)
 				setAccounts(newAcct)
 				if (__DEV__) pushNotf(newAcct[newAcct.length - 1])
-				if (__DEV__) Alert.alert(
+				if (!__DEV__) Alert.alert(
 					'情報',
 					'ブラウザが表示されている場合は、閉じてください',
 					[
