@@ -42,8 +42,13 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const toSetTooting = (is: boolean) => {
 		setTooting(is)
 	}
-	const changeTl = (tl: number) => {
+	
+    const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
+	const changeTl = async (tl: number, requireSleep?: boolean) => {
 		//alert(tl)
+		const tls = await storage.getItem('timelines')
+		setTimelines(tls)
+		if(requireSleep) await sleep(500)
 		setLoading('Change Timeline')
 		setNewNotif(false)
 		setNowSelecting(tl)

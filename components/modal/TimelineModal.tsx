@@ -73,7 +73,6 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
 
         }
     }
-    const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
     const dismiss = () => {
         setInternalShow(false)
         setTimeout(() => {

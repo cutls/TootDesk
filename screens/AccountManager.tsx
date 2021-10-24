@@ -19,7 +19,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Root')} style={{ marginLeft: 10 }}>
+				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
 					<Ionicons name="arrow-back" size={30} />
 				</TouchableOpacity>
 			),
@@ -39,16 +39,31 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			try {
 				const newAcct = await getAt(code)
 				setAccounts(newAcct)
-				pushNotf(newAcct[newAcct.length - 1])
+				if (__DEV__) pushNotf(newAcct[newAcct.length - 1])
+				if (__DEV__) Alert.alert(
+					'情報',
+					'ブラウザが表示されている場合は、閉じてください',
+					[
+						{
+							text: 'OK',
+							onPress: () => {
+								pushNotf(newAcct[newAcct.length - 1])
+							},
+						},
+					],
+					{ cancelable: false }
+				)
 			} catch (e) { }
 		}
 		finalize(code)
 	}
+	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 	const init = async () => {
 		try {
 			const newAcct = (await storage.getItem('accounts')) as S.Account[]
 			setAccounts(newAcct)
 			setReady(true)
+			setAttemptingLogin(false)
 			if (newAcct) {
 				const useAcct = newAcct[0]
 				const tls = await storage.getItem('timelines')
@@ -59,10 +74,12 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							acct: useAcct.id,
 							activated: true,
 							key: `home ${useAcct.id} 0`,
-							acctName: useAcct.name,
+							acctName: `${useAcct.acct}`,
 							timelineData: {}
 						}
 					])
+					await sleep(1000)
+					navigation.replace('Root')
 				}
 			}
 		} catch (e) { }
@@ -87,7 +104,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		setCodeInput('')
 		setAttemptingLogin(false)
 		setDomain('')
-		init()
 	}
 	const delAcct = (key: string) => {
 		Alert.alert(
@@ -108,6 +124,27 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						}
 						setAccounts(cl)
 						await storage.setItem('accounts', cl)
+					},
+				},
+			],
+			{ cancelable: true }
+		)
+
+	}
+	const allReset = () => {
+		Alert.alert(
+			'全てのデータを初期化します',
+			'この操作は取り消せません。実行後はアプリを再起動してください。',
+			[
+				{
+					text: 'キャンセル',
+					onPress: () => true,
+					style: 'cancel',
+				},
+				{
+					text: '削除',
+					onPress: async () => {
+						storage.deleteAllItem()
 					},
 				},
 			],
@@ -148,8 +185,10 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 					platform: 'expo'
 				})
 				Alert.alert('購読完了', 'プッシュ通知の購読が完了しました。')
+				init()
 			} catch (e) {
 				console.log(e)
+				init()
 			}
 		}
 		Alert.alert(
@@ -158,7 +197,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			[
 				{
 					text: 'キャンセル',
-					onPress: () => true,
+					onPress: () => init(),
 					style: 'cancel',
 				},
 				{
@@ -251,6 +290,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
 					</View>
 				)}
+				<Button onPress={() => allReset()} title="初期化" />
 			</View>
 		</View>
 	)
