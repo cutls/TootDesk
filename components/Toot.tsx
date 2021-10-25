@@ -16,7 +16,7 @@ import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-r
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
-	})
+	}),
 }
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
@@ -30,7 +30,6 @@ interface FromTimelineToToot {
 	navigation: StackNavigationProp<ParamList, any>
 	acctId: string
 }
-
 
 export default (props: FromTimelineToToot) => {
 	const { toot: rawToot, imgModalTrigger, statusPost, reply, navigation, acctId, deletable } = props
@@ -59,11 +58,11 @@ export default (props: FromTimelineToToot) => {
 	}
 	if (rawToot.reblog) {
 		topComponent = (
-			<View style={[styles.horizonal, styles.sameHeight]}>
+			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, notification: false })}>
 				<MaterialCommunityIcons name="twitter-retweet" size={27} style={{ color: '#2b90d9' }} />
 				<Image source={{ uri: rawToot.account.avatar }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
 				<AccountName account={rawToot.account} />
-			</View>
+			</TouchableOpacity>
 		)
 	}
 	let visiIcon = 'help' as 'help' | 'public' | 'lock-open' | 'lock' | 'mail'
@@ -91,12 +90,13 @@ export default (props: FromTimelineToToot) => {
 			{
 				options,
 				destructiveButtonIndex: 1,
-				cancelButtonIndex: 2
+				cancelButtonIndex: 2,
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
 				if (buttonIndex === 1) return statusPost('delete', id, setFaved)
-			})
+			}
+		)
 	}
 	return (
 		<View style={styles.container}>
@@ -106,7 +106,6 @@ export default (props: FromTimelineToToot) => {
 					<Image source={{ uri: toot.account.avatar }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 					<Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>
 					<MaterialIcons name={visiIcon} style={{ marginTop: 5 }} />
-
 				</TouchableOpacity>
 				<View style={{ width: '100%', marginLeft: 10 }}>
 					<View style={[styles.horizonal, styles.sameHeight]}>
@@ -114,7 +113,9 @@ export default (props: FromTimelineToToot) => {
 						{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
 					</View>
 					<View style={[styles.horizonal, styles.sameHeight]}>
-						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>@{toot.account.acct} {moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format('\'YY年M月D日 HH:mm:ss')}</Text>
+						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
+							@{toot.account.acct} {moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
+						</Text>
 					</View>
 					<HTML
 						source={{ html: emojify(toot.content, toot.emojis) }}
@@ -122,8 +123,8 @@ export default (props: FromTimelineToToot) => {
 						customHTMLElementModels={renderers}
 						renderersProps={{
 							a: {
-								onPress: async (e, href) => await WebBrowser.openBrowserAsync(href)
-							}
+								onPress: async (e, href) => await WebBrowser.openBrowserAsync(href),
+							},
 						}}
 						contentWidth={deviceWidth - 50}
 					/>
@@ -132,9 +133,21 @@ export default (props: FromTimelineToToot) => {
 					<View style={styles.actionsContainer}>
 						<MaterialIcons name="reply" size={27} style={styles.actionIcon} color="#9a9da1" onPress={() => reply(toot.id, toot.account.acct)} />
 						<Text style={styles.actionCounter}>{toot.replies_count}</Text>
-						<MaterialCommunityIcons name="twitter-retweet" size={27} style={styles.actionIcon} color={boosted.is ? '#03a9f4' : '#9a9da1'} onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, setBoosted)} />
+						<MaterialCommunityIcons
+							name="twitter-retweet"
+							size={27}
+							style={styles.actionIcon}
+							color={boosted.is ? '#03a9f4' : '#9a9da1'}
+							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, setBoosted)}
+						/>
 						<Text style={styles.actionCounter}>{boosted.ct}</Text>
-						<MaterialIcons name="star" size={27} style={styles.actionIcon} color={faved.is ? '#fbc02d' : '#9a9da1'} onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, setFaved)} />
+						<MaterialIcons
+							name="star"
+							size={27}
+							style={styles.actionIcon}
+							color={faved.is ? '#fbc02d' : '#9a9da1'}
+							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, setFaved)}
+						/>
 						<Text style={styles.actionCounter}>{faved.ct}</Text>
 						<MaterialIcons name="more-vert" size={27} style={styles.actionIcon} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 					</View>
@@ -164,12 +177,12 @@ const styles = StyleSheet.create({
 
 		alignContent: 'center',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	actionIcon: {
 		marginHorizontal: 20,
 	},
 	actionCounter: {
-		color: '#9a9da1'
-	}
+		color: '#9a9da1',
+	},
 })

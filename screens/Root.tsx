@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Alert } from 'react-native'
 import { Text, View, TextInput, Button } from '../components/Themed'
 import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
@@ -12,6 +12,7 @@ import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import * as storage from '../utils/storage'
 import TimelineProps, { TLType } from '../interfaces/TimelineProps'
 import { commonStyle } from '../utils/styles'
+import * as Updates from 'expo-updates'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
@@ -24,8 +25,32 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const [timelines, setTimelines] = useState([] as TimelineProps[])
 	const init = async () => {
 		setInited(true)
+		if (!__DEV__) {
+			const update = await Updates.checkForUpdateAsync()
+			if (update.isAvailable) {
+				await Updates.fetchUpdateAsync()
+				Alert.alert(
+					'追加データのダウンロード完了',
+					'再起動して最新のTootDeskをお使いください。',
+					[
+						{
+							text: 'スキップ',
+							onPress: () => true,
+							style: 'cancel',
+						},
+						{
+							text: '再起動',
+							onPress: () => {
+								Updates.reloadAsync()
+							},
+						},
+					],
+					{ cancelable: true }
+				)
+			}
+		}
 		const tls = await storage.getItem('timelines')
-		if(!tls) {
+		if (!tls) {
 			return goToAccountManager()
 		}
 		setTimelines(tls)
@@ -35,20 +60,24 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	}
 	const [tooting, setTooting] = useState(false)
 	const [newNotif, setNewNotif] = useState(false)
-	const [imageModal, setImageModal] = useState({ url: [''], i: 0, show: false })
+	const [imageModal, setImageModal] = useState({
+		url: [''],
+		i: 0,
+		show: false,
+	})
 	const goToAccountManager = () => {
 		navigation.replace('AccountManager')
 	}
 	const toSetTooting = (is: boolean) => {
 		setTooting(is)
 	}
-	
-    const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
+
+	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 	const changeTl = async (tl: number, requireSleep?: boolean) => {
 		//alert(tl)
 		const tls = await storage.getItem('timelines')
 		setTimelines(tls)
-		if(requireSleep) await sleep(500)
+		if (requireSleep) await sleep(500)
 		setNowSelecting(tl)
 		setLoading('Change Timeline')
 		setNewNotif(false)
@@ -69,7 +98,8 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 						setLoading={setLoading}
 						timeline={timelines[nowSelecting]}
 						imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-						reply={reply} />
+						reply={reply}
+					/>
 				</View>
 			</View>
 			<View style={styles.stickToBottom}>

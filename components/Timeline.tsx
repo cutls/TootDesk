@@ -10,6 +10,9 @@ import * as api from '../utils/api'
 import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
+import { TouchableOpacity } from 'react-native-gesture-handler'
+import { MaterialIcons } from '@expo/vector-icons'
+import { commonStyle } from '../utils/styles'
 
 interface FromRootToTimeline {
 	timeline: TimelineProps
@@ -31,6 +34,7 @@ export default (props: FromRootToTimeline) => {
 	const [ws, setWs] = useState({} as WebSocket)
 	const [refreshing, setRefreshing] = useState(false)
 	const [onScroll, setOnScroll] = useState(false)
+	const [showToTop, setShowToTop] = useState(false)
 	const onRefresh = React.useCallback(async () => {
 		setRefreshing(true)
 		await loadTimeline()
@@ -40,16 +44,18 @@ export default (props: FromRootToTimeline) => {
 	const renderItem = (e: any) => {
 		const item = e.item as M.Toot
 		const deletable = (item.reblog ? `@${item.reblog.account.acct}@${domain}` : `@${item.account.acct}@${domain}`) === acct
-		return (<Toot
-			navigation={navigation}
-			toot={item}
-			key={`${timeline.key} ${item.id}`}
-			statusPost={statusPost}
-			deletable={deletable}
-			imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
-			reply={reply}
-			acctId={timeline.acct}
-		/>)
+		return (
+			<Toot
+				navigation={navigation}
+				toot={item}
+				key={`${timeline.key} ${item.id}`}
+				statusPost={statusPost}
+				deletable={deletable}
+				imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
+				reply={reply}
+				acctId={timeline.acct}
+			/>
+		)
 	}
 	let ct = 0
 	const loadTimeline = async (moreLoad?: boolean) => {
@@ -181,10 +187,7 @@ export default (props: FromRootToTimeline) => {
 				ct = data.favourites_count
 			}
 			changeStatus({ is: positive, ct })
-		} catch (e) {
-
-		}
-
+		} catch (e) {}
 	}
 	React.useEffect(() => {
 		const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
@@ -215,9 +218,11 @@ export default (props: FromRootToTimeline) => {
 		)
 	}
 	if (!timeline.activated) {
-		return <View style={[styles.container, styles.center]}>
-			<Text>Not activated</Text>
-		</View>
+		return (
+			<View style={[styles.container, styles.center]}>
+				<Text>Not activated</Text>
+			</View>
+		)
 	}
 	const vc = (event: any) => {
 		let yOffset = event.nativeEvent.contentOffset.y
@@ -227,17 +232,33 @@ export default (props: FromRootToTimeline) => {
 	const moreLoad = () => {
 		loadTimeline(true)
 	}
-	return <FlatList
-		maintainVisibleContentPosition={onScroll ? { minIndexForVisible: 0 } : null}
-		onEndReached={moreLoad}
-		onScroll={vc}
-		ref={flatlistRef}
-		data={toots}
-		renderItem={renderItem}
-		style={styles.container}
-		initialNumToRender={20}
-		refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}
-		/>} />
+	const cntAdd = {
+		height: Dimensions.get('window').height - 65 - (showToTop ? 50 : 0),
+	}
+	return (
+		<View style={[styles.container, cntAdd]}>
+			<FlatList
+				maintainVisibleContentPosition={onScroll ? { minIndexForVisible: 0 } : null}
+				onEndReached={moreLoad}
+				onScroll={vc}
+				ref={flatlistRef}
+				data={toots}
+				renderItem={renderItem}
+				initialNumToRender={20}
+				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+				onScrollBeginDrag={() => setShowToTop(true)}
+				onScrollEndDrag={() => {
+					setTimeout(() => setShowToTop(false), 2000)
+				}}
+			/>
+			{showToTop ? (
+				<TouchableOpacity style={[styles.toTop, commonStyle.horizonal]} onPress={() => flatlistRef.current?.scrollToIndex({ index: 0 })}>
+					<MaterialIcons size={40} name="arrow-upward" color="white" />
+					<Text style={{color: 'white'}}>最上部へスクロール</Text>
+				</TouchableOpacity>
+			) : null}
+		</View>
+	)
 }
 const styles = StyleSheet.create({
 	center: {
@@ -246,9 +267,17 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 0,
-		height: Dimensions.get('window').height - 65,
 		width: Dimensions.get('window').width,
 		backgroundColor: 'transparent',
 		marginBottom: 95,
+	},
+	toTop: {
+		padding: 5,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		backgroundColor: 'rgba(0,0,0,0.5)',
+		zIndex: 999999,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 })
