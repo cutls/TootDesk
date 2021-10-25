@@ -246,8 +246,8 @@ export default (props: FromRootToTimeline) => {
 				renderItem={renderItem}
 				initialNumToRender={20}
 				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-				onScrollBeginDrag={() => setShowToTop(true)}
 				onScrollEndDrag={() => {
+					setShowToTop(true)
 					setTimeout(() => setShowToTop(false), 2000)
 				}}
 			/>
