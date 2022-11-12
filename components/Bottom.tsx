@@ -2,21 +2,21 @@ import React from 'react'
 import { StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
 import { Text, View, Button } from './Themed'
 import { Ionicons } from '@expo/vector-icons'
-import { ParamList } from '../interfaces/ParamList'
+import { ParamList, IState } from '../interfaces/ParamList'
 import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack'
 import TimelineProps from '../interfaces/TimelineProps'
 import NotifitionModal from '../components/modal/NotificationModal'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import TimelineModal from './modal/TimelineModal'
+import { ChangeTlContext } from '../utils/context/changeTl'
 const deviceWidth = Dimensions.get('window').width
 interface PropBottomFromRoot {
     goToAccountManager: () => void,
     tooting: (a: boolean) => void,
     timelines: TimelineProps[],
     nowSelecting: number,
-    setNowSelecting: Function
-    setNewNotif: React.Dispatch<React.SetStateAction<boolean>>
+    setNewNotif: IState<boolean>
     newNotif: boolean
     imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
     reply: (id: string, acct: string) => void
@@ -24,7 +24,8 @@ interface PropBottomFromRoot {
 }
 export default (params: PropBottomFromRoot) => {
     let tlLabel = 'Timeline'
-    const { timelines, nowSelecting, newNotif, setNewNotif, imgModalTrigger, reply, setNowSelecting, goToAccountManager, navigation } = params
+    const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
+    const { timelines, nowSelecting, newNotif, setNewNotif, imgModalTrigger, reply, goToAccountManager, navigation } = params
     if (!timelines) return null
     const timeline = timelines[nowSelecting]
     if (!timeline) return null
@@ -51,7 +52,7 @@ export default (params: PropBottomFromRoot) => {
     }
     return (
         <View style={styles.bottom}>
-            {showTL ? <TimelineModal setNowSelecting={setNowSelecting} setModal={setShowTL} goToAccountManager={goToAccountManager} /> : null}
+            {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} /> : null}
             {showNotif ? <NotifitionModal navigation={navigation} setShowNotif={setShowNotif} acctId={acct.id} imgModalTrigger={imgModalTrigger} reply={reply} /> : null}
             <TouchableOpacity style={styles.config} onPress={() => showTrgNotif()}>
                 <Ionicons name="notifications" size={30} color={newNotif ? 'red' : 'black'} />

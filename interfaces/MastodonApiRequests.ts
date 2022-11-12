@@ -60,3 +60,15 @@ export interface PushSubscription {
         }
     }
 }
+export interface Search {
+    account_id?: string
+    max_id?: string
+    min_id?: string
+    type?: 'accounts' | 'hashtags' | 'statuses'
+    exclude_unreviewed?: boolean
+    q: string
+    resolve?: boolean
+    limit?: number
+    offset?: number
+    following?: boolean
+}

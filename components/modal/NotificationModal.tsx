@@ -29,7 +29,7 @@ export default function SelectCustomEmoji({ setShowNotif, acctId, imgModalTrigge
        
     }
     return (
-        <Modal visible={modalVisible} animationType="slide">
+        <Modal visible={modalVisible} presentationStyle="formSheet" animationType="slide">
             {ios ? <View style={{ height: statusBarHeight() }} /> : null}
             <View style={[styles.top, commonStyle.horizonal]}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>通知</Text>

@@ -1,8 +1,6 @@
-import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Image, FlatList, ActionSheetIOS, Alert, ScrollView } from 'react-native'
-import * as Linking from 'expo-linking'
-import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
-import { loginFirst, getAt } from '../utils/login'
+import React, { useState } from 'react'
+import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, Alert, ScrollView } from 'react-native'
+import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
 import * as M from '../interfaces/MastodonApiReturns'
@@ -11,8 +9,6 @@ import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import * as api from '../utils/api'
 import { commonStyle } from '../utils/styles'
-import axios from 'axios'
-import Toot from '../components/Toot'
 import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
 import { AccountName, emojify } from '../components/AccountName'
@@ -21,14 +17,13 @@ import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 import { statusBarHeight } from '../utils/statusBar'
+import { RFC_2822 } from 'moment-timezone'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
 	}),
 }
 const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = StatusBar.currentHeight ? StatusBar.currentHeight : 20
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
 	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
 	React.useLayoutEffect(() => {
@@ -161,42 +156,10 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			}
 		)
 	}
-	const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
-		try {
-			const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-			let positive = true
-			let ct = 0
-			if (action === 'delete') {
-				const data = await api.deleteV1Status(acct.domain, acct.at, id)
-				navigation.navigate('Root')
-				return false
-			} else if (action === 'boost') {
-				const data = await api.postV1Boost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'fav') {
-				const data = await api.postV1Fav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			} else if (action === 'unboost') {
-				positive = false
-				const data = await api.postV1Unboost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'unfav') {
-				positive = false
-				const data = await api.postV1Unfav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			}
-			changeStatus({ is: positive, ct })
-		} catch (e) {}
-	}
-	const reply = (id: string, acct: string) => {
-		setText(`@${acct} `)
-		setReplyId(id)
-		setTooting(true)
-	}
 	const compactAcct = (e: any) => {
 		const item = e.item as M.Account
 		return (
-			<TouchableOpacity onPress={() => init(acctId, item.id)}>
+			<TouchableOpacity onPress={() => init(acctId, item.id)} style={styles.acct}>
 				<Account account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} />
 			</TouchableOpacity>
 		)
@@ -204,7 +167,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const compactToot = (e: any) => {
 		const item = e.item as M.Toot
 		return (
-			<TouchableOpacity onPress={() => navigation.navigate('Toot', { acctId, id: item.id, notification: false })}>
+			<TouchableOpacity style={styles.toot} onPress={() => navigation.navigate('Toot', { acctId, id: item.id, notification: false })}>
 				<AccountName account={item.account} miniEmoji={true} />
 				<HTML source={{ html: emojify(item.content, item.emojis) }} tagsStyles={{ p: { margin: 0 } }} contentWidth={deviceWidth - 50} customHTMLElementModels={renderers} />
 			</TouchableOpacity>
@@ -246,7 +209,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	}
 	return (
 		<View style={commonStyle.container}>
-			<Modal visible={imageModal.show} animationType="fade">
+			<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
 				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
 			</Modal>
 			<TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
@@ -290,7 +253,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			/>
 			{selectedIndex > 0 ? <FlatList data={showAccts} renderItem={compactAcct} /> : null}
 			{selectedIndex === 0 ? <FlatList data={uTl} renderItem={compactToot} /> : null}
-			{tooting ? <Post acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} /> : null}
+			<Post show={tooting} acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
 		</View>
 	)
 }
@@ -322,4 +285,16 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		alignItems: 'center',
 	},
+	toot: {
+		marginVertical: 2,
+		paddingVertical: 4,
+		borderBottomColor: '#aaa',
+		borderBottomWidth: 1
+	},
+	acct: {
+		marginVertical: 2,
+		paddingVertical: 4,
+		borderBottomColor: '#aaa',
+		borderBottomWidth: 1
+	}
 })

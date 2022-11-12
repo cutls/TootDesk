@@ -75,8 +75,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
         )
     }
     return (
-        <Modal visible={modalVisible} animationType="slide">
-            {ios ? <View style={{ height: statusBarHeight() }} /> : null}
+        <Modal visible={modalVisible} presentationStyle={"formSheet"} animationType="slide">
             <View style={[styles.top, commonStyle.horizonal]}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>カスタム絵文字</Text>
                 <TouchableOpacity onPress={() => dismiss()}>

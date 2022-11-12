@@ -88,6 +88,7 @@ export const getV1Account = async (domain: string, at: string, id: string) => { 
 export const getV1Follows = async (domain: string, at: string, id: string) => { return await getApi(`https://${domain}/api/v1/accounts/${id}/following`, at, {}) as M.Account[] }
 export const getV1Follower = async (domain: string, at: string, id: string) => { return await getApi(`https://${domain}/api/v1/accounts/${id}/followers`, at, {}) as M.Account[] }
 export const getV1Relationships = async (domain: string, at: string, ids: string[]) => { return await getApi(`https://${domain}/api/v1/accounts/relationships`, at, { id: ids }) as M.Relationship[] }
+export const getV2Search = async (domain: string, at: string, param: R.Search) => { return await getApi(`https://${domain}/api/v2/search`, at, param) as M.Search }
 
 
 export const postV2Media = async (domain: string, at: string, form: FormData) => { return await postApiMedia(`https://${domain}/api/v2/media`, at, form) as M.Media }

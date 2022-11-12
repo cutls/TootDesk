@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, Alert } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, Alert, ListRenderItem } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../Themed'
 import * as storage from '../../utils/storage'
 import { commonStyle, tablet } from '../../utils/styles'
@@ -8,10 +8,10 @@ import * as S from '../../interfaces/Storage'
 import * as api from '../../utils/api'
 import * as R from '../../interfaces/MastodonApiRequests'
 import TimelineProps, { TLType } from '../../interfaces/TimelineProps'
-import DraggableFlatList, { RenderItemParams } from "react-native-draggable-flatlist"
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import { MaterialIcons } from '@expo/vector-icons'
+import { ChangeTlContext } from '../../utils/context/changeTl'
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 
@@ -22,7 +22,8 @@ if (Platform.OS != 'ios') ios = false
 let web = false
 if (Platform.OS === 'web') web = true
 
-export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
+export default ({ setModal, goToAccountManager }: any) => {
+    const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
     const [inited, setInited] = React.useState(false)
@@ -30,11 +31,11 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
     const [internalShow, setInternalShow] = React.useState(true)
     const [editMode, setEditMode] = React.useState(false)
     const [mode, setMode] = React.useState('select')
-    const [timelines, setTimelines] = React.useState([] as TimelineProps[])
-    const [accountListTxt, setAccountListTxt] = React.useState([] as string[])
-    const [accountList, setAccountList] = React.useState([] as string[])
-    const [accountTxt, setAccountTxt] = React.useState('' as string)
-    const [account, setAccount] = React.useState('' as string)
+    const [timelines, setTimelines] = React.useState<TimelineProps[]>([])
+    const [accountListTxt, setAccountListTxt] = React.useState<string[]>([])
+    const [accountList, setAccountList] = React.useState<string[]>([])
+    const [accountTxt, setAccountTxt] = React.useState<string>('')
+    const [account, setAccount] = React.useState<string>('')
     const [listSelect, setListSelect] = React.useState(false)
     const init = async () => {
         const tls = await storage.getItem('timelines')
@@ -87,6 +88,11 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
             useNativeDriver: false,
         }).start()
     }
+    const save = async () => {
+        await storage.setItem('timelines', timelines)
+        setEditMode(false)
+        setNowSelecting(0)
+    }
     const boxInterpolation = animation.interpolate({
         inputRange: [0, 1],
         outputRange: ['rgba(0,0,0,0.5)', 'rgba(0,0,0,0)'],
@@ -127,27 +133,18 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
             ],
             { cancelable: true }
         )
-
     }
-    const renderRightActions = (
-        progress: Animated.AnimatedInterpolation,
-        dragAnimatedValue: Animated.AnimatedInterpolation,
-        key: string
-    ) => {
-        const opacity = dragAnimatedValue.interpolate({
-            inputRange: [-150, 0],
-            outputRange: [1, 0],
-            extrapolate: 'clamp',
-        });
-        return (
-            <View>
-                <Animated.View style={[styles.deleteButton, { opacity }]}>
-                    <TouchableOpacity onPress={() => delTl(key)}>
-                        <Text style={styles.deleteButtonText}>削除</Text>
-                    </TouchableOpacity>
-                </Animated.View>
-            </View>
-        );
+    const moveTl = (action: 'up' | 'down', key: string) => {
+        const nowTarget = timelines.findIndex((item) => item.key === key)
+        const targetItem = timelines[nowTarget]
+        const goTarget = nowTarget + (action === 'up' ? -1 : 1)
+        if (goTarget < 0. || goTarget === timelines.length) return
+        let i = 0
+        const newTl = timelines.filter((item) => item.key !== targetItem.key)
+        console.log(newTl.map((item) => item.type))
+        newTl.splice(goTarget, 0, targetItem)
+        console.log(goTarget, newTl.map((item) => item.type))
+        setTimelines(newTl)
     }
     const selectList = async () => {
         try {
@@ -188,7 +185,7 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
                 if (buttonIndex === 2) return alert('現在使用できません')
             }
         )
-    const renderItem = ({ item, index, drag, isActive }: RenderItemParams<TimelineProps>) => {
+    const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
         let tlLabel = 'Timeline'
         if (item.type === 'home') tlLabel = 'Home'
         if (item.type === 'local') tlLabel = 'Local'
@@ -197,15 +194,27 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
         if (item.type === 'list') tlLabel = `List ${item.timelineData.title}`
 
         return (
-            <Swipeable enabled={editMode} renderRightActions={(a, b) => renderRightActions(a, b, item.key)}>
-                <TouchableOpacity onLongPress={drag} onPress={() => editMode ? true : select(index)}>
-                    <View style={styles.menu}>
-                        <Text>{tlLabel}</Text>
-                        <Text>{item.acctName}</Text>
+            <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: deviceWidth }]}>
+                <View style={styles.menu}>
+                    <Text>{tlLabel}</Text>
+                    <Text>{item.acctName}</Text>
+                </View>
+                {editMode &&
+                    <View style={[commonStyle.horizonal, { paddingTop: 10 }]}>
+                        <TouchableOpacity onPress={() => moveTl('up', item.key)} style={styles.editMenu}>
+                            <MaterialIcons size={20} name="arrow-upward" color={isDark ? 'white' : 'black'} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => moveTl('down', item.key)} style={styles.editMenu}>
+                            <MaterialIcons size={20} name="arrow-downward" color={isDark ? 'white' : 'black'} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => delTl(item.key)} style={styles.editMenu}>
+                            <MaterialIcons size={20} name="delete" color="red" />
+                        </TouchableOpacity>
                     </View>
-                    <View style={commonStyle.separator} />
-                </TouchableOpacity>
-            </Swipeable>)
+
+                }
+                <View style={commonStyle.separator} />
+            </TouchableOpacity>)
     }
     return (
         <Animated.View style={web ? [styles.wrap] : { ...styles.wrap, ...animatedStyle }}>
@@ -222,11 +231,10 @@ export default ({ setModal, setNowSelecting, goToAccountManager }: any) => {
                         </TouchableOpacity>
                     </View>
                     {mode === 'select' ? <View style={styles.flatlist}>
-                        <DraggableFlatList data={timelines} renderItem={renderItem}
-                            keyExtractor={(item, index) => `draggable-item-${item.key}`}
-                            onDragEnd={({ data }) => setTimelines(data)} />
+                        <FlatList data={timelines} renderItem={renderItem}
+                            keyExtractor={(item, index) => `${item.key}`} />
                         {editMode ?
-                            <Button title="完了" materialIcon="done" onPress={() => setEditMode(false)} />
+                            <Button title="完了" materialIcon="done" onPress={() => save()} />
                             :
                             <Button title="追加" icon="add" onPress={() => setMode('add')} />}
                     </View> :
@@ -300,31 +308,22 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         height: 50,
     },
-    deleteButton: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignContent: 'center',
-        backgroundColor: '#e83a00',
-        height: 50,
-        width: 100,
-        paddingHorizontal: 10
-    },
-    deleteButtonText: {
-        backgroundColor: '#e83a00',
-        color: 'white',
-        textAlign: 'right',
-        fontSize: 20
-    },
     menu: {
         borderBottomColor: '#eee',
         borderBottomWidth: 1,
         paddingVertical: 10,
-        height: 50
+        height: 50,
+        width: deviceWidth - 120
     },
     flatlist: {
         height: useHeight - 250
     },
     tlBtn: {
         width: (deviceWidth - 40) / 2
+    },
+    editMenu: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 5
     }
 })

@@ -22,7 +22,8 @@ export const commonStyle = StyleSheet.create({
 	separator: {
 		height: 1,
 		width: '100%',
-		maxWidth: 500
+		maxWidth: 500,
+		backgroundColor: '#ddd'
 	},
 	horizonal: {
 		flexDirection: 'row',

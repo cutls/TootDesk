@@ -13,11 +13,11 @@ export const useKeyboard = (): [number] => {
   }
 
   useEffect(() => {
-    Keyboard.addListener('keyboardDidShow', onKeyboardDidShow)
-    Keyboard.addListener('keyboardDidHide', onKeyboardDidHide)
+    const e1 = Keyboard.addListener('keyboardDidShow', onKeyboardDidShow)
+    const e2 = Keyboard.addListener('keyboardDidHide', onKeyboardDidHide)
     return (): void => {
-      Keyboard.removeListener('keyboardDidShow', onKeyboardDidShow)
-      Keyboard.removeListener('keyboardDidHide', onKeyboardDidHide)
+      e1.remove()
+      e2.remove()
     }
   }, [])
 

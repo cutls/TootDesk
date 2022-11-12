@@ -1,25 +1,24 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, AppState, Dimensions, FlatList, RefreshControl, AppStateStatus } from 'react-native'
-import { Text, View, TextInput, Button } from './Themed'
+import { Text, View } from './Themed'
 import Toot from './Toot'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
+import deepClone from '../utils/deepClone'
 import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { ParamList } from '../interfaces/ParamList'
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import { MaterialIcons } from '@expo/vector-icons'
-import { commonStyle } from '../utils/styles'
+import { ParamList, IState } from '../interfaces/ParamList'
+import { TopBtnContext } from '../utils/context/topBtn'
 
 interface FromRootToTimeline {
 	timeline: TimelineProps
 	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
 	loading: string | null
-	setLoading: React.Dispatch<React.SetStateAction<string | null>>
-	setNewNotif: React.Dispatch<React.SetStateAction<boolean>>
+	setLoading: IState<string | null>
+	setNewNotif: IState<boolean>
 	reply: (id: string, acct: string) => void
 	navigation: StackNavigationProp<ParamList, any>
 }
@@ -31,10 +30,11 @@ export default (props: FromRootToTimeline) => {
 	const [minId, setMinId] = useState('')
 	const [acct, setAcct] = useState('')
 	const [domain, setDomain] = useState('')
-	const [ws, setWs] = useState({} as WebSocket)
+	const [ws, setWs] = useState<WebSocket | null>(null)
 	const [refreshing, setRefreshing] = useState(false)
 	const [onScroll, setOnScroll] = useState(false)
-	const [showToTop, setShowToTop] = useState(false)
+	const { show: showToTop, setShow: setShowToTop, setFlatList } = useContext(TopBtnContext)
+
 	const onRefresh = React.useCallback(async () => {
 		setRefreshing(true)
 		await loadTimeline()
@@ -58,9 +58,12 @@ export default (props: FromRootToTimeline) => {
 		)
 	}
 	let ct = 0
-	const loadTimeline = async (moreLoad?: boolean) => {
+	const tootUpdator = (item: M.Toot[]) => setToots(deepClone(item))
+	const loadTimeline = async (mode?: 'more' | 'update') => {
+		const moreLoad = mode === 'more'
+		const updateLoad = mode === 'update'
 		if (!timeline) return false
-		if (!moreLoad) setLoading('Loading...')
+		if (!mode) setLoading('Loading...')
 		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
 		setAcct(acct.acct)
 		setDomain(acct.domain)
@@ -68,31 +71,33 @@ export default (props: FromRootToTimeline) => {
 		let data: M.Toot[] = []
 		const param = {} as any
 		if (moreLoad) param.max_id = minId
+		if (updateLoad && !toots) return console.log('no deps')
+		if (updateLoad) param.since_id = toots[0].id
 		switch (timeline.type) {
 			case 'home':
 				streamable = 'user'
 				data = await api.getV1TimelinesHome(acct.domain, acct.at, param)
-				setMinId(data[data.length - 1].id)
+				if (data.length) setMinId(data[data.length - 1].id)
 				break
 			case 'local':
 				streamable = 'public:local'
 				data = await api.getV1TimelinesLocal(acct.domain, acct.at, param)
-				setMinId(data[data.length - 1].id)
+				if (data.length) setMinId(data[data.length - 1].id)
 				break
 			case 'public':
 				streamable = 'public'
 				data = await api.getV1TimelinesPublic(acct.domain, acct.at, param)
-				setMinId(data[data.length - 1].id)
+				if (data.length) setMinId(data[data.length - 1].id)
 				break
 			case 'hashtag':
 				streamable = 'hashtag'
 				data = await api.getV1TimelinesHashtag(acct.domain, acct.at, timeline.timelineData.target, param)
-				setMinId(data[data.length - 1].id)
+				if (data.length) setMinId(data[data.length - 1].id)
 				break
 			case 'list':
 				streamable = 'list'
 				data = await api.getV1TimelinesList(acct.domain, acct.at, timeline.timelineData.target, param)
-				setMinId(data[data.length - 1].id)
+				if (data.length) setMinId(data[data.length - 1].id)
 				break
 			case 'bookmark':
 				streamable = false
@@ -113,17 +118,20 @@ export default (props: FromRootToTimeline) => {
 		}
 		if (moreLoad) {
 			const clone = toots
-			for (const obj of data) {
-				clone.push(obj)
-			}
-			setToots(clone)
+			const newData = clone.concat(data)
+			setToots(newData)
 			return true
+		} else if (updateLoad) {
+			const clone = toots
+			console.log(clone.map((item) => item.account.display_name))
+			const newData = data.concat(clone)
+			tootUpdator(newData)
 		}
-		if (toots.length) setToots([])
-		setTimeout(() => setToots(data), 200)
+		if (!updateLoad && toots.length) setToots([])
+		if (!updateLoad) setTimeout(() => setToots(data), 200)
 		setLoading(null)
 		if (streamable) {
-			let firstStep = true
+			let firstStep = !updateLoad
 			console.log('get stream')
 			ct++
 			if (ct > 2) return false
@@ -139,22 +147,27 @@ export default (props: FromRootToTimeline) => {
 				}
 			}
 			wss.onmessage = async (e) => {
+				console.log('stream received')
 				const { event } = JSON.parse(e.data)
 				if (event === 'update' || event === 'conversation') {
 					//markers show中はダメ
 					const { stream, payload } = JSON.parse(e.data)
+					if (!stream.includes(streamable)) return console.log('incompatible stream')
 					const obj = JSON.parse(payload)
 					const clone = firstStep ? data : toots
-					//firstStep = false
 					clone.unshift(obj)
-					if (clone.length > 2) setToots(clone)
-					//setIds(obj.id)
+					if (clone.length > 2) tootUpdator(clone)
 				} else if (event === 'notification') {
 					setNewNotif(true)
+				} else if (event === 'delete') {
+					const { payload } = JSON.parse(e.data)
+					const newTl = toots.filter((item) => item.id !== payload)
+					tootUpdator(newTl)
 				}
 			}
 			wss.onclose = async () => {
 				console.log('closed')
+				setWs(null)
 				//if (!killStreaming) await loadTimeline()
 			}
 			wss.onerror = async (e) => {
@@ -162,7 +175,6 @@ export default (props: FromRootToTimeline) => {
 			}
 		}
 	}
-	const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>
 	const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
 		try {
 			const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
@@ -187,27 +199,37 @@ export default (props: FromRootToTimeline) => {
 				ct = data.favourites_count
 			}
 			changeStatus({ is: positive, ct })
-		} catch (e) {}
+		} catch (e) { }
 	}
-	React.useEffect(() => {
+	useEffect(() => {
 		const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
+			if ((nextAppState === 'inactive' || nextAppState === 'background') && appState.current === 'active') {
+				console.log('App has come to the background!')
+				ws?.close()
+			}
 			if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
 				console.log('App has come to the foreground!')
-				await loadTimeline()
+				await loadTimeline('update')
 			}
 			appState.current = nextAppState
 			setAppStateVisible(appState.current)
 		}
-		AppState.addEventListener('change', _handleAppStateChange)
-		return () => {
-			AppState.removeEventListener('change', _handleAppStateChange)
+		if (timeline && toots.length) {
+			const e = AppState.addEventListener('change', _handleAppStateChange)
+			return () => {
+				e.remove()
+			}
 		}
-	}, [loadTimeline])
+	}, [timeline, toots])
+	const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>
+	useEffect(() => {
+		setFlatList(flatlistRef)
+	}, [])
 	console.log(loading)
 	if (loading) {
 		if (loading === 'Initializing' || loading === 'Change Timeline') {
 			if (loading === 'Change Timeline') {
-				if (typeof ws.close === 'function') ws.close()
+				if (ws && typeof ws.close === 'function') ws.close()
 			}
 			loadTimeline()
 		}
@@ -230,13 +252,11 @@ export default (props: FromRootToTimeline) => {
 		if (yOffset <= 0) setOnScroll(false)
 	}
 	const moreLoad = () => {
-		loadTimeline(true)
-	}
-	const cntAdd = {
-		height: Dimensions.get('window').height - 65 - (showToTop ? 50 : 0),
+		loadTimeline('more')
 	}
 	return (
-		<View style={[styles.container, cntAdd]}>
+		<View style={[styles.container]}>
+			<View style={{ position: 'absolute', backgroundColor: 'red', width: 4, height: 4, opacity: ws ? 1 : 0, zIndex: 999, borderRadius: 2, marginLeft: 5 }} />
 			<FlatList
 				maintainVisibleContentPosition={onScroll ? { minIndexForVisible: 0 } : null}
 				onEndReached={moreLoad}
@@ -251,12 +271,6 @@ export default (props: FromRootToTimeline) => {
 					setTimeout(() => setShowToTop(false), 2000)
 				}}
 			/>
-			{showToTop ? (
-				<TouchableOpacity style={[styles.toTop, commonStyle.horizonal]} onPress={() => flatlistRef.current?.scrollToIndex({ index: 0 })}>
-					<MaterialIcons size={40} name="arrow-upward" color="white" />
-					<Text style={{color: 'white'}}>最上部へスクロール</Text>
-				</TouchableOpacity>
-			) : null}
 		</View>
 	)
 }

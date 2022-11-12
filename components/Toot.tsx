@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { MaterialIcons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons'
+import * as api from '../utils/api'
 import * as WebBrowser from 'expo-web-browser'
 import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -13,6 +14,9 @@ import 'moment/locale/ja'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+import { BlurView } from 'expo-blur'
+import * as S from '../interfaces/Storage'
+import * as storage from '../utils/storage'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -37,8 +41,8 @@ export default (props: FromTimelineToToot) => {
 	let topComponent: null | JSX.Element = null
 	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: rawToot.reblogs_count })
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
-
-	const showMedia = (media: any) => {
+	const [isCwShow, setIsCwShow] = useState(false)
+	const showMedia = (media: any, isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
 		for (const mid of media) {
@@ -48,9 +52,14 @@ export default (props: FromTimelineToToot) => {
 		for (const mid of media) {
 			let cloneI = parseInt(i.toString())
 			ret.push(
-				<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id}>
-					<Image source={{ uri: mid.url }} style={{ width: (deviceWidth - 80) / media.length, height: 50, borderWidth: 1 }} />
-				</TouchableOpacity>
+				isSensitive ?
+					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id} >
+						<Image source={{ uri: mid.url }} style={{ width: (deviceWidth - 80) / media.length, height: 50, borderWidth: 1 }} />
+						<BlurView intensity={40} style={{ position: 'absolute', width: (deviceWidth - 80) / media.length, height: 50 }} />
+					</TouchableOpacity >
+					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id}>
+						<Image source={{ uri: mid.url }} style={{ width: (deviceWidth - 80) / media.length, height: 50, borderWidth: 1 }} />
+					</TouchableOpacity>
 			)
 			i++
 		}
@@ -59,7 +68,7 @@ export default (props: FromTimelineToToot) => {
 	if (rawToot.reblog) {
 		topComponent = (
 			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, notification: false })}>
-				<MaterialCommunityIcons name="twitter-retweet" size={27} style={{ color: '#2b90d9' }} />
+				<FontAwesome name="retweet" size={27} style={{ color: '#2b90d9' }} />
 				<Image source={{ uri: rawToot.account.avatar }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
 				<AccountName account={rawToot.account} />
 			</TouchableOpacity>
@@ -98,6 +107,29 @@ export default (props: FromTimelineToToot) => {
 			}
 		)
 	}
+	const linkHandler = async (href: string) => {
+		// https://2m.cutls.com/@Cutls
+		const tagDetector = href.match(/\/tags\/(.+)/)
+		const acctDetector = href.match(/https:\/\/(.+)\/@(.+)/)
+		if (tagDetector) {
+			const tag = tagDetector[1]
+			navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: acctId, activated: true, key: `glance at tag${tag}`, acctName: ``, timelineData: { target: tag } } })
+		} else if (acctDetector) {
+			const acctNotation = `${acctDetector[2]}@${acctDetector[1]}`
+			try {
+				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+				const { domain, at} = acct
+				const data = await api.getV2Search(domain, at, { q: acctNotation, resolve: true })
+				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
+				if (!data.accounts.length) throw 'アカウントが見つかりませんでした'
+				navigation.navigate('AccountDetails', { at, domain,  notification: false, acctId, id: data.accounts[0].id })
+			} catch(e) {
+				await WebBrowser.openBrowserAsync(href)
+			}
+		} else {
+			await WebBrowser.openBrowserAsync(href)
+		}
+	}
 	return (
 		<View style={styles.container}>
 			{topComponent}
@@ -117,24 +149,28 @@ export default (props: FromTimelineToToot) => {
 							@{toot.account.acct} {moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
 						</Text>
 					</View>
-					<HTML
+					{!toot.spoiler_text || isCwShow ? <HTML
 						source={{ html: emojify(toot.content, toot.emojis) }}
 						tagsStyles={{ p: { margin: 0 } }}
 						customHTMLElementModels={renderers}
 						renderersProps={{
 							a: {
-								onPress: async (e, href) => await WebBrowser.openBrowserAsync(href),
+								onPress: async (e, href) => linkHandler(href),
 							},
 						}}
 						contentWidth={deviceWidth - 50}
-					/>
+					/> : <Text>{toot.spoiler_text}</Text>}
+					{!!toot.spoiler_text && <TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
+						<Text>{isCwShow ? '隠す' : '見る'}</Text>
+					</TouchableOpacity>}
 					{toot.card ? <Card card={toot.card} /> : null}
-					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments) : null}</View>
+					{toot.poll && <Text style={styles.cannotPoll}>[投票はブラウザでお楽しみください]</Text>}
+					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 					<View style={styles.actionsContainer}>
 						<MaterialIcons name="reply" size={27} style={styles.actionIcon} color="#9a9da1" onPress={() => reply(toot.id, toot.account.acct)} />
 						<Text style={styles.actionCounter}>{toot.replies_count}</Text>
-						<MaterialCommunityIcons
-							name="twitter-retweet"
+						<FontAwesome
+							name="retweet"
 							size={27}
 							style={styles.actionIcon}
 							color={boosted.is ? '#03a9f4' : '#9a9da1'}
@@ -185,4 +221,17 @@ const styles = StyleSheet.create({
 	actionCounter: {
 		color: '#9a9da1',
 	},
+	cwBtn: {
+		display: 'flex',
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: `#aaa`,
+		padding: 10,
+		borderRadius: 5,
+		marginVertical: 5,
+		width: 55,
+	},
+	cannotPoll: {
+		color: '#aaa'
+	}
 })

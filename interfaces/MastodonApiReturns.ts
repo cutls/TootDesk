@@ -217,3 +217,8 @@ export interface Context {
     descendants: Toot[]
     ancestors: Toot[]
 }
+export interface Search {
+    accounts: Account[]
+    statuses: Toot[]
+    hashtags: Tag[]
+}

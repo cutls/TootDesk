@@ -1,28 +1,31 @@
-import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Alert } from 'react-native'
-import { Text, View, TextInput, Button } from '../components/Themed'
+import React, { useState } from 'react'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Alert, SafeAreaView } from 'react-native'
+import { TouchableOpacity, View } from '../components/Themed'
 import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
 import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
-import { MaterialIcons } from '@expo/vector-icons'
 import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import * as storage from '../utils/storage'
-import TimelineProps, { TLType } from '../interfaces/TimelineProps'
-import { commonStyle } from '../utils/styles'
+import TimelineProps from '../interfaces/TimelineProps'
 import * as Updates from 'expo-updates'
+import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
+import { MaterialIcons } from '@expo/vector-icons'
+import { ChangeTlContext } from '../utils/context/changeTl'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
 export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>) {
-	const [loading, setLoading] = useState('Initializing' as null | string)
+	const [loading, setLoading] = useState<null | string>('Initializing')
 	const [text, setText] = useState('' as string)
 	const [replyId, setReplyId] = useState('' as string)
 	const [inited, setInited] = useState(false)
+	const [showToTop, setShowToTop] = useState(false)
 	const [nowSelecting, setNowSelecting] = useState(0)
-	const [timelines, setTimelines] = useState([] as TimelineProps[])
+	const [timelines, setTimelines] = useState<TimelineProps[]>([])
+	const [flatList, setFlatList] = useState<IFlatList>(undefined)
 	const init = async () => {
 		setInited(true)
 		if (!__DEV__) {
@@ -87,42 +90,49 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 		setReplyId(id)
 		setTooting(true)
 	}
+	const acct = (timelines[nowSelecting || 0] || { acct: '' }).acct
 	return (
-		<View style={styles.container}>
-			<View>
-				<View style={styles.psudo}>
-					<Timeline
-						navigation={navigation}
-						loading={loading}
-						setNewNotif={setNewNotif}
-						setLoading={setLoading}
-						timeline={timelines[nowSelecting]}
-						imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-						reply={reply}
-					/>
-				</View>
-			</View>
-			<View style={styles.stickToBottom}>
-				<View style={styles.bottom}>
-					<Bottom
-						goToAccountManager={goToAccountManager}
-						tooting={toSetTooting}
-						timelines={timelines}
-						nowSelecting={nowSelecting}
-						setNowSelecting={changeTl}
-						setNewNotif={setNewNotif}
-						newNotif={newNotif}
-						imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-						reply={reply}
-						navigation={navigation}
-					/>
-				</View>
-			</View>
-			<Modal visible={imageModal.show} animationType="fade">
-				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
-			</Modal>
-			{tooting ? <Post acct={timelines[nowSelecting].acct} tooting={toSetTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} /> : null}
-		</View>
+		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
+			<ChangeTlContext.Provider value={{ changeTl }}>
+				<SafeAreaView style={styles.container}>
+					<View>
+						<View style={styles.psudo}>
+							<Timeline
+								navigation={navigation}
+								loading={loading}
+								setNewNotif={setNewNotif}
+								setLoading={setLoading}
+								timeline={timelines[nowSelecting]}
+								imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
+								reply={reply}
+							/>
+						</View>
+					</View>
+					<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
+						<MaterialIcons name="keyboard-arrow-up" size={27} />
+					</TouchableOpacity>
+					<View style={styles.stickToBottom}>
+						<View style={styles.bottom}>
+							<Bottom
+								goToAccountManager={goToAccountManager}
+								tooting={toSetTooting}
+								timelines={timelines}
+								nowSelecting={nowSelecting}
+								setNewNotif={setNewNotif}
+								newNotif={newNotif}
+								imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
+								reply={reply}
+								navigation={navigation}
+							/>
+						</View>
+					</View>
+					<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
+						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
+					</Modal>
+					<Post show={tooting} acct={acct} tooting={toSetTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
+				</SafeAreaView>
+			</ChangeTlContext.Provider>
+		</TopBtnContext.Provider>
 	)
 }
 let android = false
@@ -151,4 +161,16 @@ const styles = StyleSheet.create({
 		paddingTop: 0,
 		backgroundColor: 'transparent',
 	},
+	toTop: {
+		position: 'absolute',
+		top: deviceHeight - (isIPhoneX ? 95 : 75) - 50,
+		height: 50,
+		width: 50,
+		borderTopLeftRadius: 10,
+		backgroundColor: '#eee',
+		right: 0,
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center'
+	}
 })

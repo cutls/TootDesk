@@ -51,6 +51,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 
 	const [accounts, setAccounts] = useState([] as S.Account[])
 	const [attemptingLogin, setAttemptingLogin] = useState(false)
+	const [myNotifySet, setMyNotifySet] = useState(false)
+	const [myNotify, setMyNotify] = useState('push.0px.io')
 	const [ready, setReady] = useState(false)
 	const [codeInput, setCodeInput] = useState('')
 	let code: string
@@ -173,7 +175,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				alert('Must use physical device for Push Notifications');
 			}
 			try {
-				const data = await axios.post(`https://push.0px.io/subscribe`, {
+				const data = await axios.post(`https://${myNotify}/subscribe`, {
 					at: acct.at,
 					domain: acct.domain,
 					token,
@@ -291,6 +293,13 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
 					</View>
 				)}
+				<View style={{ height: 10 }} />
+				{myNotifySet ? <View>
+					<Text>TootDesk対応通知サーバのドメインを入力してください(初期値: push.0px.io)</Text>
+					<TextInput placeholder="サーバ*" onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
+				</View> : <TouchableOpacity onPress={() => setMyNotifySet(true)}>
+					<Text style={{ textDecorationLine: 'underline' }}>通知サーバを設定する</Text>
+				</TouchableOpacity>}
 			</View>
 		</View>
 	)

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import TimelineProps from '../interfaces/TimelineProps'
-import { StyleSheet, AppState, Dimensions, FlatList, RefreshControl, AppStateStatus, Alert } from 'react-native'
-import { Text, View, TextInput, Button } from './Themed'
+import { StyleSheet, Dimensions, FlatList, RefreshControl, Alert } from 'react-native'
+import { Text, View } from './Themed'
 import Toot from './Toot'
 import Account from './Account'
 import * as M from '../interfaces/MastodonApiReturns'
@@ -10,7 +9,7 @@ import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
 import { RefObject } from 'react'
 import { commonStyle } from '../utils/styles'
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { FontAwesome, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
 import { AccountName } from './AccountName'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
@@ -37,7 +36,7 @@ export default (props: FromRootToTimeline) => {
         const item = e.item as M.Notification
         let icon = <MaterialIcons name="help" size={27} style={styles.icon} color="#9a9da1" />
         if (item.type === 'favourite') icon = <MaterialIcons name="star" size={27} style={styles.icon} color="#fbc02d" />
-        if (item.type === 'reblog') icon = <MaterialCommunityIcons size={27} name="twitter-retweet" style={styles.icon} color="#03a9f4" />
+        if (item.type === 'reblog') icon = <FontAwesome size={27} name="retweet" style={styles.icon} color="#03a9f4" />
         if (item.type === 'mention') icon = <MaterialCommunityIcons size={27} name="reply" style={styles.icon} color="#1f961b" />
         if (item.type === 'status') icon = <MaterialIcons size={27} name="person" style={styles.icon} color="#1b3896" />
         if (item.type === 'poll') icon = <MaterialIcons size={27} name="poll" style={styles.icon} color="#651470" />
@@ -67,20 +66,22 @@ export default (props: FromRootToTimeline) => {
                     statusPost={statusPost}
                     imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
                     reply={reply} />
+                <View style={commonStyle.separator} />
             </View>
         )
         const gta = (id: string) => {
             navigation.navigate('AccountDetails', { acctId, id, notification: false })
-            if(dismiss) dismiss()
+            if (dismiss) dismiss()
         }
         return (
-            <View>
+            <View style={{padding: 5}}>
                 <View style={[commonStyle.horizonal, styles.notice]}>
                     {icon}
                     <AccountName account={item.account} miniEmoji={true} />
                     <Text>さんが{label}</Text>
                 </View>
                 <Account account={item.account} key={`notification ${item.id}`} statusPost={statusPostAcct} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
+                <View style={commonStyle.separator} />
             </View>
         )
     }

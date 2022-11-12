@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, Text, Image, ActionSheetIOS, Alert } from 'react-native'
+import { Dimensions, StyleSheet, TextInput, Text, Image, ActionSheetIOS, Alert, useColorScheme } from 'react-native'
 import { TouchableOpacity, View, Button } from '../components/Themed'
 import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
+import { IState } from '../interfaces/ParamList'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 import * as storage from '../utils/storage'
@@ -10,22 +11,25 @@ import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
 import * as upload from '../utils/upload'
 import { useKeyboard } from '../utils/keyboard'
-import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
+import { isIPhoneX } from '../utils/statusBar'
 import { FlatList } from 'react-native-gesture-handler'
 
 interface FromRootToPost {
+	show: boolean
 	acct: string
 	tooting: (a: boolean) => void
 	text: string
-	setText: React.Dispatch<React.SetStateAction<string>>
+	setText: IState<string>
 	replyId: string
-	setReplyId: React.Dispatch<React.SetStateAction<string>>
+	setReplyId: IState<string>
 }
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = Dimensions.get('screen').height
 export default (props: FromRootToPost) => {
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
 	const { acct, tooting } = props
-	const { text, setText, replyId, setReplyId } = props
+	const { show, text, setText, replyId, setReplyId } = props
 	const [nsfw, setNsfw] = useState(false)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [uploading, setUploading] = useState(false)
@@ -40,7 +44,7 @@ export default (props: FromRootToPost) => {
 	const [keyboardHeight] = useKeyboard()
 	const [inputHeight, setInputHeight] = React.useState(0)
 	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0)
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX ? 310 : 300) + addHeight
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX ? 250 : 250) + addHeight
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -165,16 +169,17 @@ export default (props: FromRootToPost) => {
 		}
 	}
 	return (
-		<View style={[styles.container, { bottom: 0, height: postAvoid }]}>
+		<View style={[styles.container, { bottom: show ? 0 : 0 - deviceHeight, height: postAvoid }]}>
+			<Button title="" icon="close" onPress={() => closeToot()} color="transparent" textColor={isDark ? 'white' : 'black'} style={styles.closeBtn} />
 			{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={acct} /> : null}
-			<Button title="閉じる" icon="close" onPress={() => closeToot()} color="transparent" textColor="black" />
 			<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder="何か書いてください" onContentSizeChange={(event) => {
 				setInputHeight(event.nativeEvent.contentSize.height)
 			}}
 				value={text}
 				onChangeText={(text) => setText(text)} />
+			{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder="警告文" value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 			<View style={styles.horizonal}>
-				<TouchableOpacity onPress={() => actionSheet()} style={{ paddingHorizontal: 10 }}>
+				<TouchableOpacity onPress={() => actionSheet()}>
 					<Text>{accountTxt}</Text>
 				</TouchableOpacity>
 				<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (deviceWidth / 2) - 20 }} />
@@ -183,25 +188,24 @@ export default (props: FromRootToPost) => {
 				<FlatList data={uploaded} horizontal={true} renderItem={({ item, index }) => uploadedImage(item)} />
 			</View> : null}
 			{replyId ? <Text>返信モード</Text> : null}
-			{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder="警告文" value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 			<View style={styles.action}>
 				<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
-					<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={30} style={[styles.icon, { color: nsfw ? `#f0b000` : `black` }]} />
+					<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => setShowCW(!showCW)}>
-					<Text style={[styles.icon, { fontSize: 20 }]}>CW</Text>
+					<Text style={[styles.icon, { fontSize: 18 }]}>CW</Text>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => selectVis()}>
-					<MaterialIcons name={getVisicon(vis)} size={30} style={styles.icon} />
+					<MaterialIcons name={getVisicon(vis)} size={20} style={styles.icon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => upload.pickImage(setUploading, upCb, acct)}>
-					<MaterialIcons name="attach-file" size={30} style={styles.icon} />
+					<MaterialIcons name="attach-file" size={20} style={styles.icon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => setIsEmojiOpen(true)}>
-					<MaterialIcons name="insert-emoticon" size={30} style={styles.icon} />
+					<MaterialIcons name="insert-emoticon" size={20} style={styles.icon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => true}>
-					<MaterialIcons name="more-vert" size={30} style={styles.icon} />
+					<MaterialIcons name="more-vert" size={20} style={styles.icon} />
 				</TouchableOpacity>
 			</View>
 			<View style={{ height: (keyboardHeight > 100 ? keyboardHeight - addHeight : 0) }} />
@@ -220,6 +224,7 @@ const styles = StyleSheet.create({
 	},
 	textarea: {
 		marginVertical: 10,
+		marginTop: 20,
 		borderWidth: 1,
 		borderRadius: 5,
 		width: deviceWidth - 40,
@@ -237,16 +242,20 @@ const styles = StyleSheet.create({
 		padding: 5,
 	},
 	action: {
-		height: 50,
+		height: 40,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		marginTop: 20,
-		marginBottom: 100
 	},
 	horizonal: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		alignItems: 'center',
 		justifyContent: 'space-around'
+	},
+	closeBtn: {
+		position: 'absolute',
+		right: 0,
+		top: 0
 	}
 })
