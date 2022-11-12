@@ -161,7 +161,8 @@ export default (props: FromRootToTimeline) => {
 					setNewNotif(true)
 				} else if (event === 'delete') {
 					const { payload } = JSON.parse(e.data)
-					const newTl = toots.filter((item) => item.id !== payload)
+					const clone = toots
+					const newTl = clone.filter((item) => item.id !== payload)
 					tootUpdator(newTl)
 				}
 			}

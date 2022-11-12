@@ -221,8 +221,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 			<View style={commonStyle.horizonal}>
 				<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, marginRight: 10 }} />
-				<View>
-					<AccountName account={account} fontSize={20} />
+				<View style={{width: deviceWidth - 130}}>
+					<AccountName account={account} fontSize={20} showWithoutEllipsis={true} />
 					<ScrollView style={{ width: deviceWidth - 130, maxHeight: 100 }}>
 						<HTML
 							source={{ html: emojify(account.note, account.emojis) }}
