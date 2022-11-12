@@ -1,33 +1,38 @@
 {
   "expo": {
-      "name": "TootDesk",
-      "slug": "tootdesk",
-      "version": "1.0.5",
-      "orientation": "default",
-      "icon": "./assets/images/icon.png",
-      "scheme": "tootdesk",
-      "userInterfaceStyle": "automatic",
-      "splash": {
-          "image": "./assets/images/splash-center.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-      },
-      "updates": {
-          "fallbackToCacheTimeout": 0
-      },
-      "assetBundlePatterns": [
-          "**/*"
-      ],
-      "ios": {
-          "buildNumber": "5",
-          "supportsTablet": true,
-          "usesAppleSignIn": true,
-          "bundleIdentifier": "top.thedesk.toot",
-          "infoPlist": {
-              "NSCameraUsageDescription": "画像をアップロードし、トゥートに添付するためにカメラを使用します。",
-              "NSPhotoLibraryUsageDescription": "画像をアップロードし、トゥートに添付するためにフォトライブラリを使用します。",
-              "CFBundleDevelopmentRegion":"ja_JP"
-          }
+    "name": "TootDesk",
+    "slug": "tootdesk",
+    "version": "1.1.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "tootdesk",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash-center.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "buildNumber": "6",
+      "supportsTablet": true,
+      "usesAppleSignIn": true,
+      "bundleIdentifier": "top.thedesk.toot",
+      "infoPlist": {
+        "NSCameraUsageDescription": "画像をアップロードし、トゥートに添付するためにカメラを使用します。",
+        "NSPhotoLibraryUsageDescription": "画像をアップロードし、トゥートに添付するためにフォトライブラリを使用します。",
+        "CFBundleDevelopmentRegion": "ja_JP"
       }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d7f07c8c-ca06-4dd3-a754-d09eb5287ad5"
+      }
+    }
   }
 }

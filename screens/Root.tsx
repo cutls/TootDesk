@@ -28,6 +28,11 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const [flatList, setFlatList] = useState<IFlatList>(undefined)
 	const init = async () => {
 		setInited(true)
+		const tls = await storage.getItem('timelines')
+		if (!tls) {
+			return goToAccountManager()
+		}
+		setTimelines(tls)
 		if (!__DEV__) {
 			const update = await Updates.checkForUpdateAsync()
 			if (update.isAvailable) {
@@ -52,11 +57,7 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 				)
 			}
 		}
-		const tls = await storage.getItem('timelines')
-		if (!tls) {
-			return goToAccountManager()
-		}
-		setTimelines(tls)
+		
 	}
 	if (!inited) {
 		init()

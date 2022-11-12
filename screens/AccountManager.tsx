@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Alert, FlatList, Linking } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
+import * as WebBrowser from 'expo-web-browser'
 import { loginFirst, getAt } from '../utils/login'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -64,20 +65,11 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			try {
 				const newAcct = await getAt(code)
 				setAccounts(newAcct)
+				if (!__DEV__) {
+					WebBrowser.dismissBrowser()
+					pushNotf(newAcct[newAcct.length - 1])
+				}
 				if (__DEV__) pushNotf(newAcct[newAcct.length - 1])
-				if (!__DEV__) Alert.alert(
-					'情報',
-					'ブラウザが表示されている場合は、閉じてください',
-					[
-						{
-							text: 'OK',
-							onPress: () => {
-								pushNotf(newAcct[newAcct.length - 1])
-							},
-						},
-					],
-					{ cancelable: false }
-				)
 			} catch (e) { }
 		}
 		finalize(code)
@@ -158,23 +150,23 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const pushNotf = async (acct: S.Account) => {
 		async function registerForPushNotificationsAsync() {
 			let token;
-			if (!token) {
-				const { status: existingStatus } = await Notifications.getPermissionsAsync();
-				let finalStatus = existingStatus;
-				if (existingStatus !== 'granted') {
-					const { status } = await Notifications.requestPermissionsAsync();
-					finalStatus = status;
-				}
-				if (finalStatus !== 'granted') {
-					alert('プッシュ通知の許可が取れませんでした。');
-					return;
-				}
-				token = (await Notifications.getExpoPushTokenAsync()).data
-				console.log(token)
-			} else {
-				alert('Must use physical device for Push Notifications');
-			}
 			try {
+				if (!token) {
+					const { status: existingStatus } = await Notifications.getPermissionsAsync();
+					let finalStatus = existingStatus;
+					if (existingStatus !== 'granted') {
+						const { status } = await Notifications.requestPermissionsAsync();
+						finalStatus = status;
+					}
+					if (finalStatus !== 'granted') {
+						alert('プッシュ通知の許可が取れませんでした。');
+						return;
+					}
+					token = (await Notifications.getExpoPushTokenAsync()).data
+					console.log(token)
+				} else {
+					alert('Must use physical device for Push Notifications');
+				}
 				const data = await axios.post(`https://${myNotify}/subscribe`, {
 					at: acct.at,
 					domain: acct.domain,
@@ -190,6 +182,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				Alert.alert('購読完了', 'プッシュ通知の購読が完了しました。')
 				init()
 			} catch (e) {
+				Alert.alert('エラー', `${e}`)
 				console.log(e)
 				init()
 			}
