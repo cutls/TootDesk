@@ -126,16 +126,17 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	}
 	const accountAction = () => {
 		const { following, requested, muting, blocking, followed_by } = relationship
-		const options = [following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー', muting ? 'ミュート解除' : 'ミュート', blocking ? 'ブロック解除' : 'ブロック', 'キャンセル']
+		const options = [following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー', muting ? 'ミュート解除' : 'ミュート', blocking ? 'ブロック解除' : 'ブロック', 'リスト管理', 'キャンセル']
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options,
 				title: followed_by ? 'フォローされています' : 'フォローされていません',
 				destructiveButtonIndex: 2,
-				cancelButtonIndex: 3,
+				cancelButtonIndex: options.length - 1,
 			},
 			async (buttonIndex) => {
-				if (buttonIndex === 3) return true
+				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id})
+				if (buttonIndex === 4) return true
 				const a = await Alert.promise('確認', `${options[buttonIndex]}します。よろしいですか？`, Alert.UNSAVE)
 				if (a === 1) {
 					const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account

@@ -148,6 +148,7 @@ export default (props: FromTimelineToToot) => {
 					<Image source={{ uri: toot.account.avatar }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 					<Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>
 					<MaterialIcons name={visiIcon} style={{ marginTop: 5 }} />
+					{toot.edited_at && <MaterialIcons name="create" />}
 				</TouchableOpacity>
 				<View style={{ width: '100%', marginLeft: 10 }}>
 					<View style={[styles.horizonal, styles.sameHeight]}>
@@ -163,6 +164,7 @@ export default (props: FromTimelineToToot) => {
 						source={{ html: emojify(toot.content, toot.emojis) }}
 						tagsStyles={{ p: { margin: 0 } }}
 						customHTMLElementModels={renderers}
+						classesStyles={{ invisible: { fontSize: 0.01 } }}
 						renderersProps={{
 							a: {
 								onPress: async (e, href) => linkHandler(href),

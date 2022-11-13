@@ -154,7 +154,8 @@ export default (props: FromRootToPost) => {
 			await api.postV1Statuses(acct.domain, acct.at, param)
 			setLoading(false)
 			closeToot()
-		} catch (e) {
+		} catch (e: any) {
+			Alert.alert('Error', e.toString())
 			setLoading(false)
 		}
 	}

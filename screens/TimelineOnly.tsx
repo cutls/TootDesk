@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
+import timelineLabel from '../utils/timelineLabel'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
@@ -40,13 +41,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		await storage.setItem('timelines', old)
 		navigation.goBack()
 	}
-	let tlLabel = 'Timeline'
-	if (timeline.type === 'home') tlLabel = 'Home'
-	if (timeline.type === 'local') tlLabel = 'Local'
-	if (timeline.type === 'public') tlLabel = 'Public'
-	if (timeline.type === 'user') tlLabel = 'User'
-	if (timeline.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(timeline.timelineData.target)}`
-	if (timeline.type === 'list') tlLabel = `List ${timeline.timelineData.title}`
+    const tlLabel = timelineLabel(timeline)
 	return (
 		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
 			<View style={styles.container}>

@@ -101,7 +101,7 @@ interface Mention {
     acct: string
     [x: string]: any
 }
-interface Tag {
+export interface Tag {
     name: string
     url: string
     history?: {

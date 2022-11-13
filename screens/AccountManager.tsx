@@ -14,6 +14,7 @@ import { commonStyle } from '../utils/styles'
 import axios from 'axios'
 import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
+import TimelineProps from '../interfaces/TimelineProps'
 
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
@@ -109,13 +110,18 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	}
 	const delAcct = async (key: string) => {
 		const a = await Alert.promise('アカウントを削除します', 'この操作は取り消せません。', Alert.DELETE)
+		let target: any = null
 		if (a === 1) {
 			const cl = []
 			for (const acct of accounts) {
 				if (acct.at !== key) cl.push(acct)
+				if (acct.at !== key) target = acct
 			}
 			setAccounts(cl)
 			await storage.setItem('accounts', cl)
+			const timelines: TimelineProps[] = await storage.getItem('timelines')
+			const newTl = timelines.map((item) => item.acct !== target.id)
+			await storage.setItem('timelines', newTl)
 		}
 	}
 	const pushNotf = async (acct: S.Account) => {

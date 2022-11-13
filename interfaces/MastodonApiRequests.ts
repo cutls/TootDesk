@@ -72,3 +72,8 @@ export interface Search {
     offset?: number
     following?: boolean
 }
+export interface Directory {
+    order: 'active' | 'new'
+    local: boolean
+    limit?: number
+}

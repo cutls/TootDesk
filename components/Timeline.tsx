@@ -7,6 +7,7 @@ import * as M from '../interfaces/MastodonApiReturns'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
+import * as Alert from '../utils/alert'
 import deepClone from '../utils/deepClone'
 import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -28,6 +29,7 @@ export default (props: FromRootToTimeline) => {
 	const [toots, setToots] = useState([] as M.Toot[])
 	const [ids, setIds] = useState([] as string[])
 	const [minId, setMinId] = useState('')
+	const [errorMsg, setErrorMsg] = useState('')
 	const [acct, setAcct] = useState('')
 	const [domain, setDomain] = useState('')
 	const [ws, setWs] = useState<WebSocket | null>(null)
@@ -72,48 +74,53 @@ export default (props: FromRootToTimeline) => {
 		if (moreLoad) param.max_id = minId
 		if (updateLoad && !toots) return console.log('no deps')
 		if (updateLoad) param.since_id = toots[0].id
-		switch (timeline.type) {
-			case 'home':
-				streamable = 'user'
-				data = await api.getV1TimelinesHome(acct.domain, acct.at, param)
-				if (data.length) setMinId(data[data.length - 1].id)
-				break
-			case 'local':
-				streamable = 'public:local'
-				data = await api.getV1TimelinesLocal(acct.domain, acct.at, param)
-				if (data.length) setMinId(data[data.length - 1].id)
-				break
-			case 'public':
-				streamable = 'public'
-				data = await api.getV1TimelinesPublic(acct.domain, acct.at, param)
-				if (data.length) setMinId(data[data.length - 1].id)
-				break
-			case 'hashtag':
-				streamable = 'hashtag'
-				data = await api.getV1TimelinesHashtag(acct.domain, acct.at, timeline.timelineData.target, param)
-				if (data.length) setMinId(data[data.length - 1].id)
-				break
-			case 'list':
-				streamable = 'list'
-				data = await api.getV1TimelinesList(acct.domain, acct.at, timeline.timelineData.target, param)
-				if (data.length) setMinId(data[data.length - 1].id)
-				break
-			case 'bookmark':
-				streamable = false
-				const bkm = await api.getV1Bookmarks(acct.domain, acct.at, param)
-				setMinId(bkm[1])
-				data = bkm[0]
-				break
-			case 'fav':
-				streamable = false
-				const fav = await api.getV1Favourites(acct.domain, acct.at, param)
-				setMinId(fav[1])
-				data = fav[0]
-				break
-			case 'user':
-				streamable = false
-				data = await api.getV1AccountsStatuses(acct.domain, acct.at, timeline.timelineData.target, param)
-				break
+		try {
+			switch (timeline.type) {
+				case 'home':
+					streamable = 'user'
+					data = await api.getV1TimelinesHome(acct.domain, acct.at, param)
+					if (data.length) setMinId(data[data.length - 1].id)
+					break
+				case 'local':
+					streamable = 'public:local'
+					data = await api.getV1TimelinesLocal(acct.domain, acct.at, param)
+					if (data.length) setMinId(data[data.length - 1].id)
+					break
+				case 'public':
+					streamable = 'public'
+					data = await api.getV1TimelinesPublic(acct.domain, acct.at, param)
+					if (data.length) setMinId(data[data.length - 1].id)
+					break
+				case 'hashtag':
+					streamable = 'hashtag'
+					data = await api.getV1TimelinesHashtag(acct.domain, acct.at, timeline.timelineData.target, param)
+					if (data.length) setMinId(data[data.length - 1].id)
+					break
+				case 'list':
+					streamable = 'list'
+					data = await api.getV1TimelinesList(acct.domain, acct.at, timeline.timelineData.target, param)
+					if (data.length) setMinId(data[data.length - 1].id)
+					break
+				case 'bookmark':
+					streamable = false
+					const bkm = await api.getV1Bookmarks(acct.domain, acct.at, param)
+					setMinId(bkm[1] || '')
+					data = bkm[0] || []
+					break
+				case 'fav':
+					streamable = false
+					const fav = await api.getV1Favourites(acct.domain, acct.at, param)
+					setMinId(fav[1] || '')
+					data = fav[0] || []
+					break
+				case 'user':
+					streamable = false
+					data = await api.getV1AccountsStatuses(acct.domain, acct.at, timeline.timelineData.target, param)
+					break
+			}
+		} catch (e: any) {
+			console.error('Error', e)
+			setErrorMsg(e.toString())
 		}
 		if (moreLoad) {
 			const clone = toots
@@ -122,7 +129,6 @@ export default (props: FromRootToTimeline) => {
 			return true
 		} else if (updateLoad) {
 			const clone = toots
-			console.log(clone.map((item) => item.account.display_name))
 			const newData = data.concat(clone)
 			tootUpdator(newData)
 		}
@@ -147,22 +153,27 @@ export default (props: FromRootToTimeline) => {
 				}
 			}
 			wss.onmessage = async (e) => {
-				console.log('stream received')
 				const { event } = JSON.parse(e.data)
+				const clone = firstStep ? data : toots
+				console.log('stream received', event)
 				if (event === 'update' || event === 'conversation') {
 					//markers show中はダメ
 					const { stream, payload } = JSON.parse(e.data)
 					if (!stream.includes(streamable)) return console.log('incompatible stream')
 					const obj = JSON.parse(payload)
-					const clone = firstStep ? data : toots
 					clone.unshift(obj)
 					if (clone.length > 2) tootUpdator(clone)
 				} else if (event === 'notification') {
 					setNewNotif(true)
 				} else if (event === 'delete') {
 					const { payload } = JSON.parse(e.data)
-					const clone = toots
 					const newTl = clone.filter((item) => item.id !== payload)
+					tootUpdator(newTl)
+				} else if (event === 'status.update') {
+					const { payload } = JSON.parse(e.data)
+					const obj: M.Toot = JSON.parse(payload)
+					const newTl = clone.map((item) => item.id !== obj.id ? item : obj)
+					console.log(newTl.map((item) => item.content))
 					tootUpdator(newTl)
 				}
 			}
@@ -240,6 +251,7 @@ export default (props: FromRootToTimeline) => {
 				data={toots}
 				renderItem={renderItem}
 				initialNumToRender={20}
+				ListEmptyComponent={<Text>No data {errorMsg}</Text>}
 				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 				onScrollEndDrag={() => {
 					setShowToTop(true)

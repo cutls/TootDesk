@@ -15,6 +15,9 @@ moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 import { MaterialIcons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../../utils/context/changeTl'
+import timelineLabel from '../../utils/timelineLabel'
+import { IState, ParamList } from '../../interfaces/ParamList'
+import { StackNavigationProp } from '@react-navigation/stack'
 
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = Dimensions.get('window').height
@@ -22,8 +25,13 @@ let ios = true
 if (Platform.OS != 'ios') ios = false
 let web = false
 if (Platform.OS === 'web') web = true
+interface BottomToTLModalProps {
+    setModal: IState<boolean>
+    goToAccountManager: () => void
+    navigation: StackNavigationProp<ParamList, any>
+}
 
-export default ({ setModal, goToAccountManager }: any) => {
+export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalProps) => {
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -109,6 +117,12 @@ export default ({ setModal, goToAccountManager }: any) => {
         setTimelines(cl)
         setMode('select')
     }
+    const glanceTl = (type: TLType) => {
+        dismiss()
+        const tl = { type, acct: account, acctName: accountTxt, activated: true, key: `${type} ${account} ${timelines.length}`, timelineData: { target: '' } }
+        navigation.navigate('TimelineOnly', { timeline: tl })
+        setMode('select')
+    }
     const delTl = async (key: string) => {
         if (timelines.length < 2) return Alert.alert('カラム数エラー', 'カラムは1つ以上必要です')
         const a = await Alert.promise('カラムを削除します', 'この操作は取り消せません。', Alert.DELETE)
@@ -134,53 +148,26 @@ export default ({ setModal, goToAccountManager }: any) => {
         setTimelines(newTl)
     }
     const selectList = async () => {
-        try {
-            const { domain, at } = (await storage.getCertainItem('accounts', 'id', account)) as S.Account
-            const lists = await api.getV1Lists(domain, at)
-            const mapList = lists.map((i) => i.id)
-            const mapListTxt = lists.map((i) => i.title)
-            ActionSheetIOS.showActionSheetWithOptions(
-                {
-                    options: mapListTxt,
-                    title: 'リストの選択'
-                },
-                (buttonIndex) => {
-                    const id = mapList[buttonIndex]
-                    const txt = mapListTxt[buttonIndex]
-                    const tl = { type: 'list', acct: account, acctName: accountTxt, activated: true, key: `list ${account} ${timelines.length}`, timelineData: { target: id, title: txt } } as TimelineProps
-                    const cl = timelines
-                    cl.push(tl)
-                    storage.setItem('timelines', cl)
-                    setTimelines(cl)
-                    setMode('select')
-                }
-            )
-        } catch (e) {
-            console.error(e)
-        }
+        navigation.navigate('ListManager', { acctId: account })
     }
     const configOption = () =>
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'キャンセル'],
-                destructiveButtonIndex: 4,
+                options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'リスト管理', 'キャンセル'],
                 cancelButtonIndex: 4
             },
             (buttonIndex) => {
                 if (buttonIndex === 0) return goToAccountManager()
                 if (buttonIndex === 1) return setEditMode(!editMode)
-                if (buttonIndex === 2) return alert('現在使用できません')
+                if (buttonIndex === 2) {
+                    navigation.navigate('Search')
+                    dismiss()
+                }
+                if (buttonIndex === 3) navigation.navigate('ListManager', { acctId: account })
             }
         )
     const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
-        let tlLabel = 'Timeline'
-        if (item.type === 'home') tlLabel = 'Home'
-        if (item.type === 'local') tlLabel = 'Local'
-        if (item.type === 'public') tlLabel = 'Public'
-        if (item.type === 'user') tlLabel = 'User'
-        if (item.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(item.timelineData.target)}`
-        if (item.type === 'list') tlLabel = `List ${item.timelineData.title}`
-
+        const tlLabel = timelineLabel(item)
         return (
             <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: deviceWidth }]}>
                 <View style={styles.menu}>
@@ -228,21 +215,24 @@ export default ({ setModal, goToAccountManager }: any) => {
                     </View> :
                         <View>
                             <TouchableOpacity onPress={() => actionSheet()} style={{ paddingHorizontal: 10 }}>
-                                <Text>タップしてアカウントを選択: {accountTxt}</Text>
+                                <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
                             </TouchableOpacity>
-                            <View style={{ height: 25 }} />
+                            <View style={{ height: 15 }} />
+                            <Text>長押しすると、カラムに追加せずに見ることができます</Text>
+                            <View style={{ height: 5 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="ホーム" onPress={() => useTl('home')} style={styles.tlBtn} />
-                                <Button title="ローカル" onPress={() => useTl('local')} style={styles.tlBtn} />
+                                <Button title="ホーム" onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
+                                <Button title="ローカル" onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
                             </View>
                             <View style={{ height: 10 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="連合" onPress={() => useTl('public')} style={styles.tlBtn} />
-                                <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} />
-                            </View>
-                            <View style={{ height: 10 }} />
-                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                <Button title="連合" onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
                                 <Button title="リスト" onPress={() => selectList()} style={styles.tlBtn} />
+                            </View>
+                            <View style={{ height: 10 }} />
+                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
+                                <Button title="お気に入り" onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
                             </View>
                         </View>
                     }

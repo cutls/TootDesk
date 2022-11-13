@@ -10,6 +10,7 @@ import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import TimelineModal from './modal/TimelineModal'
 import { ChangeTlContext } from '../utils/context/changeTl'
+import timelineLabel from '../utils/timelineLabel'
 const deviceWidth = Dimensions.get('window').width
 interface PropBottomFromRoot {
     goToAccountManager: () => void,
@@ -23,18 +24,12 @@ interface PropBottomFromRoot {
     navigation: StackNavigationProp<ParamList, any>
 }
 export default (params: PropBottomFromRoot) => {
-    let tlLabel = 'Timeline'
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
     const { timelines, nowSelecting, newNotif, setNewNotif, imgModalTrigger, reply, goToAccountManager, navigation } = params
     if (!timelines) return null
     const timeline = timelines[nowSelecting]
     if (!timeline) return null
-    if (timeline.type === 'home') tlLabel = 'Home'
-    if (timeline.type === 'local') tlLabel = 'Local'
-    if (timeline.type === 'public') tlLabel = 'Public'
-    if (timeline.type === 'user') tlLabel = 'User'
-    if (timeline.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(timeline.timelineData.target)}`
-    if (timeline.type === 'list') tlLabel = `List ${timeline.timelineData.title}`
+    const tlLabel = timelineLabel(timeline)
     const [acctName, setAcctName] = React.useState('No account')
     const [acct, setAcct] = React.useState({ id: 'a' } as S.Account)
     const [showNotif, setShowNotif] = React.useState(false)
@@ -53,7 +48,7 @@ export default (params: PropBottomFromRoot) => {
     }
     return (
         <View style={styles.bottom}>
-            {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} /> : null}
+            {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} navigation={navigation} /> : null}
             {showNotif ? <NotifitionModal navigation={navigation} setShowNotif={setShowNotif} acctId={acct.id} imgModalTrigger={imgModalTrigger} reply={reply} /> : null}
             <TouchableOpacity style={styles.config} onPress={() => showTrgNotif()}>
                 <Ionicons name="notifications" size={30} color={newNotif ? 'red' : 'black'} />

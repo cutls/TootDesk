@@ -49,6 +49,7 @@ export const statusPostAcct = async (action: 'authorize' | 'reject', acctId: str
         }
         Alert.alert('Success', '成功しました(拒否した場合でも一覧からは自動では消えません。)')
     } catch (e) {
-
+        Alert.alert('エラー', `${e}`)
+        console.error(e)
     }
 }
