@@ -61,6 +61,9 @@ export default (props: FromRootToTimeline) => {
 	let ct = 0
 	const tootUpdator = (item: M.Toot[]) => setToots(deepClone(item))
 	const loadTimeline = async (mode?: 'more' | 'update') => {
+		if (!mode) setToots([])
+		let internalToot: M.Toot[] = mode ? toots : []
+		console.log('re rendering')
 		const moreLoad = mode === 'more'
 		const updateLoad = mode === 'update'
 		if (!timeline) return false
@@ -125,18 +128,22 @@ export default (props: FromRootToTimeline) => {
 		if (moreLoad) {
 			const clone = toots
 			const newData = clone.concat(data)
+			internalToot = newData
 			setToots(newData)
 			return true
 		} else if (updateLoad) {
 			const clone = toots
 			const newData = data.concat(clone)
+			internalToot = newData
 			tootUpdator(newData)
 		}
 		if (!updateLoad && toots.length) setToots([])
-		if (!updateLoad) setTimeout(() => setToots(data), 200)
+		if (!updateLoad) {
+			setToots(data)
+			internalToot = data
+		}
 		setLoading(null)
 		if (streamable) {
-			let firstStep = !updateLoad
 			console.log('get stream')
 			ct++
 			if (ct > 2) return false
@@ -154,26 +161,30 @@ export default (props: FromRootToTimeline) => {
 			}
 			wss.onmessage = async (e) => {
 				const { event } = JSON.parse(e.data)
-				const clone = firstStep ? data : toots
+				const clone = internalToot
 				console.log('stream received', event)
 				if (event === 'update' || event === 'conversation') {
 					//markers show中はダメ
 					const { stream, payload } = JSON.parse(e.data)
 					if (!stream.includes(streamable)) return console.log('incompatible stream')
+					console.log(stream)
 					const obj = JSON.parse(payload)
 					clone.unshift(obj)
-					if (clone.length > 2) tootUpdator(clone)
+					internalToot = clone
+					tootUpdator(clone)
 				} else if (event === 'notification') {
 					setNewNotif(true)
 				} else if (event === 'delete') {
 					const { payload } = JSON.parse(e.data)
 					const newTl = clone.filter((item) => item.id !== payload)
+					internalToot = newTl
 					tootUpdator(newTl)
 				} else if (event === 'status.update') {
 					const { payload } = JSON.parse(e.data)
 					const obj: M.Toot = JSON.parse(payload)
 					const newTl = clone.map((item) => item.id !== obj.id ? item : obj)
 					console.log(newTl.map((item) => item.content))
+					internalToot = newTl
 					tootUpdator(newTl)
 				}
 			}
@@ -212,13 +223,16 @@ export default (props: FromRootToTimeline) => {
 		setFlatList(flatlistRef)
 	}, [])
 	console.log(loading)
-	if (loading) {
+	React.useEffect(() => {
+		console.log(loading)
 		if (loading === 'Initializing' || loading === 'Change Timeline') {
 			if (loading === 'Change Timeline') {
 				if (ws && typeof ws.close === 'function') ws.close()
 			}
 			loadTimeline()
 		}
+	}, [loading, timeline])
+	if (loading) {
 		return (
 			<View style={[styles.container, styles.center]}>
 				<Text>{loading}</Text>
