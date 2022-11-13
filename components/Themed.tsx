@@ -11,6 +11,7 @@ import {
 	ViewStyle,
 	NativeSyntheticEvent,
 	NativeTouchEvent,
+	ActivityIndicator,
 } from 'react-native'
 
 const tintColorLight = '#2f95dc'
@@ -84,31 +85,43 @@ export function TouchableOpacity(props: TouchableOpacityProps) {
 	const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background')
 	return <DefaultTouchableOpacity activeOpacity={activeOpacity ? activeOpacity : 0.5} style={[{ backgroundColor }, style]} {...otherProps} />
 }
-
 interface ButtonExtendProps extends ButtonProps {
-	style?: ViewStyle
+	style?: StyleProp<ViewStyle>
 	activeOpacity?: number
-	icon?: string
-	materialIcon?: string
+	icon?: React.ComponentProps<typeof MaterialIcons>['name']
+	acm?: boolean
 	textColor?: string
+	loading?: boolean
+	onLongPress?: DefaultTouchableOpacity['props']['onLongPress']
+	borderLess? :boolean
 }
 export function Button(props: ButtonExtendProps) {
-	const { title, color, style, textColor,  ...otherProps } = props
-	const icon = props.icon as 'create' | 'add'
-	const materialIcon = props.materialIcon as 'menu'
+	const { title, style, loading, disabled, acm, color, borderLess, ...otherProps } = props
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+	const backGray = loading || disabled
+	const useColor = backGray ? isDark ? `#888` : `#aaa` : color ? color : `#0049bf`
+	const textColor = props.textColor
+	const hasText = title || title !== ''
+
+	const icon = props.icon
 	const base: ViewStyle = {
-		borderRadius: 3,
+		borderRadius: 8,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 10,
-		paddingRight: 14
+		padding: 8,
+		paddingRight: 14,
+		maxWidth: 550
 	}
+	if (!hasText) base.borderWidth = 1.4
+	const useTextColor = textColor ? textColor : backGray ? isDark ? `black` : 'white' : 'white'
+	if (borderLess) base.borderWidth = 0
 	return (
-		<TouchableOpacity style={[{ backgroundColor: color ? color : '#3182eb' }, base, style]} {...otherProps}>
-			{icon ? <Ionicons name={icon} style={{ color: textColor ? textColor : 'white', fontSize: 22, marginRight: 8 }} /> : null}
-			{materialIcon ? <MaterialIcons name={materialIcon} style={{ color: textColor ? textColor : 'white', fontSize: 22, marginRight: 8 }} /> : null}
-			<Text style={{ color: textColor ? textColor : 'white', fontSize: 16 }}>{title}</Text>
+		<TouchableOpacity style={[{ backgroundColor: useColor }, base, style]} activeOpacity={loading ? 1.0 : 0.7} {...otherProps}>
+			{icon && !loading && !acm ? <MaterialIcons name={icon} style={{ color: useTextColor, fontSize: 21, marginRight: hasText ? 8 : 5 }} /> : null}
+			{loading ? <ActivityIndicator animating={true} color={useTextColor} size="small" style={{ marginRight: 8, scaleX: 1.5, scaleY: 1.5 }} /> : null}
+			<Text style={{ color: useTextColor, fontSize: 16 }}>{title}</Text>
 		</TouchableOpacity>
 	)
 }

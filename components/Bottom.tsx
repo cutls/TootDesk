@@ -33,6 +33,7 @@ export default (params: PropBottomFromRoot) => {
     if (timeline.type === 'local') tlLabel = 'Local'
     if (timeline.type === 'public') tlLabel = 'Public'
     if (timeline.type === 'user') tlLabel = 'User'
+    if (timeline.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(timeline.timelineData.target)}`
     if (timeline.type === 'list') tlLabel = `List ${timeline.timelineData.title}`
     const [acctName, setAcctName] = React.useState('No account')
     const [acct, setAcct] = React.useState({ id: 'a' } as S.Account)
@@ -61,7 +62,7 @@ export default (params: PropBottomFromRoot) => {
                 <Text style={styles.tlChangerText}>{nowSelecting ? 1 : 2}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.centerMenu} onPress={() => setShowTL(true)}>
-                <Text>{tlLabel}</Text>
+                <Text numberOfLines={1}>{tlLabel}</Text>
                 <Text>{timeline.acctName}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.config} onPress={() => params.tooting(true)}>

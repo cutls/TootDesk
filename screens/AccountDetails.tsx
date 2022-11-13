@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, Alert, ScrollView } from 'react-native'
+import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, ScrollView } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -7,6 +7,7 @@ import * as M from '../interfaces/MastodonApiReturns'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
+import * as Alert from '../utils/alert'
 import * as api from '../utils/api'
 import { commonStyle } from '../utils/styles'
 import ImageModal from '../components/modal/ImageModal'
@@ -17,7 +18,11 @@ import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 import { statusBarHeight } from '../utils/statusBar'
-import { RFC_2822 } from 'moment-timezone'
+import moment from 'moment-timezone'
+import 'moment/locale/ja'
+import Toot from '../components/Toot'
+moment.locale('ja')
+moment.tz.setDefault('Asia/Tokyo')
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -60,7 +65,13 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			setInited(true)
 			const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
 			const acctData = await api.getV1Account(domain, at, id)
-			const userTl = await api.getV1AccountsStatuses(domain, at, id)
+			const pinnedUserTlRaw = await api.getV1AccountsStatuses(domain, at, id, { pinned: true })
+			const pinnedUserTl = pinnedUserTlRaw.map((item) => {
+				item.customPinned = true
+				return item
+			})
+			const standardUserTl = await api.getV1AccountsStatuses(domain, at, id)
+			const userTl = pinnedUserTl.concat(standardUserTl)
 			const relationships = await api.getV1Relationships(domain, at, [id])
 			setOpenUrl(acctData.url)
 			setRelationship(relationships[0])
@@ -90,7 +101,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			const status = data.account
 			if (!status) return false
 			init(acctId, status.id)
-		} catch (e) {}
+		} catch (e) { }
 	}
 	if (!route.params) return null
 
@@ -123,36 +134,21 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				destructiveButtonIndex: 2,
 				cancelButtonIndex: 3,
 			},
-			(buttonIndex) => {
+			async (buttonIndex) => {
 				if (buttonIndex === 3) return true
-				Alert.alert(
-					'確認',
-					`${options[buttonIndex]}します。よろしいですか？`,
-					[
-						{
-							text: 'キャンセル',
-							onPress: () => true,
-							style: 'cancel',
-						},
-						{
-							text: '実行',
-							onPress: async () => {
-								const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-
-								let newR = {} as M.Relationship
-								if (buttonIndex === 0 && following) newR = await api.postV1UnFollow(domain, at, account.id)
-								if (buttonIndex === 0 && !following && !requested) newR = await api.postV1Follow(domain, at, account.id)
-								if (buttonIndex === 0 && !following && requested) newR = await api.postV1UnFollow(domain, at, account.id)
-								if (buttonIndex === 1 && following) newR = await api.postV1UnMute(domain, at, account.id)
-								if (buttonIndex === 1 && !following) newR = await api.postV1Mute(domain, at, account.id)
-								if (buttonIndex === 2 && following) newR = await api.postV1UnBlock(domain, at, account.id)
-								if (buttonIndex === 2 && !following) newR = await api.postV1Block(domain, at, account.id)
-								setRelationship(newR)
-							},
-						},
-					],
-					{ cancelable: true }
-				)
+				const a = await Alert.promise('確認', `${options[buttonIndex]}します。よろしいですか？`, Alert.UNSAVE)
+				if (a === 1) {
+					const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+					let newR = {} as M.Relationship
+					if (buttonIndex === 0 && following) newR = await api.postV1UnFollow(domain, at, account.id)
+					if (buttonIndex === 0 && !following && !requested) newR = await api.postV1Follow(domain, at, account.id)
+					if (buttonIndex === 0 && !following && requested) newR = await api.postV1UnFollow(domain, at, account.id)
+					if (buttonIndex === 1 && following) newR = await api.postV1UnMute(domain, at, account.id)
+					if (buttonIndex === 1 && !following) newR = await api.postV1Mute(domain, at, account.id)
+					if (buttonIndex === 2 && following) newR = await api.postV1UnBlock(domain, at, account.id)
+					if (buttonIndex === 2 && !following) newR = await api.postV1Block(domain, at, account.id)
+					setRelationship(newR)
+				}
 			}
 		)
 	}
@@ -160,17 +156,24 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 		const item = e.item as M.Account
 		return (
 			<TouchableOpacity onPress={() => init(acctId, item.id)} style={styles.acct}>
-				<Account account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} />
+				<Account acctId={acctId} account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} />
 			</TouchableOpacity>
 		)
 	}
 	const compactToot = (e: any) => {
 		const item = e.item as M.Toot
 		return (
-			<TouchableOpacity style={styles.toot} onPress={() => navigation.navigate('Toot', { acctId, id: item.id, notification: false })}>
-				<AccountName account={item.account} miniEmoji={true} />
-				<HTML source={{ html: emojify(item.content, item.emojis) }} tagsStyles={{ p: { margin: 0 } }} contentWidth={deviceWidth - 50} customHTMLElementModels={renderers} />
-			</TouchableOpacity>
+			<>
+				<Toot
+					toot={item}
+					acctId={acctId}
+					navigation={navigation}
+					deletable={false}
+					key={`acctDetails ${item.id}`}
+					imgModalTrigger={(url: string[], i: number, show: boolean) => true}
+					reply={() => true} />
+				<View style={commonStyle.separator} />
+			</>
 		)
 	}
 
@@ -186,9 +189,13 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	}
 	const Fields = (fieldParam: ParamField) => {
 		const { field } = fieldParam
+		const iVeri = field.verified_at
+		const addStyle = iVeri ? { backgroundColor: `#a7d9ae`, paddingTop: 20 } : {}
+		const veriDate = iVeri && moment(new Date(iVeri)).format('YYYY/MM/DD')
 		return (
 			<View style={commonStyle.horizonal}>
-				<View style={styles.fieldName}>
+				<View style={[styles.fieldName, addStyle]}>
+					{!!iVeri && <Text style={styles.veriText}>{veriDate}</Text>}
 					<Text>{field.name}</Text>
 				</View>
 				<View style={styles.fieldValue}>
@@ -221,7 +228,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 			<View style={commonStyle.horizonal}>
 				<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, marginRight: 10 }} />
-				<View style={{width: deviceWidth - 130}}>
+				<View style={{ width: deviceWidth - 130 }}>
 					<AccountName account={account} fontSize={20} showWithoutEllipsis={true} />
 					<ScrollView style={{ width: deviceWidth - 130, maxHeight: 100 }}>
 						<HTML
@@ -239,10 +246,12 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				</View>
 			</View>
 			<View style={{ height: 10 }} />
+			<ScrollView style={{ maxHeight: fields.length ? 180 : 0, minHeight: fields.length ? 50 : 0 }}>
 				{fields[0] ? <Fields field={fields[0]} /> : null}
 				{fields[1] ? <Fields field={fields[1]} /> : null}
 				{fields[2] ? <Fields field={fields[2]} /> : null}
 				{fields[3] ? <Fields field={fields[3]} /> : null}
+			</ScrollView>
 			<SegmentedControl
 				style={{ marginVertical: 15 }}
 				values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
@@ -251,8 +260,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
 				}}
 			/>
-			{selectedIndex > 0 ? <FlatList data={showAccts} renderItem={compactAcct} /> : null}
-			{selectedIndex === 0 ? <FlatList data={uTl} renderItem={compactToot} /> : null}
+			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={showAccts} renderItem={compactAcct} /> : null}
+			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={uTl} renderItem={compactToot} /> : null}
 			<Post show={tooting} acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
 		</View>
 	)
@@ -296,5 +305,12 @@ const styles = StyleSheet.create({
 		paddingVertical: 4,
 		borderBottomColor: '#aaa',
 		borderBottomWidth: 1
+	},
+	veriText: {
+		fontWeight: 'bold',
+		position: 'absolute',
+		color: '#1d7a2a',
+		top: 5,
+		right: 5
 	}
 })

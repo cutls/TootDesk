@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Alert, SafeAreaView } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView } from 'react-native'
 import { TouchableOpacity, View } from '../components/Themed'
 import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
@@ -9,6 +9,7 @@ import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import * as storage from '../utils/storage'
+import * as Alert from '../utils/alert'
 import TimelineProps from '../interfaces/TimelineProps'
 import * as Updates from 'expo-updates'
 import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
@@ -37,27 +38,13 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 			const update = await Updates.checkForUpdateAsync()
 			if (update.isAvailable) {
 				await Updates.fetchUpdateAsync()
-				Alert.alert(
-					'追加データのダウンロード完了',
-					'再起動して最新のTootDeskをお使いください。',
-					[
-						{
-							text: 'スキップ',
-							onPress: () => true,
-							style: 'cancel',
-						},
-						{
-							text: '再起動',
-							onPress: () => {
-								Updates.reloadAsync()
-							},
-						},
-					],
-					{ cancelable: true }
-				)
+				const a = await Alert.promise('追加データのダウンロード完了', '再起動して最新のTootDeskをお使いください。', [{ text: 'スキップ', style: 'cancel' }, { text: '再起動' },])
+				if (a === 1) {
+					Updates.reloadAsync()
+				}
 			}
 		}
-		
+
 	}
 	if (!inited) {
 		init()

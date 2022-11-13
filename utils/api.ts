@@ -107,5 +107,7 @@ export const postV1Mute = async (domain: string, at: string, id: string) => { re
 export const postV1UnMute = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unmute`, at) as M.Relationship }
 export const postV1Block = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/block`, at) as M.Relationship }
 export const postV1UnBlock = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unblock`, at) as M.Relationship }
+export const postV1Pin = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/pin`, at) as M.Toot }
+export const postV1UnPin = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/unpin`, at) as M.Toot }
 
 

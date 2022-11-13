@@ -49,7 +49,6 @@ export default (props: FromRootToTimeline) => {
 				navigation={navigation}
 				toot={item}
 				key={`${timeline.key} ${item.id}`}
-				statusPost={statusPost}
 				deletable={deletable}
 				imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
 				reply={reply}
@@ -143,6 +142,7 @@ export default (props: FromRootToTimeline) => {
 				if (streamable !== 'user') {
 					const wsParam = { type: 'subscribe', stream: streamable } as any
 					if (streamable === 'list') wsParam.list = timeline.timelineData.target
+					if (streamable === 'hashtag') wsParam.tag = timeline.timelineData.target
 					wss.send(JSON.stringify(wsParam))
 				}
 			}
@@ -175,32 +175,6 @@ export default (props: FromRootToTimeline) => {
 				console.log(e)
 			}
 		}
-	}
-	const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
-		try {
-			const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
-			let positive = true
-			let ct = 0
-			if (action === 'delete') {
-				const data = await api.deleteV1Status(acct.domain, acct.at, id)
-				return false
-			} else if (action === 'boost') {
-				const data = await api.postV1Boost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'fav') {
-				const data = await api.postV1Fav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			} else if (action === 'unboost') {
-				positive = false
-				const data = await api.postV1Unboost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'unfav') {
-				positive = false
-				const data = await api.postV1Unfav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			}
-			changeStatus({ is: positive, ct })
-		} catch (e) { }
 	}
 	useEffect(() => {
 		const _handleAppStateChange = async (nextAppState: AppStateStatus) => {

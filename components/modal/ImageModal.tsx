@@ -1,5 +1,5 @@
 import React, { RefObject, useState } from 'react'
-import { ActivityIndicator, Dimensions, Modal, StyleSheet, useColorScheme, Alert, Platform } from 'react-native'
+import { ActivityIndicator, Dimensions, Modal, StyleSheet, useColorScheme, Platform } from 'react-native'
 import { TouchableOpacity, View } from '../Themed'
 import { WebView } from 'react-native-webview'
 import { MaterialIcons } from '@expo/vector-icons'
@@ -8,6 +8,7 @@ import { statusBarHeight, isIPhoneX } from '../../utils/statusBar'
 import PagerView from 'react-native-pager-view'
 import * as MediaLibrary from 'expo-media-library'
 import * as FileSystem from 'expo-file-system'
+import * as Alert from '../../utils/alert'
 interface FromRootToImageModal {
 	url: string[]
 	i: number

@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
-import { StyleSheet, Dimensions, FlatList, RefreshControl, Alert } from 'react-native'
-import { Text, View } from './Themed'
+import { StyleSheet, Dimensions, FlatList, RefreshControl } from 'react-native'
+import { Text, TouchableOpacity, View } from './Themed'
 import Toot from './Toot'
 import Account from './Account'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
+import * as Alert from '../utils/alert'
 import { RefObject } from 'react'
 import { commonStyle } from '../utils/styles'
 import { FontAwesome, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
@@ -23,7 +24,7 @@ interface FromRootToTimeline {
 }
 export default (props: FromRootToTimeline) => {
     const [toots, setToots] = useState([] as M.Notification[])
-    const [minId, setMinId] = useState('')
+    const [acct, setAcct] = useState<S.Account | null>(null)
     const [loading, setLoading] = useState('Initializing' as string | null)
     const [refreshing, setRefreshing] = useState(false)
     const onRefresh = React.useCallback(async () => {
@@ -32,6 +33,10 @@ export default (props: FromRootToTimeline) => {
         setRefreshing(false)
     }, [])
     const { acctId, reply, navigation, dismiss } = props
+    const openAcct = (id: string) => {
+        if (acct) navigation.navigate('AccountDetails', { at: acct.at, domain: acct.domain, notification: false, acctId, id })
+        if (acct && typeof dismiss !== 'undefined') dismiss()
+    }
     const renderItem = (e: any) => {
         const item = e.item as M.Notification
         let icon = <MaterialIcons name="help" size={27} style={styles.icon} color="#9a9da1" />
@@ -52,18 +57,17 @@ export default (props: FromRootToTimeline) => {
         if (item.type === 'follow' || item.type === 'follow_request') icon = <MaterialIcons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
         if (item.status) return (
             <View>
-                <View style={[commonStyle.horizonal, styles.notice]}>
+                <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
                     <AccountName account={item.account} miniEmoji={true} />
                     <Text>さんが{label}</Text>
-                </View>
+                </TouchableOpacity>
                 <Toot
                     toot={item.status}
                     acctId={acctId}
                     navigation={navigation}
                     deletable={false}
                     key={`notification ${item.id}`}
-                    statusPost={statusPost}
                     imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
                     reply={reply} />
                 <View style={commonStyle.separator} />
@@ -74,13 +78,13 @@ export default (props: FromRootToTimeline) => {
             if (dismiss) dismiss()
         }
         return (
-            <View style={{padding: 5}}>
-                <View style={[commonStyle.horizonal, styles.notice]}>
+            <View style={{ padding: 5 }}>
+                <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
                     <AccountName account={item.account} miniEmoji={true} />
                     <Text>さんが{label}</Text>
-                </View>
-                <Account account={item.account} key={`notification ${item.id}`} statusPost={statusPostAcct} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
+                </TouchableOpacity>
+                <Account account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
                 <View style={commonStyle.separator} />
             </View>
         )
@@ -89,6 +93,7 @@ export default (props: FromRootToTimeline) => {
     const loadTimeline = async () => {
         setLoading('Loading...')
         const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+        setAcct(acct)
         let min_id: string = ''
         try {
 
@@ -100,44 +105,6 @@ export default (props: FromRootToTimeline) => {
         }
     }
     const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>
-    const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
-        try {
-            const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-            let positive = true
-            let ct = 0
-            if (action === 'boost') {
-                const data = await api.postV1Boost(acct.domain, acct.at, id)
-                ct = data.reblogs_count
-            } else if (action === 'fav') {
-                const data = await api.postV1Fav(acct.domain, acct.at, id)
-                ct = data.favourites_count
-            } else if (action === 'unboost') {
-                positive = false
-                const data = await api.postV1Unboost(acct.domain, acct.at, id)
-                ct = data.reblogs_count
-            } else if (action === 'unfav') {
-                positive = false
-                const data = await api.postV1Unfav(acct.domain, acct.at, id)
-                ct = data.favourites_count
-            }
-            changeStatus({ is: positive, ct })
-        } catch (e) {
-
-        }
-    }
-    const statusPostAcct = async (action: 'authorize' | 'reject', id: string) => {
-        try {
-            const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-            if (action === 'authorize') {
-                const data = await api.postV1FRAuthorize(acct.domain, acct.at, id)
-            } else if (action === 'reject') {
-                const data = await api.postV1FRReject(acct.domain, acct.at, id)
-            }
-            Alert.alert('Success', '成功しました(拒否した場合でも自動では消えません。)')
-        } catch (e) {
-
-        }
-    }
     if (loading) {
         if (loading === 'Initializing') {
             loadTimeline()

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, Text, useColorScheme, Alert } from 'react-native'
+import TimelineProps from '../interfaces/TimelineProps'
 import { TouchableOpacity, View } from '../components/Themed'
 import Timeline from '../components/Timeline'
 import ImageModal from '../components/modal/ImageModal'
@@ -8,13 +9,19 @@ import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
 import { MaterialIcons } from '@expo/vector-icons'
+import { commonStyle } from '../utils/styles'
+import * as storage from '../utils/storage'
+import * as S from '../interfaces/Storage'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'TimelineOnly'>) {
 	const [loading, setLoading] = useState<null | string>('Initializing')
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+	const theFontGrayPlus = isDark ? '#c7c7c7' : '#4f4f4f'
 	const [showToTop, setShowToTop] = useState(false)
-    const timeline = route.params.timeline
+	const timeline = route.params.timeline
 	const [flatList, setFlatList] = useState<IFlatList>(undefined)
 	const [newNotif, setNewNotif] = useState(false)
 	const [imageModal, setImageModal] = useState({
@@ -23,31 +30,52 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		show: false,
 	})
 	const reply = (id: string, acct: string) => {
-		alert('リプライを送るためには、まずこのタイムラインをピン留めしてください')
+		Alert.alert('リプライ', 'リプライを送るためには、まずこのタイムラインをピン留めしてください')
 	}
+	const addTl = async () => {
+		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
+		const old: TimelineProps[] = await storage.getItem('timelines')
+		timeline.acctName = `@${acct.name}@${acct.domain}`
+		old.push(timeline)
+		await storage.setItem('timelines', old)
+		navigation.goBack()
+	}
+	let tlLabel = 'Timeline'
+	if (timeline.type === 'home') tlLabel = 'Home'
+	if (timeline.type === 'local') tlLabel = 'Local'
+	if (timeline.type === 'public') tlLabel = 'Public'
+	if (timeline.type === 'user') tlLabel = 'User'
+	if (timeline.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(timeline.timelineData.target)}`
+	if (timeline.type === 'list') tlLabel = `List ${timeline.timelineData.title}`
 	return (
 		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
-				<SafeAreaView style={styles.container}>
-					<View>
-						<View style={styles.psudo}>
-							<Timeline
-								navigation={navigation}
-								loading={loading}
-								setNewNotif={setNewNotif}
-								setLoading={setLoading}
-								timeline={timeline}
-								imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-								reply={reply}
-							/>
-						</View>
-					</View>
-					<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
-						<MaterialIcons name="keyboard-arrow-up" size={27} />
+			<View style={styles.container}>
+				<View style={[styles.top, commonStyle.horizonal]}>
+					<Text style={{ fontSize: 20, fontWeight: 'bold', width: deviceWidth - 80 }} numberOfLines={1}>{tlLabel}</Text>
+					<TouchableOpacity onPress={() => addTl()}>
+						<MaterialIcons name="push-pin" size={25} color={theFontGrayPlus} />
 					</TouchableOpacity>
-					<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
-						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
-					</Modal>
-				</SafeAreaView>
+				</View>
+				<View>
+					<View style={styles.psudo}>
+						<Timeline
+							navigation={navigation}
+							loading={loading}
+							setNewNotif={setNewNotif}
+							setLoading={setLoading}
+							timeline={timeline}
+							imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
+							reply={reply}
+						/>
+					</View>
+				</View>
+				<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
+					<MaterialIcons name="keyboard-arrow-up" size={27} />
+				</TouchableOpacity>
+				<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
+					<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
+				</Modal>
+			</View>
 		</TopBtnContext.Provider>
 	)
 }
@@ -79,5 +107,10 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center'
-	}
+	},
+	top: {
+		padding: 15,
+		justifyContent: 'space-between',
+		elevation: 5,
+	},
 })

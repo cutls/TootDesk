@@ -78,6 +78,8 @@ export interface Toot {
     emojis: Emoji[] | []
     card: Card | null
     poll?: Poll | null
+    pinned?: boolean
+    customPinned?: boolean
     [x: string]: any
 }
 export interface Attachment {

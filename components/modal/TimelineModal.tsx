@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, Alert, ListRenderItem } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../Themed'
 import * as storage from '../../utils/storage'
+import * as Alert from '../../utils/alert'
 import { commonStyle, tablet } from '../../utils/styles'
 import { Swipeable } from 'react-native-gesture-handler'
 import * as S from '../../interfaces/Storage'
@@ -10,10 +11,10 @@ import * as R from '../../interfaces/MastodonApiRequests'
 import TimelineProps, { TLType } from '../../interfaces/TimelineProps'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
-import { MaterialIcons } from '@expo/vector-icons'
-import { ChangeTlContext } from '../../utils/context/changeTl'
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
+import { MaterialIcons } from '@expo/vector-icons'
+import { ChangeTlContext } from '../../utils/context/changeTl'
 
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = Dimensions.get('window').height
@@ -108,31 +109,17 @@ export default ({ setModal, goToAccountManager }: any) => {
         setTimelines(cl)
         setMode('select')
     }
-    const delTl = (key: string) => {
-        if (timelines.length < 2) return alert('カラムは1つ以上必要です')
-        Alert.alert(
-            'カラムを削除します',
-            'この操作は取り消せません。',
-            [
-                {
-                    text: 'キャンセル',
-                    onPress: () => true,
-                    style: 'cancel',
-                },
-                {
-                    text: '削除',
-                    onPress: () => {
-                        const cl = []
-                        for (const tl of timelines) {
-                            if (tl.key !== key) cl.push(tl)
-                        }
-                        setTimelines(cl)
-                        storage.setItem('timelines', cl)
-                    },
-                },
-            ],
-            { cancelable: true }
-        )
+    const delTl = async (key: string) => {
+        if (timelines.length < 2) return Alert.alert('カラム数エラー', 'カラムは1つ以上必要です')
+        const a = await Alert.promise('カラムを削除します', 'この操作は取り消せません。', Alert.DELETE)
+        if (a === 1) {
+            const cl = []
+            for (const tl of timelines) {
+                if (tl.key !== key) cl.push(tl)
+            }
+            setTimelines(cl)
+            storage.setItem('timelines', cl)
+        }
     }
     const moveTl = (action: 'up' | 'down', key: string) => {
         const nowTarget = timelines.findIndex((item) => item.key === key)
@@ -191,12 +178,13 @@ export default ({ setModal, goToAccountManager }: any) => {
         if (item.type === 'local') tlLabel = 'Local'
         if (item.type === 'public') tlLabel = 'Public'
         if (item.type === 'user') tlLabel = 'User'
+        if (item.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(item.timelineData.target)}`
         if (item.type === 'list') tlLabel = `List ${item.timelineData.title}`
 
         return (
             <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: deviceWidth }]}>
                 <View style={styles.menu}>
-                    <Text>{tlLabel}</Text>
+                    <Text numberOfLines={1}>{tlLabel}</Text>
                     <Text>{item.acctName}</Text>
                 </View>
                 {editMode &&
@@ -234,7 +222,7 @@ export default ({ setModal, goToAccountManager }: any) => {
                         <FlatList data={timelines} renderItem={renderItem}
                             keyExtractor={(item, index) => `${item.key}`} />
                         {editMode ?
-                            <Button title="完了" materialIcon="done" onPress={() => save()} />
+                            <Button title="完了" icon="done" onPress={() => save()} />
                             :
                             <Button title="追加" icon="add" onPress={() => setMode('add')} />}
                     </View> :

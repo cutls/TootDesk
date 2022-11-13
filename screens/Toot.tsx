@@ -120,33 +120,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		)
 	}
 
-	const statusPost = async (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => {
-		try {
-			const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-			let positive = true
-			let ct = 0
-			if (action === 'delete') {
-				const data = await api.deleteV1Status(acct.domain, acct.at, id)
-				navigation.navigate('Root')
-				return false
-			} else if (action === 'boost') {
-				const data = await api.postV1Boost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'fav') {
-				const data = await api.postV1Fav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			} else if (action === 'unboost') {
-				positive = false
-				const data = await api.postV1Unboost(acct.domain, acct.at, id)
-				ct = data.reblogs_count
-			} else if (action === 'unfav') {
-				positive = false
-				const data = await api.postV1Unfav(acct.domain, acct.at, id)
-				ct = data.favourites_count
-			}
-			changeStatus({ is: positive, ct })
-		} catch (e) {}
-	}
 	const reply = (id: string, acct: string) => {
 		setText(`@${acct} `)
 		setReplyId(id)
@@ -167,6 +140,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			<TouchableOpacity onPress={() => true}>
 				<Account
 					account={item}
+					acctId={acctId}
 					key={`notification ${item.id}`}
 					goToAccount={(id: string) =>
 						navigation.navigate('AccountDetails', {
@@ -200,7 +174,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				deletable={deletable}
 				acctId={acctId}
 				toot={toot}
-				statusPost={statusPost}
 				imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })}
 				reply={reply}
 			/>
@@ -225,6 +198,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				<FlatList
 					data={showAccts}
 					renderItem={compactAcct}
+					ListEmptyComponent={() => <Text>データがありません</Text>}
 					style={{
 						maxHeight: showAccts.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : showAccts.length * 50,
 					}}
@@ -232,7 +206,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			) : (
 				<Text style={commonStyle.textCenter}>いません</Text>
 			)}
-			{tooting ? <Post acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} /> : null}
+			<Post show={tooting} acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
 		</View>
 	)
 }

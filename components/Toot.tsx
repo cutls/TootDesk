@@ -17,6 +17,7 @@ import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-r
 import { BlurView } from 'expo-blur'
 import * as S from '../interfaces/Storage'
 import * as storage from '../utils/storage'
+import { statusPost } from '../utils/changeStatus'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -28,7 +29,6 @@ const deviceWidth = Dimensions.get('window').width
 interface FromTimelineToToot {
 	toot: M.Toot
 	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
-	statusPost: (action: 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete', id: string, changeStatus: React.Dispatch<any>) => void
 	deletable: boolean
 	reply: (id: string, acct: string) => void
 	navigation: StackNavigationProp<ParamList, any>
@@ -36,7 +36,7 @@ interface FromTimelineToToot {
 }
 
 export default (props: FromTimelineToToot) => {
-	const { toot: rawToot, imgModalTrigger, statusPost, reply, navigation, acctId, deletable } = props
+	const { toot: rawToot, imgModalTrigger, reply, navigation, acctId, deletable } = props
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
 	let topComponent: null | JSX.Element = null
 	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: rawToot.reblogs_count })
@@ -74,6 +74,14 @@ export default (props: FromTimelineToToot) => {
 			</TouchableOpacity>
 		)
 	}
+	if (rawToot.customPinned) {
+		topComponent = (
+			<View style={styles.horizonal}>
+				<MaterialIcons name="push-pin" size={20} />
+				<Text>ピン留めされた投稿</Text>
+			</View>
+		)
+	}
 	let visiIcon = 'help' as 'help' | 'public' | 'lock-open' | 'lock' | 'mail'
 	let btable = true
 	switch (toot.visibility) {
@@ -94,16 +102,18 @@ export default (props: FromTimelineToToot) => {
 	}
 	const actionSheet = (id: string) => {
 		if (!deletable) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-		const options = ['詳細', '削除', 'キャンセル']
+		const pinToggleNotation = toot.pinned ? 'ピン留め解除' : 'ピン留め'
+		const options = ['詳細', '削除', pinToggleNotation, '編集', 'キャンセル']
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options,
 				destructiveButtonIndex: 1,
-				cancelButtonIndex: 2,
+				cancelButtonIndex: 4,
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-				if (buttonIndex === 1) return statusPost('delete', id, setFaved)
+				if (buttonIndex === 1) return statusPost('delete', id, acctId)
+				if (buttonIndex === 2) return statusPost(toot.pinned ? 'unpin' : 'pin', id, acctId)
 			}
 		)
 	}
@@ -118,12 +128,12 @@ export default (props: FromTimelineToToot) => {
 			const acctNotation = `${acctDetector[2]}@${acctDetector[1]}`
 			try {
 				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-				const { domain, at} = acct
+				const { domain, at } = acct
 				const data = await api.getV2Search(domain, at, { q: acctNotation, resolve: true })
 				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
 				if (!data.accounts.length) throw 'アカウントが見つかりませんでした'
-				navigation.navigate('AccountDetails', { at, domain,  notification: false, acctId, id: data.accounts[0].id })
-			} catch(e) {
+				navigation.navigate('AccountDetails', { at, domain, notification: false, acctId, id: data.accounts[0].id })
+			} catch (e) {
 				await WebBrowser.openBrowserAsync(href)
 			}
 		} else {
@@ -174,7 +184,7 @@ export default (props: FromTimelineToToot) => {
 							size={27}
 							style={styles.actionIcon}
 							color={boosted.is ? '#03a9f4' : '#9a9da1'}
-							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, setBoosted)}
+							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
 						/>
 						<Text style={styles.actionCounter}>{boosted.ct}</Text>
 						<MaterialIcons
@@ -182,7 +192,7 @@ export default (props: FromTimelineToToot) => {
 							size={27}
 							style={styles.actionIcon}
 							color={faved.is ? '#fbc02d' : '#9a9da1'}
-							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, setFaved)}
+							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
 						/>
 						<Text style={styles.actionCounter}>{faved.ct}</Text>
 						<MaterialIcons name="more-vert" size={27} style={styles.actionIcon} onPress={() => actionSheet(toot.id)} color="#9a9da1" />

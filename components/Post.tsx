@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, Text, Image, ActionSheetIOS, Alert, useColorScheme } from 'react-native'
+import { Dimensions, StyleSheet, TextInput, Text, Image, ActionSheetIOS, useColorScheme } from 'react-native'
 import { TouchableOpacity, View, Button } from '../components/Themed'
 import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
@@ -7,6 +7,7 @@ import { IState } from '../interfaces/ParamList'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 import * as storage from '../utils/storage'
+import * as Alert from '../utils/alert'
 import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
 import * as upload from '../utils/upload'
@@ -33,6 +34,7 @@ export default (props: FromRootToPost) => {
 	const [nsfw, setNsfw] = useState(false)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [uploading, setUploading] = useState(false)
+	const [loading, setLoading] = useState(false)
 	const [showCW, setShowCW] = useState(false)
 	const [CWText, setCWText] = useState('' as string)
 	const [vis, setVis] = useState('public' as IVisTxt)
@@ -44,7 +46,7 @@ export default (props: FromRootToPost) => {
 	const [keyboardHeight] = useKeyboard()
 	const [inputHeight, setInputHeight] = React.useState(0)
 	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0)
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX ? 250 : 250) + addHeight
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX ? 270 : 250) + addHeight
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -100,28 +102,14 @@ export default (props: FromRootToPost) => {
 		const lastLetter = text[text.length - 1]
 		setText(`${text}${lastLetter === ' ' ? '' : ' '}:${shortcode}: `)
 	}
-	const deleteImage = (id: string) => {
-		Alert.alert(
-			'画像を削除します',
-			'この操作は取り消せません。',
-			[
-				{
-					text: 'キャンセル',
-					onPress: () => true,
-					style: 'cancel',
-				},
-				{
-					text: '削除',
-					onPress: () => {
-						const cl = uploaded
-						let s = []
-						for (const c of cl) if (c.id !== id) s.push(c)
-						setUploaded(s)
-					},
-				},
-			],
-			{ cancelable: true }
-		)
+	const deleteImage = async (id: string) => {
+		const a = await Alert.promise('画像を削除します', 'この操作は取り消せません。', Alert.DELETE)
+		if (a === 1) {
+			const cl = uploaded
+			let s = []
+			for (const c of cl) if (c.id !== id) s.push(c)
+			setUploaded(s)
+		}
 	}
 	const uploadedImage = (m: M.Media) => {
 		const meta = m.meta.small
@@ -153,6 +141,7 @@ export default (props: FromRootToPost) => {
 	}
 	const post = async () => {
 		try {
+			setLoading(true)
 			const param: R.Status = {
 				status: text,
 				media_ids: uploaded.map((e) => e.id),
@@ -163,15 +152,17 @@ export default (props: FromRootToPost) => {
 			}
 			const acct = (await storage.getCertainItem('accounts', 'id', account)) as S.Account
 			await api.postV1Statuses(acct.domain, acct.at, param)
+			setLoading(false)
 			closeToot()
 		} catch (e) {
-
+			setLoading(false)
 		}
 	}
 	return (
 		<View style={[styles.container, { bottom: show ? 0 : 0 - deviceHeight, height: postAvoid }]}>
-			<Button title="" icon="close" onPress={() => closeToot()} color="transparent" textColor={isDark ? 'white' : 'black'} style={styles.closeBtn} />
+			<Button title="" icon="close" onPress={() => closeToot()} color="transparent" borderLess={true} textColor={isDark ? 'white' : 'black'} style={styles.closeBtn} />
 			{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={acct} /> : null}
+			<Text>{text.length}</Text>
 			<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder="何か書いてください" onContentSizeChange={(event) => {
 				setInputHeight(event.nativeEvent.contentSize.height)
 			}}
@@ -182,7 +173,7 @@ export default (props: FromRootToPost) => {
 				<TouchableOpacity onPress={() => actionSheet()}>
 					<Text>{accountTxt}</Text>
 				</TouchableOpacity>
-				<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (deviceWidth / 2) - 20 }} />
+				<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (deviceWidth / 2) - 20 }} loading={loading || uploading} />
 			</View>
 			{uploaded.length ? <View style={{ height: 50 }}>
 				<FlatList data={uploaded} horizontal={true} renderItem={({ item, index }) => uploadedImage(item)} />
@@ -224,7 +215,6 @@ const styles = StyleSheet.create({
 	},
 	textarea: {
 		marginVertical: 10,
-		marginTop: 20,
 		borderWidth: 1,
 		borderRadius: 5,
 		width: deviceWidth - 40,

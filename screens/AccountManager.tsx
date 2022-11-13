@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Alert, FlatList, Linking } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import * as WebBrowser from 'expo-web-browser'
 import { loginFirst, getAt } from '../utils/login'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
+import * as Alert from '../utils/alert'
 import { Ionicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
@@ -18,27 +19,12 @@ const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = StatusBar.currentHeight ? StatusBar.currentHeight : 20
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
-	const allReset = () => {
-		Alert.alert(
-			'全てのデータを初期化します',
-			'この操作は取り消せません。実行後はアプリを再起動します。',
-			[
-				{
-					text: 'キャンセル',
-					onPress: () => true,
-					style: 'cancel',
-				},
-				{
-					text: '削除',
-					onPress: async () => {
-						storage.deleteAllItem()
-						Updates.reloadAsync()
-					},
-				},
-			],
-			{ cancelable: true }
-		)
-
+	const allReset = async () => {
+		const a = await Alert.promise('全てのデータを初期化します', 'この操作は取り消せません。実行後はアプリを再起動します。', Alert.DELETE)
+		if (a === 1) {
+			storage.deleteAllItem()
+			Updates.reloadAsync()
+		}
 	}
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
@@ -121,31 +107,16 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		setAttemptingLogin(false)
 		setDomain('')
 	}
-	const delAcct = (key: string) => {
-		Alert.alert(
-			'アカウントを削除します',
-			'この操作は取り消せません。',
-			[
-				{
-					text: 'キャンセル',
-					onPress: () => true,
-					style: 'cancel',
-				},
-				{
-					text: '削除',
-					onPress: async () => {
-						const cl = []
-						for (const acct of accounts) {
-							if (acct.at !== key) cl.push(acct)
-						}
-						setAccounts(cl)
-						await storage.setItem('accounts', cl)
-					},
-				},
-			],
-			{ cancelable: true }
-		)
-
+	const delAcct = async (key: string) => {
+		const a = await Alert.promise('アカウントを削除します', 'この操作は取り消せません。', Alert.DELETE)
+		if (a === 1) {
+			const cl = []
+			for (const acct of accounts) {
+				if (acct.at !== key) cl.push(acct)
+			}
+			setAccounts(cl)
+			await storage.setItem('accounts', cl)
+		}
 	}
 	const pushNotf = async (acct: S.Account) => {
 		async function registerForPushNotificationsAsync() {
@@ -187,24 +158,12 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				init()
 			}
 		}
-		Alert.alert(
-			'プッシュ通知の利用',
-			'このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、開発者管理のサーバで復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。プッシュ通知サービスは無料で提供されるものですが、信頼性は保障しません。',
-			[
-				{
-					text: 'キャンセル',
-					onPress: () => init(),
-					style: 'cancel',
-				},
-				{
-					text: '承認',
-					onPress: async () => {
-						registerForPushNotificationsAsync()
-					},
-				},
-			],
-			{ cancelable: true }
-		)
+		const a = await Alert.promise('プッシュ通知の利用', 'このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、開発者管理のサーバで復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。', [{ text: 'キャンセル', style: 'cancel' }, { text: '承認', style: 'destructive' }])
+		if (a === 1) {
+			registerForPushNotificationsAsync()
+		} else {
+			init()
+		}
 	}
 	const renderRightActions = (
 		progress: Animated.AnimatedInterpolation,
