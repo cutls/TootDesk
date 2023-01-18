@@ -172,8 +172,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		}
 	}
 	const renderRightActions = (
-		progress: Animated.AnimatedInterpolation,
-		dragAnimatedValue: Animated.AnimatedInterpolation,
+		progress: Animated.AnimatedInterpolation<number>,
+		dragAnimatedValue: Animated.AnimatedInterpolation<number>,
 		key: string
 	) => {
 		const opacity = dragAnimatedValue.interpolate({

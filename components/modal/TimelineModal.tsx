@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../Themed'
 import * as storage from '../../utils/storage'
 import * as Alert from '../../utils/alert'
@@ -46,6 +46,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const [accountTxt, setAccountTxt] = React.useState<string>('')
     const [account, setAccount] = React.useState<string>('')
     const [listSelect, setListSelect] = React.useState(false)
+	const [anchor, setAnchor] = React.useState<null | number>(0)
     const init = async () => {
         const tls = await storage.getItem('timelines')
         if (tls) setTimelines(tls)
@@ -154,7 +155,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         ActionSheetIOS.showActionSheetWithOptions(
             {
                 options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'リスト管理', 'キャンセル'],
-                cancelButtonIndex: 4
+                cancelButtonIndex: 4,
+                anchor: anchor || undefined,
             },
             (buttonIndex) => {
                 if (buttonIndex === 0) return goToAccountManager()
@@ -198,7 +200,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                     <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                         <View style={commonStyle.horizonal}>
                             <TouchableOpacity onPress={() => configOption()}>
-                                <MaterialIcons name="more-vert" size={30} color={isDark ? 'white' : 'black'} />
+                                <MaterialIcons ref={(c: any) => setAnchor(findNodeHandle(c))} name="more-vert" size={30} color={isDark ? 'white' : 'black'} />
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity onPress={() => dismiss()}>

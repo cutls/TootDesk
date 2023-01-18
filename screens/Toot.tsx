@@ -157,7 +157,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const showAccts = accounts[selectedIndex]
 	return (
 		<View style={commonStyle.container}>
-			<Modal visible={imageModal.show} animationType="fade" presentationStyle="formSheet">
+			<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
 				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
 			</Modal>
 			{ancestors.length ? (

@@ -5,7 +5,7 @@ import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
 import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
-import { ParamList } from '../interfaces/ParamList'
+import { Loading, ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import * as storage from '../utils/storage'
@@ -18,8 +18,9 @@ import { ChangeTlContext } from '../utils/context/changeTl'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
+
 export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>) {
-	const [loading, setLoading] = useState<null | string>('Initializing')
+	const [loading, setLoading] = useState<null | Loading>('Initializing')
 	const [text, setText] = useState('' as string)
 	const [replyId, setReplyId] = useState('' as string)
 	const [inited, setInited] = useState(false)
@@ -70,7 +71,6 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 		setTimelines(tls)
 		if (requireSleep) await sleep(500)
 		setNowSelecting(tl)
-		setLoading('Change Timeline')
 		setNewNotif(false)
 	}
 	const reply = (id: string, acct: string) => {
@@ -81,7 +81,7 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const acct = (timelines[nowSelecting || 0] || { acct: '' }).acct
 	return (
 		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
-			<ChangeTlContext.Provider value={{ changeTl }}>
+			<ChangeTlContext.Provider value={{ changeTl, tl: nowSelecting }}>
 				<SafeAreaView style={styles.container}>
 					<View>
 						<View style={styles.psudo}>
@@ -114,10 +114,12 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 							/>
 						</View>
 					</View>
-					<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
+					<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">
 						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
 					</Modal>
-					<Post show={tooting} acct={acct} tooting={toSetTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
+					<Modal visible={tooting} animationType="slide" transparent={true}>
+						<Post show={true} acct={acct} tooting={toSetTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
+					</Modal>
 				</SafeAreaView>
 			</ChangeTlContext.Provider>
 		</TopBtnContext.Provider>

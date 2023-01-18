@@ -3,6 +3,7 @@ import { Platform } from 'react-native'
 let android = false
 if (Platform.OS === 'android') android = true
 import * as WebBrowser from 'expo-web-browser'
+import { makeRedirectUri } from 'expo-auth-session'
 import * as storage from './storage'
 import * as S from '../interfaces/Storage'
 import axios from 'axios'
@@ -30,7 +31,7 @@ export const loginFirst = async (BASE_URL: string) => {
             client_secret: app.client_secret,
             domain: BASE_URL
         })
-        await WebBrowser.openBrowserAsync(auth)
+        await WebBrowser.openAuthSessionAsync(auth)
         return true
     } catch (e) {
         return false

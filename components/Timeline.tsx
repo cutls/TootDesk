@@ -11,14 +11,14 @@ import * as Alert from '../utils/alert'
 import deepClone from '../utils/deepClone'
 import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { ParamList, IState } from '../interfaces/ParamList'
+import { ParamList, IState, Loading } from '../interfaces/ParamList'
 import { TopBtnContext } from '../utils/context/topBtn'
 
 interface FromRootToTimeline {
 	timeline: TimelineProps
 	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
 	loading: string | null
-	setLoading: IState<string | null>
+	setLoading: IState<Loading | null>
 	setNewNotif: IState<boolean>
 	reply: (id: string, acct: string) => void
 	navigation: StackNavigationProp<ParamList, any>
@@ -67,6 +67,7 @@ export default (props: FromRootToTimeline) => {
 		const moreLoad = mode === 'more'
 		const updateLoad = mode === 'update'
 		if (!timeline) return false
+		if (loading === 'Loading...') return
 		if (!mode) setLoading('Loading...')
 		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
 		setAcct(acct.acct)

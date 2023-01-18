@@ -10,3 +10,4 @@ export type ParamList = {
 	Search: undefined
 }
 export type IState<T> = React.Dispatch<React.SetStateAction<T>>
+export type Loading = 'Initializing' | 'Change Timeline' | 'Loading...'

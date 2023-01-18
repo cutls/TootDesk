@@ -7,7 +7,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "build": "eas build",
+    "build": "node configBuilder.js && eas build",
     "ota": "eas update --branch production"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "crypto": "^1.0.1",
     "expo": "^47.0.0",
     "expo-asset": "~8.6.2",
+    "expo-auth-session": "^3.8.0",
     "expo-blur": "~12.0.1",
     "expo-file-system": "~15.1.1",
     "expo-image-picker": "~14.0.1",
@@ -30,6 +31,7 @@
     "expo-media-library": "~15.0.0",
     "expo-notifications": "~0.17.0",
     "expo-permissions": "~14.0.0",
+    "expo-random": "^13.0.0",
     "expo-splash-screen": "~0.17.4",
     "expo-updates": "~0.15.4",
     "expo-web-browser": "~12.0.0",
@@ -66,6 +68,7 @@
     "@types/uuid": "^8.3.0",
     "babel-preset-expo": "~9.2.1",
     "jest-expo": "^47.0.0",
+    "prettier": "^2.7.1",
     "typescript": "^4.6.3"
   },
   "private": true
