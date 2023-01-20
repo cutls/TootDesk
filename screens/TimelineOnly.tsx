@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, Text, useColorScheme, Alert } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, Text, useColorScheme, Alert, useWindowDimensions } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
 import { TouchableOpacity, View } from '../components/Themed'
 import Timeline from '../components/Timeline'
@@ -13,10 +13,11 @@ import { commonStyle } from '../utils/styles'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import timelineLabel from '../utils/timelineLabel'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = statusBarHeight()
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'TimelineOnly'>) {
+	const { height, width } = useWindowDimensions()
+	const deviceWidth = width
+	const deviceHeight = StatusBar.currentHeight ? height : height - 20
+	const styles = createStyle(deviceWidth, deviceHeight)
 	const [loading, setLoading] = useState<null | Loading>('Initializing')
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -41,7 +42,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		await storage.setItem('timelines', old)
 		navigation.goBack()
 	}
-    const tlLabel = timelineLabel(timeline)
+	const tlLabel = timelineLabel(timeline)
 	return (
 		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
 			<View style={styles.container}>
@@ -76,36 +77,39 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 }
 let android = false
 if (Platform.OS === 'android') android = true
-const styles = StyleSheet.create({
-	container: {
-		top: statusBar,
-		flex: 0,
-		height: deviceHeight,
-	},
-	timelines: {
-		height: deviceHeight - 75,
-	},
-	psudo: {
-		width: deviceWidth,
-		height: deviceHeight,
-		paddingTop: 0,
-		backgroundColor: 'transparent',
-	},
-	toTop: {
-		position: 'absolute',
-		top: deviceHeight - (isIPhoneX ? 95 : 75) - 50,
-		height: 50,
-		width: 50,
-		borderTopLeftRadius: 10,
-		backgroundColor: '#eee',
-		right: 0,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	top: {
-		padding: 15,
-		justifyContent: 'space-between',
-		elevation: 5,
-	},
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	const statusBar = statusBarHeight(deviceWidth, deviceHeight)
+	return StyleSheet.create({
+		container: {
+			top: statusBar,
+			flex: 0,
+			height: deviceHeight,
+		},
+		timelines: {
+			height: deviceHeight - 75,
+		},
+		psudo: {
+			width: deviceWidth,
+			height: deviceHeight,
+			paddingTop: 0,
+			backgroundColor: 'transparent',
+		},
+		toTop: {
+			position: 'absolute',
+			top: deviceHeight - (isIPhoneX(deviceWidth, deviceHeight) ? 95 : 75) - 50,
+			height: 50,
+			width: 50,
+			borderTopLeftRadius: 10,
+			backgroundColor: '#eee',
+			right: 0,
+			display: 'flex',
+			justifyContent: 'center',
+			alignItems: 'center'
+		},
+		top: {
+			padding: 15,
+			justifyContent: 'space-between',
+			elevation: 5,
+		},
+	})
+}

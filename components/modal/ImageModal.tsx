@@ -1,5 +1,5 @@
 import React, { RefObject, useState } from 'react'
-import { ActivityIndicator, Dimensions, Modal, StyleSheet, useColorScheme, Platform } from 'react-native'
+import { ActivityIndicator, Dimensions, Modal, StyleSheet, useColorScheme, Platform, useWindowDimensions } from 'react-native'
 import { TouchableOpacity, View } from '../Themed'
 import { WebView } from 'react-native-webview'
 import { MaterialIcons } from '@expo/vector-icons'
@@ -14,11 +14,10 @@ interface FromRootToImageModal {
 	i: number
 	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
 }
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = Dimensions.get('window').height
 const ios = Platform.OS === 'ios'
-const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
 export default (props: FromRootToImageModal) => {
+	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
+	const styles = createStyle(deviceWidth, deviceHeight)
 	const [loading, setLoading] = useState(false)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -60,7 +59,7 @@ export default (props: FromRootToImageModal) => {
 		ref.current?.setPage(i)
 	}
 	return (
-		
+
 		<View style={[styles.container, bgColor]}>
 			<View style={[styles.top, bgColor]}>
 				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(url[i])} style={styles.upper}>
@@ -95,52 +94,55 @@ export default (props: FromRootToImageModal) => {
 		</View>
 	)
 }
-const styles = StyleSheet.create({
-	container: {
-		height: deviceHeight,
-		paddingTop: ios && !tablet ? 30 : statusBarHeight(),
-	},
-	icon: {
-		marginHorizontal: 15,
-	},
-	bottom: {
-		opacity: 0.8,
-		width: deviceWidth,
-		backgroundColor: 'white',
-		bottom: 0,
-		paddingBottom: isIPhoneX ? 15 : 0,
-		height: ios ? 80 : 70,
-		flexDirection: 'row',
-	},
-	top: {
-		width: deviceWidth,
-		backgroundColor: 'white',
-		opacity: 0.8,
-		top: 0,
-		paddingTop: ios && tablet ? statusBarHeight() : 0,
-		height: ios && tablet ? statusBarHeight() + 60 : 70,
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	upper: {
-		flex: 0,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 5,
-		backgroundColor: 'transparent',
-	},
-	downloader: {
-		width: 100,
-		height: 100,
-		top: (deviceHeight / 2) - 50,
-		left: (deviceWidth / 2) - 50,
-		justifyContent: 'center',
-		borderRadius: 10,
-	},
-	fullCenterContainer: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 5,
-	},
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
+	return StyleSheet.create({
+		container: {
+			height: deviceHeight,
+			paddingTop: ios && !tablet ? 30 : statusBarHeight(deviceWidth, deviceHeight),
+		},
+		icon: {
+			marginHorizontal: 15,
+		},
+		bottom: {
+			opacity: 0.8,
+			width: deviceWidth,
+			backgroundColor: 'white',
+			bottom: 0,
+			paddingBottom: isIPhoneX(deviceWidth, deviceHeight) ? 15 : 0,
+			height: ios ? 80 : 70,
+			flexDirection: 'row',
+		},
+		top: {
+			width: deviceWidth,
+			backgroundColor: 'white',
+			opacity: 0.8,
+			top: 0,
+			paddingTop: ios && tablet ? statusBarHeight(deviceWidth, deviceHeight) : 0,
+			height: ios && tablet ? statusBarHeight(deviceWidth, deviceHeight) + 60 : 70,
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		upper: {
+			flex: 0,
+			alignItems: 'center',
+			justifyContent: 'center',
+			padding: 5,
+			backgroundColor: 'transparent',
+		},
+		downloader: {
+			width: 100,
+			height: 100,
+			top: (deviceHeight / 2) - 50,
+			left: (deviceWidth / 2) - 50,
+			justifyContent: 'center',
+			borderRadius: 10,
+		},
+		fullCenterContainer: {
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+			padding: 5,
+		},
+	})
+}

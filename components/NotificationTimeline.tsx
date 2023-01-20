@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, Dimensions, FlatList, RefreshControl } from 'react-native'
+import { StyleSheet, Dimensions, FlatList, RefreshControl, useWindowDimensions } from 'react-native'
 import { Text, TouchableOpacity, View } from './Themed'
 import Toot from './Toot'
 import Account from './Account'
@@ -21,8 +21,12 @@ interface FromRootToTimeline {
     reply: (id: string, acct: string) => void
     dismiss?: () => void
     navigation: StackNavigationProp<ParamList, any>
+    width: number
 }
 export default (props: FromRootToTimeline) => {
+	const { height: deviceHeight } = useWindowDimensions()
+    const deviceWidth = props.width
+	const styles = createStyle(deviceWidth, deviceHeight)
     const [toots, setToots] = useState([] as M.Notification[])
     const [acct, setAcct] = useState<S.Account | null>(null)
     const [loading, setLoading] = useState('Initializing' as string | null)
@@ -59,7 +63,7 @@ export default (props: FromRootToTimeline) => {
             <View>
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
-                    <AccountName account={item.account} miniEmoji={true} />
+                    <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
                     <Text>さんが{label}</Text>
                 </TouchableOpacity>
                 <Toot
@@ -69,7 +73,9 @@ export default (props: FromRootToTimeline) => {
                     deletable={false}
                     key={`notification ${item.id}`}
                     imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
-                    reply={reply} />
+                    reply={reply}
+                    width={deviceWidth}
+                 />
                 <View style={commonStyle.separator} />
             </View>
         )
@@ -81,7 +87,7 @@ export default (props: FromRootToTimeline) => {
             <View style={{ padding: 5 }}>
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
-                    <AccountName account={item.account} miniEmoji={true} />
+                    <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
                     <Text>さんが{label}</Text>
                 </TouchableOpacity>
                 <Account account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
@@ -117,20 +123,22 @@ export default (props: FromRootToTimeline) => {
     }
     return <FlatList ref={flatlistRef} data={toots} renderItem={renderItem} style={styles.container} initialNumToRender={20} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} />
 }
-const styles = StyleSheet.create({
-    center: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    container: {
-        flex: 0,
-        height: Dimensions.get('window').height - 65,
-        width: Dimensions.get('window').width,
-        backgroundColor: 'transparent',
-        marginBottom: 20,
-    },
-    icon: {},
-    notice: {
-        alignItems: 'center'
-    }
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+    return StyleSheet.create({
+        center: {
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        container: {
+            flex: 0,
+            height: deviceHeight - 65,
+            width: deviceWidth,
+            backgroundColor: 'transparent',
+            marginBottom: 20,
+        },
+        icon: {},
+        notice: {
+            alignItems: 'center'
+        }
+    })
+}

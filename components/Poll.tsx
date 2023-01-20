@@ -10,7 +10,6 @@ import moment from 'moment'
 import deepClone from '../utils/deepClone'
 import * as storage from '../utils/storage'
 import * as api from '../utils/api'
-const deviceWidth = Dimensions.get('window').width
 interface FromTootToPoll {
     acctId: string
     poll: M.Poll

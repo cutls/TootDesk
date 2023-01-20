@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, useWindowDimensions, useColorScheme } from 'react-native'
 import * as Linking from 'expo-linking'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import { loginFirst, getAt } from '../utils/login'
@@ -26,26 +26,30 @@ const renderers = {
 		contentModel: HTMLContentModel.mixed,
 	}),
 }
-
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = StatusBar.currentHeight ? StatusBar.currentHeight : 20
 export default function TootIndv({ navigation, route }: StackScreenProps<ParamList, 'Toot'>) {
 	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
+	const { height, width } = useWindowDimensions()
+	const deviceWidth = width
+	const deviceHeight = StatusBar.currentHeight ? height : height - 20
+
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
+			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
+			headerTitleStyle: { color: isDark ? 'white' : 'black' },
 			headerLeft: () => (
 				<TouchableOpacity onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Root'))} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} />
+					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10 }}>
-					<MaterialIcons name="open-in-browser" size={30} />
+					<MaterialIcons name="open-in-browser" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			)
 		})
-	}, [navigation, openUrl, WebBrowser])
+	}, [navigation, openUrl, WebBrowser, isDark])
 	const [ready, setReady] = useState(false)
 	const [inited, setInited] = useState(false)
 	const [tooting, setTooting] = useState(false)
@@ -77,7 +81,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			setDeletable(`@${tootData.account.acct}@${domain}` === acct)
 			setAcctId(acctIdGet)
 			setToot(tootData)
-            setOpenUrl(tootData.uri)
+			setOpenUrl(tootData.uri)
 			setAncestors(context.ancestors)
 			setDescendants(context.descendants)
 			setReady(true)
@@ -132,10 +136,11 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	}
 	const compactToot = (e: any) => {
 		const item = e.item as M.Toot
+		const txtColor = isDark ? 'white' : 'black'
 		return (
 			<TouchableOpacity onPress={() => init(acctId, item.id)}>
-				<AccountName account={item.account} miniEmoji={true} />
-				<HTML source={{ html: emojify(item.content, item.emojis) }} tagsStyles={{ p: { margin: 0 } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
+				<AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
+				<HTML source={{ html: emojify(item.content, item.emojis) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
 			</TouchableOpacity>
 		)
 	}
@@ -181,6 +186,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				toot={toot}
 				imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })}
 				reply={reply}
+				width={deviceWidth}
 			/>
 			{descendants.length ? (
 				<FlatList

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, ActionSheetIOS, Text, useColorScheme, FlatList, TextInput, RefreshControl } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInput, RefreshControl, useWindowDimensions, findNodeHandle } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
-import { Button, TouchableOpacity, View } from '../components/Themed'
+import { Button, TouchableOpacity, View, Text } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight } from '../utils/statusBar'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as Alert from '../utils/alert'
 import * as storage from '../utils/storage'
@@ -16,10 +16,11 @@ import Account from '../components/Account'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Toot from '../components/Toot'
 import Card from '../components/Card'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = statusBarHeight()
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Search'>) {
+    const theme = useColorScheme()
+    const isDark = theme === 'dark'
+	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
+	const styles = createStyle(deviceWidth, deviceHeight)
     const [loading, setLoading] = useState<boolean>(true)
     const [mode, setMode] = useState<'trend' | 'result'>('trend')
     const [account, setAccount] = useState<string>('')
@@ -32,8 +33,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const [tags, setTags] = useState<M.Tag[]>([])
     const [cards, setCards] = useState<M.Card[]>([])
     const [selectedIndex, setSelectedIndex] = useState<number>(0)
-    const theme = useColorScheme()
-    const isDark = theme === 'dark'
     const theFontGrayPlus = isDark ? '#c7c7c7' : '#4f4f4f'
     const init = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
@@ -73,13 +72,15 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     useEffect(() => { loadTrends(account, 0) }, [account])
     useEffect(() => { loadTrends(account, 2) }, [directoryLocal, directoryOrder])
+    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
     const selectAcct = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
         const accountListTxt = accts.map((item) => `@${item?.name}@${item?.domain}`)
         const accountList = accts.map((item) => item.id)
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: accountListTxt
+                options: accountListTxt,
+                anchor: anchorAcct || undefined
             },
             (buttonIndex) => {
                 const id = accountList[buttonIndex]
@@ -104,7 +105,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             Alert.alert('Error', e.toString())
         } finally {
             setLoading(false)
-        } 
+        }
     }
     const renderTag = ({ item }: { item: M.Tag }) => {
         const history = item.history || []
@@ -131,7 +132,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     deletable={false}
                     key={`search ${item.id}`}
                     imgModalTrigger={(url: string[], i: number, show: boolean) => true}
-                    reply={() => true} />
+                    reply={() => true} 
+                    width={deviceWidth}    
+                />
                 <View style={commonStyle.separator} />
             </>
         )
@@ -139,7 +142,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const renderCard = ({ item }: { item: M.Card }) => {
         return (
             <>
-                <Card card={item} />
+                <Card card={item} width={deviceWidth} />
                 <View style={{ height: 10 }} />
                 <View style={commonStyle.separator} />
                 <View style={{ height: 10 }} />
@@ -159,7 +162,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     return (
         <View style={{ padding: 5, flex: 1 }}>
-            <TouchableOpacity onPress={() => selectAcct()} style={{ marginVertical: 15 }}>
+            <TouchableOpacity onPress={() => selectAcct()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
+                <MaterialIcons style={{paddingTop: 3}} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
             </TouchableOpacity>
             <View style={commonStyle.horizonal}>
@@ -189,12 +193,12 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     <Button title="最近の活動順" onPress={() => setDirectoryOrder('active')} style={styles.dBtn} disabled={directoryOrder === 'active'} />
                     <Button title="新着順" onPress={() => setDirectoryOrder('new')} style={styles.dBtn} disabled={directoryOrder === 'new'} />
                 </View>
-                <View style={{height: 5}} />
+                <View style={{ height: 5 }} />
                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                     <Button title="ローカル" onPress={() => setDirectoryLocal(true)} style={styles.dBtn} disabled={directoryLocal} />
                     <Button title="連合" onPress={() => setDirectoryLocal(false)} style={styles.dBtn} disabled={!directoryLocal} />
                 </View>
-                <View style={{height: 5}} />
+                <View style={{ height: 5 }} />
             </View>}
             {selectedIndex === 0 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={tags} renderItem={renderTag} />}
             {selectedIndex === 1 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={toots} renderItem={renderToot} />}
@@ -206,20 +210,22 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 }
 let android = false
 if (Platform.OS === 'android') android = true
-const styles = StyleSheet.create({
-    form: {
-        marginVertical: 2,
-        borderWidth: 1,
-        width: '70%',
-        padding: 10,
-        borderRadius: 10,
-    },
-    editMenu: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 5
-    },
-    dBtn: {
-        width: (deviceWidth - 40) / 2
-    }
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+    return StyleSheet.create({
+        form: {
+            marginVertical: 2,
+            borderWidth: 1,
+            width: '70%',
+            padding: 10,
+            borderRadius: 10,
+        },
+        editMenu: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: 5
+        },
+        dBtn: {
+            width: (deviceWidth - 40) / 2
+        }
+    })
+}

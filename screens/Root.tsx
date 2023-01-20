@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme, useWindowDimensions } from 'react-native'
 import { TouchableOpacity, View, Text } from '../components/Themed'
 import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
@@ -16,11 +16,13 @@ import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
 import { MaterialIcons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../utils/context/changeTl'
 import { LoadingContext } from '../utils/context/loading'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = statusBarHeight()
+import TimelineRoot from '../components/TimelineRoot'
 
 export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>) {
+	const { height, width } = useWindowDimensions()
+	const deviceWidth = width
+	const deviceHeight = StatusBar.currentHeight ? height : height - 20
+	const styles = createStyle(deviceWidth, deviceHeight)
 	const [loading, setLoading] = useState<null | Loading>('Initializing')
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	const [insertText, setInsertText] = useState('')
@@ -37,10 +39,10 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const init = async () => {
 		setInited(true)
 		const tls = await storage.getItem('timelines')
+		if (tls) setTimelines(tls)
 		if (!tls) {
 			return goToAccountManager()
 		}
-		setTimelines(tls)
 		if (!__DEV__) {
 			const update = await Updates.checkForUpdateAsync()
 			if (update.isAvailable) {
@@ -86,15 +88,16 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 					<SafeAreaView style={styles.container}>
 						<View>
 							<View style={styles.psudo}>
-								<Timeline
+								{!!timelines.length && <TimelineRoot
 									navigation={navigation}
 									loading={loading}
 									setNewNotif={setNewNotif}
 									setLoading={setLoading}
-									timeline={timelines[nowSelecting]}
+									timelines={timelines}
+									targetTimelines={[timelines[0]]}
 									imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
 									reply={reply}
-								/>
+								/>}
 							</View>
 						</View>
 						<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
@@ -135,53 +138,56 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 }
 let android = false
 if (Platform.OS === 'android') android = true
-const styles = StyleSheet.create({
-	container: {
-		top: statusBar,
-		flex: 0,
-		height: deviceHeight,
-	},
-	timelines: {
-		height: deviceHeight - 75,
-	},
-	stickToBottom: {
-		position: 'absolute',
-		bottom: 0,
-		top: deviceHeight - (isIPhoneX ? 95 : 75),
-	},
-	bottom: {
-		height: 55,
-		width: deviceWidth,
-	},
-	psudo: {
-		width: deviceWidth,
-		height: deviceHeight,
-		paddingTop: 0,
-		backgroundColor: 'transparent',
-	},
-	toTop: {
-		position: 'absolute',
-		top: deviceHeight - (isIPhoneX ? 95 : 75) - 50,
-		height: 50,
-		width: 50,
-		borderTopLeftRadius: 10,
-		backgroundColor: '#eee',
-		right: 0,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	rootLoading: {
-		width: 200,
-		height: 100,
-		top: (deviceHeight / 2) - 50,
-		left: (deviceWidth / 2) - 100,
-		justifyContent: 'center',
-		borderRadius: 10,
-	},
-	rootLoadingText: {
-		color: 'white',
-		textAlign: 'center',
-		marginTop: 10
-	}
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	const statusBar = statusBarHeight(deviceWidth, deviceHeight)
+	return StyleSheet.create({
+		container: {
+			top: statusBar,
+			flex: 0,
+			height: deviceHeight,
+		},
+		timelines: {
+			height: deviceHeight - 75,
+		},
+		stickToBottom: {
+			position: 'absolute',
+			bottom: 0,
+			top: deviceHeight - (isIPhoneX(deviceWidth, deviceHeight) ? 95 : 75),
+		},
+		bottom: {
+			height: 55,
+			width: deviceWidth,
+		},
+		psudo: {
+			width: deviceWidth,
+			height: deviceHeight,
+			paddingTop: 0,
+			backgroundColor: 'transparent',
+		},
+		toTop: {
+			position: 'absolute',
+			top: deviceHeight - (isIPhoneX(deviceWidth, deviceHeight) ? 95 : 75) - 50,
+			height: 50,
+			width: 50,
+			borderTopLeftRadius: 10,
+			backgroundColor: '#eee',
+			right: 0,
+			display: 'flex',
+			justifyContent: 'center',
+			alignItems: 'center'
+		},
+		rootLoading: {
+			width: 200,
+			height: 100,
+			top: (deviceHeight / 2) - 50,
+			left: (deviceWidth / 2) - 100,
+			justifyContent: 'center',
+			borderRadius: 10,
+		},
+		rootLoadingText: {
+			color: 'white',
+			textAlign: 'center',
+			marginTop: 10
+		}
+	})
+}

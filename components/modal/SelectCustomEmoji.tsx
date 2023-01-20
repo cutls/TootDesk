@@ -1,20 +1,19 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import * as React from 'react'
 import { Text, View, TouchableOpacity } from '../Themed'
-import { StyleSheet, Image, FlatList, Dimensions, Platform, useColorScheme, Modal } from 'react-native'
+import { StyleSheet, Image, FlatList, Dimensions, Platform, useColorScheme, Modal, useWindowDimensions } from 'react-native'
 import * as Alert from '../../utils/alert'
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
-import { commonStyle, tablet } from '../../utils/styles'
+import { commonStyle } from '../../utils/styles'
 import * as storage from '../../utils/storage'
 import * as S from '../../interfaces/Storage'
 import * as M from '../../interfaces/MastodonApiReturns'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = Dimensions.get('window').height
 let ios = true
 if (Platform.OS === 'android') ios = false
-const g = Math.floor(deviceWidth / 50)
 export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct }: any) {
+	const { width: deviceWidth } = useWindowDimensions()
+    const g = Math.floor(deviceWidth / 50)
     const [loaded, setLoaded] = React.useState(false)
     const [photos, setPhotos] = React.useState([] as any[])
     const [modalVisible, setModalVisible] = React.useState(true)

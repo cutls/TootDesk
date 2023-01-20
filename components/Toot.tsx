@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
-import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS } from 'react-native'
+import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
 import { MaterialIcons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons'
 import * as api from '../utils/api'
@@ -20,6 +20,7 @@ import * as storage from '../utils/storage'
 import { statusPost } from '../utils/changeStatus'
 import Poll from './Poll'
 import { LoadingContext } from '../utils/context/loading'
+import { commonStyle } from '../utils/styles'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -27,7 +28,6 @@ const renderers = {
 }
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
-const deviceWidth = Dimensions.get('window').width
 interface FromTimelineToToot {
 	toot: M.Toot
 	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
@@ -35,16 +35,21 @@ interface FromTimelineToToot {
 	reply: (id: string, acct: string) => void
 	navigation: StackNavigationProp<ParamList, any>
 	acctId: string
+	width: number
 }
 
 export default (props: FromTimelineToToot) => {
-	const { toot: rawToot, imgModalTrigger, reply, navigation, acctId, deletable } = props
+	const { toot: rawToot, imgModalTrigger, reply, navigation, acctId, deletable, width } = props
+	const styles = createStyle(width)
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
 	let topComponent: null | JSX.Element = null
 	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: rawToot.reblogs_count })
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
 	const [isCwShow, setIsCwShow] = useState(false)
 	const { setLoading } = useContext(LoadingContext)
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+    const txtColor = isDark ? 'white' : 'black'
 	const showMedia = (media: any, isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
@@ -57,11 +62,11 @@ export default (props: FromTimelineToToot) => {
 			ret.push(
 				isSensitive ?
 					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id} >
-						<Image source={{ uri: mid.url }} style={{ width: (deviceWidth - 80) / media.length, height: 50, borderWidth: 1 }} />
-						<BlurView intensity={40} style={{ position: 'absolute', width: (deviceWidth - 80) / media.length, height: 50 }} />
+						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
+						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: 50 }} />
 					</TouchableOpacity >
 					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id}>
-						<Image source={{ uri: mid.url }} style={{ width: (deviceWidth - 80) / media.length, height: 50, borderWidth: 1 }} />
+						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
 					</TouchableOpacity>
 			)
 			i++
@@ -73,7 +78,7 @@ export default (props: FromTimelineToToot) => {
 			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, notification: false })}>
 				<FontAwesome name="retweet" size={27} style={{ color: '#2b90d9' }} />
 				<Image source={{ uri: rawToot.account.avatar }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
-				<AccountName account={rawToot.account} />
+				<AccountName account={rawToot.account} width={width} />
 			</TouchableOpacity>
 		)
 	}
@@ -103,6 +108,7 @@ export default (props: FromTimelineToToot) => {
 			visiIcon = 'mail'
 			break
 	}
+	const [anchor, setAnchor] = React.useState<undefined | number>(undefined)
 	const actionSheet = (id: string) => {
 		if (!deletable) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
 		const pinToggleNotation = toot.pinned ? 'ピン留め解除' : 'ピン留め'
@@ -112,6 +118,7 @@ export default (props: FromTimelineToToot) => {
 				options,
 				destructiveButtonIndex: 1,
 				cancelButtonIndex: 4,
+				anchor
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
@@ -158,7 +165,7 @@ export default (props: FromTimelineToToot) => {
 				</TouchableOpacity>
 				<View style={{ width: '100%', marginLeft: 10 }}>
 					<View style={[styles.horizonal, styles.sameHeight]}>
-						<AccountName account={toot.account} />
+						<AccountName account={toot.account} width={width} />
 						{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
 					</View>
 					<View style={[styles.horizonal, styles.sameHeight]}>
@@ -166,9 +173,15 @@ export default (props: FromTimelineToToot) => {
 							@{toot.account.acct} {moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
 						</Text>
 					</View>
+					{!!toot.spoiler_text && <View style={commonStyle.horizonal}>
+						<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text}</Text>
+						<TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
+							<Text>{isCwShow ? '隠す' : '見る'}</Text>
+						</TouchableOpacity>
+					</View>}
 					{!toot.spoiler_text || isCwShow ? <HTML
 						source={{ html: emojify(toot.content, toot.emojis) }}
-						tagsStyles={{ p: { margin: 0 } }}
+						tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff'} }}
 						customHTMLElementModels={renderers}
 						classesStyles={{ invisible: { fontSize: 0.01 } }}
 						renderersProps={{
@@ -176,12 +189,9 @@ export default (props: FromTimelineToToot) => {
 								onPress: async (e, href) => linkHandler(href),
 							},
 						}}
-						contentWidth={deviceWidth - 50}
-					/> : <Text>{toot.spoiler_text}</Text>}
-					{!!toot.spoiler_text && <TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
-						<Text>{isCwShow ? '隠す' : '見る'}</Text>
-					</TouchableOpacity>}
-					{toot.card ? <Card card={toot.card} /> : null}
+						contentWidth={width - 50}
+					/> : null}
+					{toot.card ? <Card card={toot.card} width={width} /> : null}
 					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 					<View style={styles.actionsContainer}>
@@ -203,50 +213,52 @@ export default (props: FromTimelineToToot) => {
 							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
 						/>
 						<Text style={styles.actionCounter}>{faved.ct}</Text>
-						<MaterialIcons name="more-vert" size={27} style={styles.actionIcon} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
+						<MaterialIcons name="more-vert" size={27} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 					</View>
 				</View>
 			</View>
 		</View>
 	)
 }
-const styles = StyleSheet.create({
-	container: {
-		marginVertical: 5,
-		paddingHorizontal: 5,
-		width: deviceWidth - 65,
-	},
-	horizonal: {
-		flexDirection: 'row',
-	},
-	sameHeight: {
-		alignItems: 'center',
-	},
-	center: {
-		alignItems: 'center',
-	},
-	actionsContainer: {
-		width: '100%',
-		flexDirection: 'row',
+function createStyle(deviceWidth: number) {
+	return StyleSheet.create({
+		container: {
+			marginVertical: 5,
+			paddingHorizontal: 5,
+			width: deviceWidth - 65,
+		},
+		horizonal: {
+			flexDirection: 'row',
+		},
+		sameHeight: {
+			alignItems: 'center',
+		},
+		center: {
+			alignItems: 'center',
+		},
+		actionsContainer: {
+			width: '100%',
+			flexDirection: 'row',
 
-		alignContent: 'center',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	actionIcon: {
-		marginHorizontal: 20,
-	},
-	actionCounter: {
-		color: '#9a9da1',
-	},
-	cwBtn: {
-		display: 'flex',
-		flexDirection: 'row',
-		alignItems: 'center',
-		backgroundColor: `#aaa`,
-		padding: 10,
-		borderRadius: 5,
-		marginVertical: 5,
-		width: 55,
-	}
-})
+			alignContent: 'center',
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		actionIcon: {
+			marginHorizontal: 20,
+		},
+		actionCounter: {
+			color: '#9a9da1',
+		},
+		cwBtn: {
+			display: 'flex',
+			flexDirection: 'row',
+			alignItems: 'center',
+			backgroundColor: `#aaa`,
+			padding: 10,
+			borderRadius: 5,
+			marginVertical: 5,
+			width: 50,
+		}
+	})
+}

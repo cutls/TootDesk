@@ -52,6 +52,7 @@ export function useThemeColor(props: { light?: string; dark?: string }, colorNam
 type ThemeProps = {
 	lightColor?: string
 	darkColor?: string
+	ref?: any
 }
 export type TextProps = ThemeProps & DefaultText['props']
 export type ViewProps = ThemeProps & DefaultView['props']

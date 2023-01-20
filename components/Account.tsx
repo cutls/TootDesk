@@ -6,7 +6,6 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { AccountName, emojify } from './AccountName'
 import { commonStyle } from '../utils/styles'
 import { statusPostAcct as statusPost } from '../utils/changeStatus'
-const deviceWidth = Dimensions.get('window').width
 interface FromTimelineToToot {
     acctId: string
     account: M.Account

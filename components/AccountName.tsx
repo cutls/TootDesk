@@ -1,8 +1,7 @@
 import * as M from '../interfaces/MastodonApiReturns'
 import React, { useState } from 'react'
-import { Dimensions } from 'react-native'
+import { Dimensions, useColorScheme, useWindowDimensions } from 'react-native'
 import { Text } from './Themed'
-const deviceWidth = Dimensions.get('window').width
 import twemoji from 'twemoji'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 const renderers = {
@@ -15,6 +14,7 @@ interface FromTootToAcctName {
     miniEmoji?: boolean
     fontSize?: number
     showWithoutEllipsis?: boolean
+    width: number
 }
 export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean) => {
     const twemojified = twemoji.parse(content).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
@@ -27,15 +27,18 @@ export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean)
     return emojified
 }
 export const AccountName = (props: FromTootToAcctName) => {
-    const { account, miniEmoji, fontSize: fsRaw, showWithoutEllipsis } = props
+    const { account, miniEmoji, fontSize: fsRaw, showWithoutEllipsis, width } = props
     const fontSize = fsRaw ? fsRaw : 15
     const textProps = showWithoutEllipsis ? {} : { numberOfLines: 1 }
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+    const txtColor = isDark ? 'white' : 'black'
     return account.display_name ? (
         <HTML
-            source={{ html: `<b style="font-size: ${fontSize}px;">${emojify(account.display_name, account.emojis, miniEmoji)}</b>` }}
+            source={{ html: `<b style="font-size: ${fontSize}px;color: ${txtColor}">${emojify(account.display_name, account.emojis, miniEmoji)}</b>` }}
             tagsStyles={{ b: { fontWeight: 'bold' } }}
             customHTMLElementModels={renderers}
-            contentWidth={deviceWidth - 50}
+            contentWidth={width - 50}
             defaultTextProps={textProps}
         />
     ) : (

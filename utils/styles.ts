@@ -1,12 +1,9 @@
-import { StyleSheet, Dimensions, Platform } from 'react-native'
-import { isIPhoneX } from '../utils/statusBar'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = Dimensions.get('window').height
+import { StyleSheet, Platform } from 'react-native'
 let ios = true
 if (Platform.OS === 'android') ios = false
 let web = false
 if (Platform.OS === 'web') web = true
-export const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
+
 export const commonStyle = StyleSheet.create({
 	container: {
 		flex: 1,

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import * as WebBrowser from 'expo-web-browser'
 import { loginFirst, getAt } from '../utils/login'
@@ -16,10 +16,8 @@ import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
 import TimelineProps from '../interfaces/TimelineProps'
 
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = StatusBar.currentHeight ? StatusBar.currentHeight : 20
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
+
 	const allReset = async () => {
 		const a = await Alert.promise('全てのデータを初期化します', 'この操作は取り消せません。実行後はアプリを再起動します。', Alert.DELETE)
 		if (a === 1) {
@@ -27,15 +25,24 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			Updates.reloadAsync()
 		}
 	}
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
+			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
+			headerTitleStyle: { color: isDark ? 'white' : 'black' },
 			headerLeft: () => (
 				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} onLongPress={allReset} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} />
+					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			),
 		});
-	}, [navigation, allReset]);
+	}, [navigation, allReset, isDark])
+
+	const { height, width } = useWindowDimensions()
+	const deviceWidth = width
+	const deviceHeight = StatusBar.currentHeight ? height : height - 20
+	const styles = createStyle(deviceWidth, deviceHeight)
 
 	const [accounts, setAccounts] = useState([] as S.Account[])
 	const [attemptingLogin, setAttemptingLogin] = useState(false)
@@ -226,87 +233,92 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		}
 	}
 	return (
-		<View style={styles.container}>
-			<View>
-				<FlatList data={accounts} renderItem={renderItem} />
-			</View>
-			<View>
-				<Text>アカウントを追加</Text>
-				{!attemptingLogin ? (
-					<View>
+		<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
+			<View style={styles.container}>
+				<View>
+					<FlatList data={accounts} renderItem={renderItem} />
+				</View>
+				<View>
+					<Text>アカウントを追加</Text>
+					{!attemptingLogin ? (
+						<View>
+							<View style={styles.horizonal}>
+								<TextInput placeholder="ドメイン(mastodon.social)*" onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
+								<Button title="ログイン" onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+							</View>
+							{list.length ? (<View style={styles.horizonal}>
+								<Text>Powered by </Text>
+								<TouchableOpacity onPress={() => Linking.openURL('https://www.fediversesearch.com/?locale=ja')}>
+									<Text style={commonStyle.link}>fediversesearch</Text>
+								</TouchableOpacity>
+							</View>) : null}
+							<FlatList data={list} renderItem={renderList} keyExtractor={(e) => e} /></View>
+					) : (
 						<View style={styles.horizonal}>
-							<TextInput placeholder="ドメイン(mastodon.social)*" onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
-							<Button title="ログイン" onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+							<TextInput placeholder="コード*" onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
+							<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
 						</View>
-						{list.length ? (<View style={styles.horizonal}>
-							<Text>Powered by </Text>
-							<TouchableOpacity onPress={() => Linking.openURL('https://www.fediversesearch.com/?locale=ja')}>
-								<Text style={commonStyle.link}>fediversesearch</Text>
-							</TouchableOpacity>
-						</View>) : null}
-						<FlatList data={list} renderItem={renderList} keyExtractor={(e) => e} /></View>
-				) : (
-					<View style={styles.horizonal}>
-						<TextInput placeholder="コード*" onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
-						<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
-					</View>
-				)}
-				<View style={{ height: 10 }} />
-				{myNotifySet ? <View>
-					<Text>TootDesk対応通知サーバのドメインを入力してください(初期値: push.0px.io)</Text>
-					<TextInput placeholder="サーバ*" onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
-				</View> : <TouchableOpacity onPress={() => setMyNotifySet(true)}>
-					<Text style={{ textDecorationLine: 'underline' }}>通知サーバを設定する</Text>
-				</TouchableOpacity>}
+					)}
+					<View style={{ height: 10 }} />
+					{myNotifySet ? <View>
+						<Text>TootDesk対応通知サーバのドメインを入力してください(初期値: push.0px.io)</Text>
+						<TextInput placeholder="サーバ*" onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
+					</View> : <TouchableOpacity onPress={() => setMyNotifySet(true)}>
+						<Text style={{ textDecorationLine: 'underline' }}>通知サーバを設定する</Text>
+					</TouchableOpacity>}
+				</View>
 			</View>
 		</View>
 	)
 }
 let android = false
 if (Platform.OS === 'android') android = true
-const styles = StyleSheet.create({
-	container: {
-		flex: 0,
-		height: deviceHeight,
-		padding: 10,
-		width: 500,
-		maxWidth: deviceWidth,
-	},
-	horizonal: {
-		flexDirection: 'row',
-	},
-	form: {
-		marginVertical: 2,
-		borderWidth: 1,
-		width: '70%',
-		padding: 10,
-		borderRadius: 10,
-	},
-	swipedRow: {
-		display: 'flex',
-		justifyContent: 'center',
-		alignContent: 'center',
-		height: 50,
-	},
-	deleteButton: {
-		display: 'flex',
-		justifyContent: 'center',
-		alignContent: 'center',
-		backgroundColor: '#e83a00',
-		height: 50,
-		width: 100,
-		paddingHorizontal: 10
-	},
-	deleteButtonText: {
-		backgroundColor: '#e83a00',
-		color: 'white',
-		textAlign: 'right',
-		fontSize: 20
-	},
-	menu: {
-		borderBottomColor: '#eee',
-		borderBottomWidth: 1,
-		paddingVertical: 10,
-		height: 50
-	}
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	const useWidth = deviceWidth > 500 ? 500 : deviceWidth
+	return StyleSheet.create({
+		container: {
+			flex: 0,
+			height: deviceHeight,
+			padding: 10,
+			width: useWidth,
+			marginLeft: deviceWidth > 500 ? (deviceWidth - useWidth) / 2 : 0
+		},
+		horizonal: {
+			flexDirection: 'row',
+		},
+		form: {
+			marginVertical: 2,
+			borderWidth: 1,
+			width: '70%',
+			padding: 10,
+			borderRadius: 10,
+		},
+		swipedRow: {
+			display: 'flex',
+			justifyContent: 'center',
+			alignContent: 'center',
+			height: 50,
+		},
+		deleteButton: {
+			display: 'flex',
+			justifyContent: 'center',
+			alignContent: 'center',
+			backgroundColor: '#e83a00',
+			height: 50,
+			width: 100,
+			paddingHorizontal: 10
+		},
+		deleteButtonText: {
+			backgroundColor: '#e83a00',
+			color: 'white',
+			textAlign: 'right',
+			fontSize: 20
+		},
+		menu: {
+			borderBottomColor: '#eee',
+			borderBottomWidth: 1,
+			paddingVertical: 10,
+			height: 50
+		}
+	})
+}

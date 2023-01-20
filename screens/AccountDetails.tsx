@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, ScrollView } from 'react-native'
+import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -28,7 +28,6 @@ const renderers = {
 		contentModel: HTMLContentModel.mixed,
 	}),
 }
-const deviceWidth = Dimensions.get('window').width
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
 	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
 	React.useLayoutEffect(() => {
@@ -45,6 +44,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			),
 		})
 	}, [navigation, openUrl, WebBrowser])
+	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
+	const styles = createStyle(deviceWidth, deviceHeight)
 	const [ready, setReady] = useState(false)
 	const [inited, setInited] = useState(false)
 	const [tooting, setTooting] = useState(false)
@@ -55,9 +56,12 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [fffw, setFffw] = useState([{}, {}] as [M.Account[], M.Account[]])
 	const [uTl, setUtl] = useState([] as M.Toot[])
 	const [acctId, setAcctId] = useState('')
-	const [text, setText] = useState('' as string)
 	const [replyId, setReplyId] = useState('' as string)
 	const [imageModal, setImageModal] = useState({ url: [''], i: 0, show: false })
+	const [anchor, setAnchor] = React.useState<null | number>(0)
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+	const txtColor = isDark ? 'white' : 'black'
 	let at: string | undefined
 	let notfId: string | undefined
 	const init = async (acctIdGet: string, id: string) => {
@@ -127,6 +131,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			</View>
 		)
 	}
+
 	const accountAction = () => {
 		const { following, requested, muting, blocking, followed_by } = relationship
 		const options = [following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー', muting ? 'ミュート解除' : 'ミュート', blocking ? 'ブロック解除' : 'ブロック', 'リスト管理', 'キャンセル']
@@ -136,6 +141,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				title: followed_by ? 'フォローされています' : 'フォローされていません',
 				destructiveButtonIndex: 2,
 				cancelButtonIndex: options.length - 1,
+				anchor: anchor || undefined
 			},
 			async (buttonIndex) => {
 				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id })
@@ -179,6 +185,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					deletable={false}
 					key={`acctDetails ${item.id}`}
 					imgModalTrigger={(url: string[], i: number, show: boolean) => true}
+					width={deviceWidth}
 					reply={() => true} />
 				<View style={commonStyle.separator} />
 			</>
@@ -198,7 +205,9 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const Fields = (fieldParam: ParamField) => {
 		const { field } = fieldParam
 		const iVeri = field.verified_at
-		const addStyle = iVeri ? { backgroundColor: `#a7d9ae`, paddingTop: 20 } : {}
+		const addStyleInLight = iVeri ? { backgroundColor: `#a7d9ae`, paddingTop: 20 } : {}
+		const addStyleInDark = iVeri ? { backgroundColor: `#1b4f22`, paddingTop: 20 } : { backgroundColor: `#6b6a6a` }
+		const addStyle = isDark ? addStyleInDark : addStyleInLight
 		const veriDate = iVeri && moment(new Date(iVeri)).format('YYYY/MM/DD')
 		return (
 			<View style={commonStyle.horizonal}>
@@ -232,16 +241,17 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
 				</Text>
 				<Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
+				<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
 			</TouchableOpacity>
 			<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 			<View style={commonStyle.horizonal}>
 				<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, marginRight: 10 }} />
 				<View style={{ width: deviceWidth - 130 }}>
-					<AccountName account={account} fontSize={20} showWithoutEllipsis={true} />
+					<AccountName account={account} fontSize={20} showWithoutEllipsis={true} width={deviceWidth} />
 					<ScrollView style={{ width: deviceWidth - 130, maxHeight: 100 }}>
 						<HTML
 							source={{ html: emojify(account.note, account.emojis) }}
-							tagsStyles={{ p: { margin: 0 } }}
+							tagsStyles={{ p: { margin: 0, color: txtColor } }}
 							contentWidth={deviceWidth - 150}
 							customHTMLElementModels={renderers}
 							renderersProps={{
@@ -270,55 +280,57 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			/>
 			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={showAccts} renderItem={compactAcct} /> : null}
 			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={uTl} renderItem={compactToot} /> : null}
-			<Post show={tooting} acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
+			<Post show={tooting} acct={acctId} tooting={setTooting} replyId={replyId} insertText={''} />
 		</View>
 	)
 }
-const styles = StyleSheet.create({
-	fieldName: {
-		width: (deviceWidth - 20) / 3,
-		padding: 10,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: '#ddd',
-	},
-	fieldValue: {
-		width: ((deviceWidth - 20) / 3) * 2,
-		padding: 10,
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: '#eee',
-	},
-	followed: {
-		position: 'absolute',
-		right: 10,
-		top: statusBarHeight() + 10,
-		zIndex: 2,
-		backgroundColor: 'rgba(0,0,0,0.7)',
-		padding: 5,
-		borderRadius: 10,
-		display: 'flex',
-		alignItems: 'center',
-	},
-	toot: {
-		marginVertical: 2,
-		paddingVertical: 4,
-		borderBottomColor: '#aaa',
-		borderBottomWidth: 1
-	},
-	acct: {
-		marginVertical: 2,
-		paddingVertical: 4,
-		borderBottomColor: '#aaa',
-		borderBottomWidth: 1
-	},
-	veriText: {
-		fontWeight: 'bold',
-		position: 'absolute',
-		color: '#1d7a2a',
-		top: 5,
-		right: 5
-	}
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	return StyleSheet.create({
+		fieldName: {
+			width: (deviceWidth - 20) / 3,
+			padding: 10,
+			display: 'flex',
+			justifyContent: 'center',
+			alignItems: 'center',
+			backgroundColor: '#ddd',
+		},
+		fieldValue: {
+			width: ((deviceWidth - 20) / 3) * 2,
+			padding: 10,
+			display: 'flex',
+			justifyContent: 'center',
+			alignItems: 'center',
+			backgroundColor: '#eee',
+		},
+		followed: {
+			position: 'absolute',
+			right: 10,
+			top: statusBarHeight(deviceWidth, deviceHeight) + 10,
+			zIndex: 2,
+			backgroundColor: 'rgba(0,0,0,0.7)',
+			padding: 5,
+			borderRadius: 10,
+			display: 'flex',
+			alignItems: 'center',
+		},
+		toot: {
+			marginVertical: 2,
+			paddingVertical: 4,
+			borderBottomColor: '#aaa',
+			borderBottomWidth: 1
+		},
+		acct: {
+			marginVertical: 2,
+			paddingVertical: 4,
+			borderBottomColor: '#aaa',
+			borderBottomWidth: 1
+		},
+		veriText: {
+			fontWeight: 'bold',
+			position: 'absolute',
+			color: '#1d7a2a',
+			top: 5,
+			right: 5
+		}
+	})
+}

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../Themed'
 import * as storage from '../../utils/storage'
 import * as Alert from '../../utils/alert'
-import { commonStyle, tablet } from '../../utils/styles'
+import { commonStyle } from '../../utils/styles'
 import { Swipeable } from 'react-native-gesture-handler'
 import * as S from '../../interfaces/Storage'
 import * as api from '../../utils/api'
@@ -19,8 +19,6 @@ import timelineLabel from '../../utils/timelineLabel'
 import { IState, ParamList } from '../../interfaces/ParamList'
 import { StackNavigationProp } from '@react-navigation/stack'
 
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = Dimensions.get('window').height
 let ios = true
 if (Platform.OS != 'ios') ios = false
 let web = false
@@ -32,6 +30,10 @@ interface BottomToTLModalProps {
 }
 
 export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalProps) => {
+    const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
+    const styles = createStyle(deviceWidth, deviceHeight)
+    const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
+    const useWidth = tablet ? 550 : deviceWidth
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -46,7 +48,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const [accountTxt, setAccountTxt] = React.useState<string>('')
     const [account, setAccount] = React.useState<string>('')
     const [listSelect, setListSelect] = React.useState(false)
-	const [anchor, setAnchor] = React.useState<null | number>(0)
+    const [anchor, setAnchor] = React.useState<null | number>(0)
     const init = async () => {
         const tls = await storage.getItem('timelines')
         if (tls) setTimelines(tls)
@@ -64,10 +66,13 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         setInited(true)
     }
     if (!inited) init()
+
+    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
     const actionSheet = () =>
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: accountListTxt
+                options: accountListTxt,
+                anchor: anchorAcct || undefined
             },
             (buttonIndex) => {
                 const id = accountList[buttonIndex]
@@ -171,7 +176,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
         const tlLabel = timelineLabel(item)
         return (
-            <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: deviceWidth }]}>
+            <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: useWidth }]}>
                 <View style={styles.menu}>
                     <Text numberOfLines={1}>{tlLabel}</Text>
                     <Text>{item.acctName}</Text>
@@ -216,7 +221,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                             <Button title="追加" icon="add" onPress={() => setMode('add')} />}
                     </View> :
                         <View>
-                            <TouchableOpacity onPress={() => actionSheet()} style={{ paddingHorizontal: 10 }}>
+                            <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
+                                <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
                                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
                             </TouchableOpacity>
                             <View style={{ height: 15 }} />
@@ -243,67 +249,71 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         </Animated.View>
     )
 }
-const heightBottmed = 420
-const heightCentered = 600
-const useHeight = tablet ? heightCentered : heightCentered
-const styles = StyleSheet.create({
-    bottom: {
-        height: heightBottmed,
-        top: deviceHeight > heightBottmed ? deviceHeight - heightBottmed : 0,
-        padding: 15,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        borderColor: 'white',
-        borderWidth: 1,
-        left: -2,
-        width: deviceWidth + 4,
-        position: 'absolute',
-    },
-    center: {
-        flex: 0,
-        top: deviceHeight / 2 - heightCentered / 2,
-        left: deviceWidth / 2 - 275,
-        paddingLeft: 25,
-        padding: 10,
-        paddingTop: 0,
-        width: 550,
-        height: heightCentered,
-        borderColor: 'white',
-        borderWidth: 1,
-        borderRadius: 10,
-        position: 'absolute',
-    },
-    wrap: {
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        height: deviceHeight,
-        width: deviceWidth,
-        top: 0,
-        left: 0,
-        position: 'absolute',
-        zIndex: 99,
-    },
-    swipedRow: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignContent: 'center',
-        height: 50,
-    },
-    menu: {
-        borderBottomColor: '#eee',
-        borderBottomWidth: 1,
-        paddingVertical: 10,
-        height: 50,
-        width: deviceWidth - 120
-    },
-    flatlist: {
-        height: useHeight - 250
-    },
-    tlBtn: {
-        width: (deviceWidth - 40) / 2
-    },
-    editMenu: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 5
-    }
-})
+function createStyle(deviceWidth: number, deviceHeight: number) {
+    const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
+    const heightBottmed = 420
+    const heightCentered = 600
+    const useHeight = tablet ? heightCentered : heightCentered
+    const useWidth = tablet ? 550 : deviceWidth
+    return StyleSheet.create({
+        bottom: {
+            height: heightBottmed,
+            top: deviceHeight > heightBottmed ? deviceHeight - heightBottmed : 0,
+            padding: 15,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            borderColor: 'white',
+            borderWidth: 1,
+            left: -2,
+            width: useWidth + 4,
+            position: 'absolute',
+        },
+        center: {
+            flex: 0,
+            top: deviceHeight / 2 - heightCentered / 2,
+            left: deviceWidth / 2 - 275,
+            paddingLeft: 25,
+            padding: 10,
+            paddingTop: 0,
+            width: useWidth,
+            height: heightCentered,
+            borderColor: 'white',
+            borderWidth: 1,
+            borderRadius: 10,
+            position: 'absolute',
+        },
+        wrap: {
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            height: deviceHeight,
+            width: useWidth,
+            top: 0,
+            left: 0,
+            position: 'absolute',
+            zIndex: 99,
+        },
+        swipedRow: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignContent: 'center',
+            height: 50,
+        },
+        menu: {
+            borderBottomColor: '#eee',
+            borderBottomWidth: 1,
+            paddingVertical: 10,
+            height: 50,
+            width: useWidth - 120
+        },
+        flatlist: {
+            height: useHeight - 250
+        },
+        tlBtn: {
+            width: (useWidth - 40) / 2
+        },
+        editMenu: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: 5
+        }
+    })
+}

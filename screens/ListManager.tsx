@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, ActionSheetIOS, Text, useColorScheme, FlatList, TextInput, RefreshControl } from 'react-native'
+import { StyleSheet, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInput, RefreshControl, findNodeHandle } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
-import { Button, TouchableOpacity, View } from '../components/Themed'
+import { Button, TouchableOpacity, View, Text } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
-import { statusBarHeight } from '../utils/statusBar'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as Alert from '../utils/alert'
 import * as storage from '../utils/storage'
@@ -13,10 +12,20 @@ import * as S from '../interfaces/Storage'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as api from '../utils/api'
 import Account from '../components/Account'
-const deviceWidth = Dimensions.get('window').width
-const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
-const statusBar = statusBarHeight()
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'ListManager'>) {
+    const theme = useColorScheme()
+    const isDark = theme === 'dark'
+	React.useLayoutEffect(() => {
+		navigation.setOptions({
+			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
+			headerTitleStyle: { color: isDark ? 'white' : 'black' },
+			headerLeft: () => (
+				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
+					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
+				</TouchableOpacity>
+			),
+		});
+	}, [navigation, isDark])
     const [loading, setLoading] = useState<boolean>(true)
     const { acctId, targetAcct } = route.params
     const [mode, setMode] = useState<'list' | 'user'>('list')
@@ -27,8 +36,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const [selectingList, setSelectingList] = useState<string>('')
     const [list, setList] = useState<M.List[]>([])
     const [user, setUser] = useState<M.Account[]>([])
-    const theme = useColorScheme()
-    const isDark = theme === 'dark'
     const theFontGrayPlus = isDark ? '#c7c7c7' : '#4f4f4f'
     const init = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
@@ -66,13 +73,16 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         }
     }
     useEffect(() => { loadListList(account) }, [account])
+
+    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
     const selectAcct = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
         const accountListTxt = accts.map((item) => `@${item?.name}@${item?.domain}`)
         const accountList = accts.map((item) => item.id)
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: accountListTxt
+                options: accountListTxt,
+                anchor: anchorAcct || undefined
             },
             (buttonIndex) => {
                 const id = accountList[buttonIndex]
@@ -82,6 +92,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             }
         )
     }
+
+    const [anchorAction, setAnchorAction] = React.useState<null | number>(0)
     const listAction = async (item: M.List) => {
         const actions = ['カラム追加', 'リスト情報', 'リストの削除']
         if (targetAcct) actions.push('このリストに追加/から削除')
@@ -91,7 +103,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             {
                 title: item.title,
                 options: actions,
-                cancelButtonIndex: actions.length - 1
+                cancelButtonIndex: actions.length - 1,
+                anchor: anchorAction || undefined
             },
             (buttonIndex) => {
                 if (buttonIndex === 0) addTL(item)
@@ -126,7 +139,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const renderList = (e: any) => {
         const item = e.item as M.List
         return (
-            <TouchableOpacity onPress={() => listAction(item)} style={{ marginTop: 10 }}>
+            <TouchableOpacity onPress={() => listAction(item)} style={{ marginTop: 10 }} ref={(c: any) => setAnchorAction(findNodeHandle(c))}>
                 <Text>{item.title}</Text>
                 <View style={{ height: 15 }} />
                 <View style={commonStyle.separator} />
@@ -205,7 +218,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     return (
         <View style={{ padding: 5, flex: 1 }}>
-            <TouchableOpacity onPress={() => selectAcct()} style={{ marginVertical: 15 }}>
+            <TouchableOpacity onPress={() => selectAcct()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
+                <MaterialIcons style={{paddingTop: 3}} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
             </TouchableOpacity>
             {mode === 'user' ?
