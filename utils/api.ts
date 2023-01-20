@@ -116,6 +116,7 @@ export const getV1TrendStatuses = async (domain: string, at: string) => { return
 export const getV1TrendTags = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/trends/tags`, at) as M.Tag[] }
 export const getV1TrendLink = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/trends/links`, at) as M.Card[] }
 export const getV1Directory = async (domain: string, at: string, param: R.Directory) => { return await getApi(`https://${domain}/api/v1/directory`, at, param) as M.Account[] }
+export const getV1Poll = async (domain: string, at: string, pollId: string) => { return await getApi(`https://${domain}/api/v1/polls/${pollId}`, at, {}) as M.Poll }
 
 
 export const postV2Media = async (domain: string, at: string, form: FormData) => { return await postApiMedia(`https://${domain}/api/v2/media`, at, form) as M.Media }
@@ -141,3 +142,4 @@ export const putV1List = async (domain: string, at: string, id:string, title: st
 export const deleteV1ListUser = async (domain: string, at: string, listId:string, userId: string) => { return await deleteApi(`https://${domain}/api/v1/lists/${listId}/accounts`, at, { 'account_ids[]': userId }) as M.List }
 export const deleteV1List = async (domain: string, at: string, listId:string) => { return await deleteApi(`https://${domain}/api/v1/lists/${listId}`, at) as {}}
 export const postV1ListUser = async (domain: string, at: string, listId: string,userId: string) => { return await postApi(`https://${domain}/api/v1/lists/${listId}/accounts`, at, { account_ids: [userId] }) as {} }
+export const postV1Poll = async (domain: string, at: string, pollId: string, optionId: number[]) => { return await postApi(`https://${domain}/api/v1/polls/${pollId}/votes`, at, { choices: optionId }) as M.Poll }

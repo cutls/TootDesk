@@ -61,7 +61,7 @@ export default (props: FromRootToTimeline) => {
 	let ct = 0
 	const tootUpdator = (item: M.Toot[]) => setToots(deepClone(item))
 	const loadTimeline = async (mode?: 'more' | 'update') => {
-		if (!mode) setToots([])
+		//if (!mode) setToots([])
 		let internalToot: M.Toot[] = mode ? toots : []
 		console.log('re rendering')
 		const moreLoad = mode === 'more'
@@ -224,23 +224,19 @@ export default (props: FromRootToTimeline) => {
 		setFlatList(flatlistRef)
 	}, [])
 	console.log(loading)
-	React.useEffect(() => {
-		console.log(loading)
-		if (loading === 'Initializing' || loading === 'Change Timeline') {
-			if (loading === 'Change Timeline') {
-				if (ws && typeof ws.close === 'function') ws.close()
-			}
-			loadTimeline()
-		}
-	}, [loading, timeline])
-	if (loading) {
+	useEffect(() => {
+		console.log(timeline)
+		if (ws && typeof ws.close === 'function') ws.close()
+		loadTimeline()
+	}, [timeline])
+	if (loading && !toots.length) {
 		return (
 			<View style={[styles.container, styles.center]}>
 				<Text>{loading}</Text>
 			</View>
 		)
 	}
-	if (!timeline.activated) {
+	if (!timeline || !timeline.activated) {
 		return (
 			<View style={[styles.container, styles.center]}>
 				<Text>Not activated</Text>
@@ -257,6 +253,7 @@ export default (props: FromRootToTimeline) => {
 	}
 	return (
 		<View style={[styles.container]}>
+			{!!loading && <Text>{loading}</Text>}
 			<View style={{ position: 'absolute', backgroundColor: 'red', width: 4, height: 4, opacity: ws ? 1 : 0, zIndex: 999, borderRadius: 2, marginLeft: 5 }} />
 			<FlatList
 				maintainVisibleContentPosition={onScroll ? { minIndexForVisible: 0 } : null}

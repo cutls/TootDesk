@@ -126,6 +126,11 @@ export interface Card {
     blurhash?: string | null
     [x: string]: any
 }
+export interface PollOption {
+    title: string
+    votes_count: number | null
+    TheDeskSelected?: boolean
+}
 export interface Poll {
     id: string
     expires_at: string
@@ -135,12 +140,8 @@ export interface Poll {
     voters_count: null
     voted: boolean
     own_votes: number[]
-    options: {
-        title: string
-        votes_count: number | null
-    }[]
+    options: PollOption[]
     emojis: Emoji[]
-    [x: string]: any
 }
 export interface CustomEmoji {
     shortcode: string

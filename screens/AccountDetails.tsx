@@ -83,7 +83,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			setAcctId(acctIdGet)
 			setAccount(acctData)
 			setReady(true)
-		} catch (e) {
+		} catch (e: any) {
+			Alert.alert('Error', e.toString())
 			console.log(e)
 		}
 	}
@@ -101,7 +102,9 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			const status = data.account
 			if (!status) return false
 			init(acctId, status.id)
-		} catch (e) { }
+		} catch (e: any) {
+			Alert.alert('Error', e.toString())
+		}
 	}
 	if (!route.params) return null
 
@@ -135,20 +138,24 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				cancelButtonIndex: options.length - 1,
 			},
 			async (buttonIndex) => {
-				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id})
+				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id })
 				if (buttonIndex === 4) return true
 				const a = await Alert.promise('確認', `${options[buttonIndex]}します。よろしいですか？`, Alert.UNSAVE)
 				if (a === 1) {
-					const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
-					let newR = {} as M.Relationship
-					if (buttonIndex === 0 && following) newR = await api.postV1UnFollow(domain, at, account.id)
-					if (buttonIndex === 0 && !following && !requested) newR = await api.postV1Follow(domain, at, account.id)
-					if (buttonIndex === 0 && !following && requested) newR = await api.postV1UnFollow(domain, at, account.id)
-					if (buttonIndex === 1 && following) newR = await api.postV1UnMute(domain, at, account.id)
-					if (buttonIndex === 1 && !following) newR = await api.postV1Mute(domain, at, account.id)
-					if (buttonIndex === 2 && following) newR = await api.postV1UnBlock(domain, at, account.id)
-					if (buttonIndex === 2 && !following) newR = await api.postV1Block(domain, at, account.id)
-					setRelationship(newR)
+					try {
+						const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+						let newR = {} as M.Relationship
+						if (buttonIndex === 0 && following) newR = await api.postV1UnFollow(domain, at, account.id)
+						if (buttonIndex === 0 && !following && !requested) newR = await api.postV1Follow(domain, at, account.id)
+						if (buttonIndex === 0 && !following && requested) newR = await api.postV1UnFollow(domain, at, account.id)
+						if (buttonIndex === 1 && following) newR = await api.postV1UnMute(domain, at, account.id)
+						if (buttonIndex === 1 && !following) newR = await api.postV1Mute(domain, at, account.id)
+						if (buttonIndex === 2 && following) newR = await api.postV1UnBlock(domain, at, account.id)
+						if (buttonIndex === 2 && !following) newR = await api.postV1Block(domain, at, account.id)
+						setRelationship(newR)
+					} catch (e: any) {
+						Alert.alert('Error', e.toString())
+					}
 				}
 			}
 		)

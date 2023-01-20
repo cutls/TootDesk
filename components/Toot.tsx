@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
@@ -18,6 +18,8 @@ import { BlurView } from 'expo-blur'
 import * as S from '../interfaces/Storage'
 import * as storage from '../utils/storage'
 import { statusPost } from '../utils/changeStatus'
+import Poll from './Poll'
+import { LoadingContext } from '../utils/context/loading'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -42,6 +44,7 @@ export default (props: FromTimelineToToot) => {
 	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: rawToot.reblogs_count })
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
 	const [isCwShow, setIsCwShow] = useState(false)
+	const { setLoading } = useContext(LoadingContext)
 	const showMedia = (media: any, isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
@@ -127,13 +130,16 @@ export default (props: FromTimelineToToot) => {
 		} else if (acctDetector) {
 			const acctNotation = `${acctDetector[2]}@${acctDetector[1]}`
 			try {
+				setLoading('アカウントを検索しています')
 				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
 				const { domain, at } = acct
 				const data = await api.getV2Search(domain, at, { q: acctNotation, resolve: true })
+				setLoading('')
 				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
 				if (!data.accounts.length) throw 'アカウントが見つかりませんでした'
 				navigation.navigate('AccountDetails', { at, domain, notification: false, acctId, id: data.accounts[0].id })
 			} catch (e) {
+				setLoading('')
 				await WebBrowser.openBrowserAsync(href)
 			}
 		} else {
@@ -176,7 +182,7 @@ export default (props: FromTimelineToToot) => {
 						<Text>{isCwShow ? '隠す' : '見る'}</Text>
 					</TouchableOpacity>}
 					{toot.card ? <Card card={toot.card} /> : null}
-					{toot.poll && <Text style={styles.cannotPoll}>[投票はブラウザでお楽しみください]</Text>}
+					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 					<View style={styles.actionsContainer}>
 						<MaterialIcons name="reply" size={27} style={styles.actionIcon} color="#9a9da1" onPress={() => reply(toot.id, toot.account.acct)} />
@@ -242,8 +248,5 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		marginVertical: 5,
 		width: 55,
-	},
-	cannotPoll: {
-		color: '#aaa'
 	}
 })

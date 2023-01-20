@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView } from 'react-native'
-import { TouchableOpacity, View } from '../components/Themed'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme } from 'react-native'
+import { TouchableOpacity, View, Text } from '../components/Themed'
 import Bottom from '../components/Bottom'
 import Timeline from '../components/Timeline'
 import ImageModal from '../components/modal/ImageModal'
@@ -15,19 +15,25 @@ import * as Updates from 'expo-updates'
 import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
 import { MaterialIcons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../utils/context/changeTl'
+import { LoadingContext } from '../utils/context/loading'
 const deviceWidth = Dimensions.get('window').width
 const deviceHeight = StatusBar.currentHeight ? Dimensions.get('window').height : Dimensions.get('window').height - 20
 const statusBar = statusBarHeight()
 
 export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>) {
 	const [loading, setLoading] = useState<null | Loading>('Initializing')
-	const [text, setText] = useState('' as string)
-	const [replyId, setReplyId] = useState('' as string)
+	const [rootLoading, setRootLoading] = useState<null | string>(null)
+	const [insertText, setInsertText] = useState('')
+	const [replyId, setReplyId] = useState('')
 	const [inited, setInited] = useState(false)
 	const [showToTop, setShowToTop] = useState(false)
 	const [nowSelecting, setNowSelecting] = useState(0)
 	const [timelines, setTimelines] = useState<TimelineProps[]>([])
 	const [flatList, setFlatList] = useState<IFlatList>(undefined)
+	const theme = useColorScheme()
+	const isDark = theme === 'dark'
+	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+	const bgColorAI = { backgroundColor: bgColorValAI }
 	const init = async () => {
 		setInited(true)
 		const tls = await storage.getItem('timelines')
@@ -50,7 +56,6 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	if (!inited) {
 		init()
 	}
-	const [tooting, setTooting] = useState(false)
 	const [newNotif, setNewNotif] = useState(false)
 	const [imageModal, setImageModal] = useState({
 		url: [''],
@@ -60,69 +65,72 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const goToAccountManager = () => {
 		navigation.replace('AccountManager')
 	}
-	const toSetTooting = (is: boolean) => {
-		setTooting(is)
-	}
 
 	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
-	const changeTl = async (tl: number, requireSleep?: boolean) => {
-		//alert(tl)
-		const tls = await storage.getItem('timelines')
-		setTimelines(tls)
-		if (requireSleep) await sleep(500)
-		setNowSelecting(tl)
+	const changeTl = async (tl: number, reloadTimeline?: boolean) => {
+		if (reloadTimeline) {
+			const tls = await storage.getItem('timelines')
+			setTimelines(tls)
+		}
 		setNewNotif(false)
+		setNowSelecting(tl)
 	}
 	const reply = (id: string, acct: string) => {
-		setText(`@${acct} `)
+		setInsertText(`@${acct} `)
 		setReplyId(id)
-		setTooting(true)
 	}
-	const acct = (timelines[nowSelecting || 0] || { acct: '' }).acct
 	return (
-		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
-			<ChangeTlContext.Provider value={{ changeTl, tl: nowSelecting }}>
-				<SafeAreaView style={styles.container}>
-					<View>
-						<View style={styles.psudo}>
-							<Timeline
-								navigation={navigation}
-								loading={loading}
-								setNewNotif={setNewNotif}
-								setLoading={setLoading}
-								timeline={timelines[nowSelecting]}
-								imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-								reply={reply}
-							/>
+		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
+			<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
+				<ChangeTlContext.Provider value={{ changeTl, tl: nowSelecting }}>
+					<SafeAreaView style={styles.container}>
+						<View>
+							<View style={styles.psudo}>
+								<Timeline
+									navigation={navigation}
+									loading={loading}
+									setNewNotif={setNewNotif}
+									setLoading={setLoading}
+									timeline={timelines[nowSelecting]}
+									imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
+									reply={reply}
+								/>
+							</View>
 						</View>
-					</View>
-					<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
-						<MaterialIcons name="keyboard-arrow-up" size={27} />
-					</TouchableOpacity>
-					<View style={styles.stickToBottom}>
-						<View style={styles.bottom}>
-							<Bottom
-								goToAccountManager={goToAccountManager}
-								tooting={toSetTooting}
-								timelines={timelines}
-								nowSelecting={nowSelecting}
-								setNewNotif={setNewNotif}
-								newNotif={newNotif}
-								imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-								reply={reply}
-								navigation={navigation}
-							/>
+						<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
+							<MaterialIcons name="keyboard-arrow-up" size={27} />
+						</TouchableOpacity>
+						<View style={styles.stickToBottom}>
+							<View style={styles.bottom}>
+								<Bottom
+									goToAccountManager={goToAccountManager}
+									timelines={timelines}
+									nowSelecting={nowSelecting}
+									setNewNotif={setNewNotif}
+									newNotif={newNotif}
+									imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
+									reply={reply}
+									insertText={insertText}
+									replyId={replyId}
+									setReplyId={setReplyId}
+									setInsertText={setInsertText}
+									navigation={navigation}
+								/>
+							</View>
 						</View>
-					</View>
-					<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">
-						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
+						<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">
+							<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
+						</Modal>
+					</SafeAreaView>
+					<Modal visible={!!rootLoading} transparent={true}>
+						<View style={[styles.rootLoading, bgColorAI]}>
+							<ActivityIndicator size="large" />
+							<Text style={styles.rootLoadingText}>{rootLoading}</Text>
+						</View>
 					</Modal>
-					<Modal visible={tooting} animationType="slide" transparent={true}>
-						<Post show={true} acct={acct} tooting={toSetTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
-					</Modal>
-				</SafeAreaView>
-			</ChangeTlContext.Provider>
-		</TopBtnContext.Provider>
+				</ChangeTlContext.Provider>
+			</TopBtnContext.Provider>
+		</LoadingContext.Provider>
 	)
 }
 let android = false
@@ -162,5 +170,18 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	rootLoading: {
+		width: 200,
+		height: 100,
+		top: (deviceHeight / 2) - 50,
+		left: (deviceWidth / 2) - 100,
+		justifyContent: 'center',
+		borderRadius: 10,
+	},
+	rootLoadingText: {
+		color: 'white',
+		textAlign: 'center',
+		marginTop: 10
 	}
 })

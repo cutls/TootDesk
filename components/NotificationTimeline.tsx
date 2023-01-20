@@ -100,8 +100,8 @@ export default (props: FromRootToTimeline) => {
             const data: M.Notification[] = await api.getV1Notifications(acct.domain, acct.at)
             setToots(data)
             setLoading(null)
-        } catch (e) {
-
+        } catch (e: any) {
+            Alert.alert('Error', e.toString())
         }
     }
     const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>

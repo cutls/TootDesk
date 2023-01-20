@@ -8,6 +8,7 @@ import * as storage from './storage'
 import * as S from '../interfaces/Storage'
 import axios from 'axios'
 import * as api from '../utils/api'
+import * as Alert from '../utils/alert'
 import uuid from './uuid'
 
 export const loginFirst = async (BASE_URL: string) => {
@@ -63,7 +64,8 @@ export const getAt = async (code: string) => {
         } as S.Account)
         const accts = await storage.getItem('accounts') as S.Account[]
         return accts
-    } catch (e) {
+    } catch (e: any) {
+        Alert.alert('Error', e.toString())
         console.error(e)
         return []
     }

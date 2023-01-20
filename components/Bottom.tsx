@@ -1,5 +1,5 @@
-import React from 'react'
-import { StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
+import React, { useContext, useEffect, useState } from 'react'
+import { StyleSheet, TouchableOpacity, Dimensions, Modal } from 'react-native'
 import { Text, View, Button } from './Themed'
 import { Ionicons } from '@expo/vector-icons'
 import { ParamList, IState } from '../interfaces/ParamList'
@@ -11,10 +11,10 @@ import * as S from '../interfaces/Storage'
 import TimelineModal from './modal/TimelineModal'
 import { ChangeTlContext } from '../utils/context/changeTl'
 import timelineLabel from '../utils/timelineLabel'
+import Post from './Post'
 const deviceWidth = Dimensions.get('window').width
 interface PropBottomFromRoot {
     goToAccountManager: () => void,
-    tooting: (a: boolean) => void,
     timelines: TimelineProps[],
     nowSelecting: number,
     setNewNotif: IState<boolean>
@@ -22,30 +22,41 @@ interface PropBottomFromRoot {
     imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
     reply: (id: string, acct: string) => void
     navigation: StackNavigationProp<ParamList, any>
+    insertText: string
+    replyId: string
+    setReplyId: IState<string>
+    setInsertText: IState<string>
 }
 export default (params: PropBottomFromRoot) => {
-    const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
-    const { timelines, nowSelecting, newNotif, setNewNotif, imgModalTrigger, reply, goToAccountManager, navigation } = params
+    const { changeTl: setNowSelecting } = useContext(ChangeTlContext)
+    const { timelines, nowSelecting, newNotif, setNewNotif, imgModalTrigger, reply, goToAccountManager, navigation, insertText, replyId, setReplyId, setInsertText } = params
     if (!timelines) return null
     const timeline = timelines[nowSelecting]
     if (!timeline) return null
     const tlLabel = timelineLabel(timeline)
-    const [acctName, setAcctName] = React.useState('No account')
-    const [acct, setAcct] = React.useState({ id: 'a' } as S.Account)
-    const [showNotif, setShowNotif] = React.useState(false)
-    const [showTL, setShowTL] = React.useState(false)
-    const [inited, setInited] = React.useState(false)
+    const [acctName, setAcctName] = useState('No account')
+    const [acct, setAcct] = useState({ id: 'a' } as S.Account)
+    const [showNotif, setShowNotif] = useState(false)
+    const [showTL, setShowTL] = useState(false)
+    const [tooting, setTooting] = useState(false)
     const init = async () => {
-        setInited(true)
         const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
         setAcctName(acct.acct)
         setAcct(acct)
     }
-    if (!inited) init()
+    useEffect(() => { init() }, [])
     const showTrgNotif = () => {
         setShowNotif(true)
         setNewNotif(false)
     }
+    const toot = (i: boolean) => {
+        setTooting(i)
+        if (!i) setReplyId('')
+        if (!i) setInsertText('')
+    }
+    useEffect(() => {
+        if (insertText) setTooting(true)
+    }, [insertText])
     return (
         <View style={styles.bottom}>
             {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} navigation={navigation} /> : null}
@@ -60,9 +71,10 @@ export default (params: PropBottomFromRoot) => {
                 <Text numberOfLines={1}>{tlLabel}</Text>
                 <Text>{timeline.acctName}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.config} onPress={() => params.tooting(true)}>
+            <TouchableOpacity style={styles.config} onPress={() => toot(true)}>
                 <Ionicons name="create" size={30} />
             </TouchableOpacity>
+            <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} replyId={replyId} />
         </View>
     )
 }

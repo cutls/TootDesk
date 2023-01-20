@@ -40,7 +40,7 @@ async function upload(result: any, domain: string, at: string) {
         return data
     } catch (e: any) {
         console.log(e)
-        //if (e.message) Alert.alert('Error', e.message)
+        if (e.message) Alert.alert('Error', e.message)
         return null
     }
 }

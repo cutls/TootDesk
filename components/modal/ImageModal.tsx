@@ -60,6 +60,7 @@ export default (props: FromRootToImageModal) => {
 		ref.current?.setPage(i)
 	}
 	return (
+		
 		<View style={[styles.container, bgColor]}>
 			<View style={[styles.top, bgColor]}>
 				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(url[i])} style={styles.upper}>
@@ -74,7 +75,7 @@ export default (props: FromRootToImageModal) => {
 			</View>
 			<PagerView style={[bgColor, { flex: 1 }]} initialPage={props.i} ref={ref} onPageSelected={(e) => changeI(e.nativeEvent.position)}>
 				{url.map((txt, index) => <View key={index}>
-					<WebView source={{ html: `<html><body style="margin: 0px;background: #0e0e0e;height: 100%;display: flex; justify-content: center; align-items: center; background-color: ${simpleColor}"><img src="${txt}" style="display: block;-webkit-user-select: none;margin: auto;" /></body></html>` }} />
+					<WebView source={{ html: `<html><body style="margin: 0px;background: #0e0e0e;height: 100%;display: flex; justify-content: center; align-items: center; background-color: ${simpleColor}"><img src="${txt}" style="display: block;-webkit-user-select: none;margin: auto; width: 80%; height: 80%; object-fit: contain;" /></body></html>` }} />
 				</View>)}
 			</PagerView>
 
@@ -96,8 +97,8 @@ export default (props: FromRootToImageModal) => {
 }
 const styles = StyleSheet.create({
 	container: {
-		height: deviceHeight - (isIPhoneX ? 60 : 0),
-		paddingTop: ios && !tablet ? 0 : statusBarHeight(),
+		height: deviceHeight,
+		paddingTop: ios && !tablet ? 30 : statusBarHeight(),
 	},
 	icon: {
 		marginHorizontal: 15,
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
 		opacity: 0.8,
 		width: deviceWidth,
 		backgroundColor: 'white',
-		bottom: 80,
+		bottom: 0,
 		paddingBottom: isIPhoneX ? 15 : 0,
 		height: ios ? 80 : 70,
 		flexDirection: 'row',

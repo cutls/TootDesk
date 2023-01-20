@@ -2,7 +2,7 @@ import { StackScreenProps } from '@react-navigation/stack'
 import * as React from 'react'
 import { Text, View, TouchableOpacity } from '../Themed'
 import { StyleSheet, Image, FlatList, Dimensions, Platform, useColorScheme, Modal } from 'react-native'
-import { statusBarHeight } from '../../utils/statusBar'
+import * as Alert from '../../utils/alert'
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
 import { commonStyle, tablet } from '../../utils/styles'
@@ -35,7 +35,8 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
                 arPhoto.push(sPhoto)
             }
             setPhotos(arPhoto)
-        } catch (e) {
+        } catch (e: any) {
+            Alert.alert('Error', e.toString())
             console.error(e)
         }
     }

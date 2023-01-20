@@ -6,7 +6,7 @@ interface IParam {
     changeTl: (tl: number, requireSleep?: boolean) => void
     tl: number
 }
-const changeTl = (tl: number, requireSleep?: boolean) => {}
+const changeTl = (tl: number, reloadTimeline?: boolean) => {}
 export const changeTlContextDefaultValue: IParam = { changeTl, tl: 0 }
 export const ChangeTlContext = React.createContext(changeTlContextDefaultValue)
 

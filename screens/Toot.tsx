@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, Alert, FlatList } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList } from 'react-native'
 import * as Linking from 'expo-linking'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import { loginFirst, getAt } from '../utils/login'
@@ -10,6 +10,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import * as api from '../utils/api'
+import * as Alert from '../utils/alert'
 import { commonStyle } from '../utils/styles'
 import axios from 'axios'
 import Toot from '../components/Toot'
@@ -80,7 +81,9 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			setAncestors(context.ancestors)
 			setDescendants(context.descendants)
 			setReady(true)
-		} catch (e) {}
+		} catch (e: any) {
+			Alert.alert('Error', e.toString())
+		}
 	}
 	const solve = async (domain: string, at: string, notfId: string) => {
 		try {
@@ -96,7 +99,9 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			const status = data.status
 			if (!status) return false
 			init(acctId, status.id)
-		} catch (e) {}
+		} catch (e: any) {
+			Alert.alert('Error', e.toString())
+		}
 	}
 	if (!route.params) return null
 
@@ -206,7 +211,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			) : (
 				<Text style={commonStyle.textCenter}>いません</Text>
 			)}
-			<Post show={tooting} acct={acctId} tooting={setTooting} setText={setText} text={text} replyId={replyId} setReplyId={setReplyId} />
+			<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} replyId={replyId} />
 		</View>
 	)
 }
