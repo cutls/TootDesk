@@ -174,6 +174,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				<FlatList
 					data={ancestors}
 					renderItem={compactToot}
+					keyExtractor={(item) => item.id}
 					style={{
 						maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
 					}}
@@ -187,11 +188,13 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })}
 				reply={reply}
 				width={deviceWidth}
+				tlId={-1}
 			/>
 			{descendants.length ? (
 				<FlatList
 					data={descendants}
 					renderItem={compactToot}
+					keyExtractor={(item) => item.id}
 					style={{
 						maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
 					}}
@@ -209,6 +212,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				<FlatList
 					data={showAccts}
 					renderItem={compactAcct}
+					keyExtractor={(item) => item.id}
 					ListEmptyComponent={() => <Text>データがありません</Text>}
 					style={{
 						maxHeight: showAccts.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : showAccts.length * 50,

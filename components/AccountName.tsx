@@ -26,17 +26,18 @@ export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean)
 
     return emojified
 }
+const tagStyle = { b: { fontWeight: 'bold' } } as const
 export const AccountName = (props: FromTootToAcctName) => {
     const { account, miniEmoji, fontSize: fsRaw, showWithoutEllipsis, width } = props
     const fontSize = fsRaw ? fsRaw : 15
     const textProps = showWithoutEllipsis ? {} : { numberOfLines: 1 }
-	const theme = useColorScheme()
-	const isDark = theme === 'dark'
+    const theme = useColorScheme()
+    const isDark = theme === 'dark'
     const txtColor = isDark ? 'white' : 'black'
     return account.display_name ? (
         <HTML
             source={{ html: `<b style="font-size: ${fontSize}px;color: ${txtColor}">${emojify(account.display_name, account.emojis, miniEmoji)}</b>` }}
-            tagsStyles={{ b: { fontWeight: 'bold' } }}
+            tagsStyles={tagStyle}
             customHTMLElementModels={renderers}
             contentWidth={width - 50}
             defaultTextProps={textProps}

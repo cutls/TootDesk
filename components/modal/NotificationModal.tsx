@@ -7,7 +7,7 @@ import NotificationTimeline from '../NotificationTimeline'
 
 let ios = true
 if (Platform.OS === 'android') ios = false
-export default function SelectCustomEmoji({ setShowNotif, acctId, imgModalTrigger, reply, navigation }: any) {
+export default function NotificationModal({ setShowNotif, acctId, reply, navigation }: any) {
     const [modalVisible, setModalVisible] = React.useState(true)
 	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
     const modalWidth = deviceWidth > 700 ? 700 : deviceWidth
@@ -29,7 +29,7 @@ export default function SelectCustomEmoji({ setShowNotif, acctId, imgModalTrigge
                     <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
-            <NotificationTimeline navigation={navigation} acctId={acctId} imgModalTrigger={imgModalTrigger} reply={reply} dismiss={dismiss} width={modalWidth} />
+            <NotificationTimeline navigation={navigation} acctId={acctId} reply={reply} dismiss={dismiss} width={modalWidth} />
         </Modal>
     )
 }

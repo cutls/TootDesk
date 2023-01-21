@@ -204,9 +204,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const renderUser = (e: any) => {
         const item = e.item as M.Account
         return (
-            <View>
+            <View key={`userInList ${item.id}`}>
                 <View style={commonStyle.horizonal}>
-                    <Account acctId={account} account={item} key={`userInList ${item.id}`} goToAccount={(id: string) => true} />
+                    <Account acctId={account} account={item} goToAccount={(id: string) => true} />
                     <TouchableOpacity onPress={() => delUser(item.id)} style={styles.editMenu}>
                         <MaterialIcons size={20} name="delete" color="red" />
                     </TouchableOpacity>
@@ -235,8 +235,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             {mode === 'user' && <Button title="戻る" onPress={async () => setMode('list')} icon="arrow-back" style={{ width: '29%', marginLeft: '1%' }} />}
             <View style={{ height: 10 }} />
             {loading && <Text>Loading...</Text>}
-            {mode === 'list' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={list} renderItem={renderList} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadListList(account)} />} />}
-            {mode === 'user' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={user} renderItem={renderUser} />}
+            {mode === 'list' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={list} keyExtractor={(item) => item.id} renderItem={renderList} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadListList(account)} />} />}
+            {mode === 'user' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={user} keyExtractor={(item) => item.id} renderItem={renderUser} />}
 
         </View>
     )

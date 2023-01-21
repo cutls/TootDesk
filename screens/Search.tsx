@@ -134,6 +134,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     imgModalTrigger={(url: string[], i: number, show: boolean) => true}
                     reply={() => true} 
                     width={deviceWidth}    
+                    tlId={-1}
                 />
                 <View style={commonStyle.separator} />
             </>
@@ -200,10 +201,10 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 </View>
                 <View style={{ height: 5 }} />
             </View>}
-            {selectedIndex === 0 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={tags} renderItem={renderTag} />}
-            {selectedIndex === 1 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={toots} renderItem={renderToot} />}
-            {selectedIndex === 2 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={users} renderItem={renderUser} />}
-            {selectedIndex === 3 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={cards} renderItem={renderCard} />}
+            {selectedIndex === 0 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={tags} keyExtractor={(item) => item.name} renderItem={renderTag} />}
+            {selectedIndex === 1 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={toots} keyExtractor={(item) => item.id} renderItem={renderToot} />}
+            {selectedIndex === 2 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={users} keyExtractor={(item) => item.id} renderItem={renderUser} />}
+            {selectedIndex === 3 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={cards} keyExtractor={(item) => item.url} renderItem={renderCard} />}
 
         </View>
     )

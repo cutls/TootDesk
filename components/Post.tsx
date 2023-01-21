@@ -140,6 +140,8 @@ export default (props: FromRootToPost) => {
 		tooting(false)
 		setText('')
 		setNsfw(false)
+		setLoading(false)
+		setUploading(false)
 		setUploaded([])
 		setVis('public')
 	}
@@ -184,7 +186,7 @@ export default (props: FromRootToPost) => {
 							<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
 						{uploaded.length ? <View style={{ height: 50 }}>
-							<FlatList data={uploaded} horizontal={true} renderItem={({ item, index }) => uploadedImage(item)} />
+							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View> : null}
 						{replyId ? <Text>返信モード</Text> : null}
 						<View style={styles.action}>

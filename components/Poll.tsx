@@ -72,7 +72,7 @@ export default (props: FromTootToPoll) => {
             {
                 showResult ?
                     <>{options.map((d, i) =>
-                        <View style={[styles.option, commonStyle.horizonal]}>
+                        <View style={[styles.option, commonStyle.horizonal]} key={d.title}>
                             <Text>{d.title}: {d.votes_count}({poll.voters_count && Math.floor((d.votes_count || 0) / poll.voters_count * 100)}%){poll.own_votes.includes(i) && ` ✅`}</Text>
                         </View>
                     )}
@@ -90,7 +90,7 @@ export default (props: FromTootToPoll) => {
                     :
                     <>
                         {options.map((d, i) =>
-                            <TouchableOpacity style={[styles.option, d.TheDeskSelected ? insertStyle : {}]} onPress={() => select(i)}>
+                            <TouchableOpacity key={d.title} style={[styles.option, d.TheDeskSelected ? insertStyle : {}]} onPress={() => select(i)}>
                                 <Text>{d.title}</Text>
                             </TouchableOpacity>
                         )}

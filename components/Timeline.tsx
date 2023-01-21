@@ -1,19 +1,20 @@
 import React, { useContext, useEffect, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
-import { StyleSheet, Dimensions, FlatList, RefreshControl } from 'react-native'
-import { Text, View } from './Themed'
+import { StyleSheet, Dimensions, FlatList, RefreshControl, useWindowDimensions } from 'react-native'
+import { Text, TouchableOpacity, View } from './Themed'
 import Toot from './Toot'
 import * as M from '../interfaces/MastodonApiReturns'
 import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
-import { TopBtnContext } from '../utils/context/topBtn'
+import { IFlatList, TopBtnContext } from '../utils/context/topBtn'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
+import { MaterialIcons } from '@expo/vector-icons'
+import { isIPhoneX } from '../utils/statusBar'
 
 interface FromTimelineRootToTimeline {
 	timeline: TimelineProps
-	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
 	loading: string | null
 	tlId: number
 	reply: (id: string, acct: string) => void
@@ -29,9 +30,11 @@ export default (props: FromTimelineRootToTimeline) => {
 	const [onScroll, setOnScroll] = useState(false)
 	const [acct, setAcct] = useState('')
 	const [domain, setDomain] = useState('')
-	const { show: showToTop, setShow: setShowToTop, setFlatList } = useContext(TopBtnContext)
+	const [showToTop, setShowToTop] = useState(false)
+	const [flatList, setFlatList] = useState<IFlatList>(undefined)
 	const { timeline, loading, reply, navigation, onRefresh, moreLoad, toots, errorMsg, tlId, refreshing, width } = props
-	const styles = createStyle(width)
+	const { height: deviceHeight } = useWindowDimensions()
+	const styles = createStyle(width, deviceHeight)
 	const renderItem = (e: any) => {
 		const item = e.item as M.Toot
 		const deletable = (item.reblog ? `@${item.reblog.account.acct}@${domain}` : `@${item.account.acct}@${domain}`) === acct
@@ -39,12 +42,11 @@ export default (props: FromTimelineRootToTimeline) => {
 			<Toot
 				navigation={navigation}
 				toot={item}
-				key={`${timeline.key} ${item.id}`}
 				deletable={deletable}
-				imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
 				reply={reply}
 				acctId={timeline.acct}
 				width={width}
+				tlId={tlId}
 			/>
 		)
 	}
@@ -79,6 +81,7 @@ export default (props: FromTimelineRootToTimeline) => {
 		if (yOffset <= 0) setOnScroll(false)
 	}
 	return (
+		<TopBtnContext.Provider value={{ show: showToTop, setShow: setShowToTop, flatList, setFlatList }}>
 		<View style={[styles.container]}>
 			{!!loading && <Text>{loading}</Text>}
 			<FlatList
@@ -88,6 +91,8 @@ export default (props: FromTimelineRootToTimeline) => {
 				ref={flatlistRef}
 				data={toots}
 				renderItem={renderItem}
+				key={tlId}
+				keyExtractor={item => `${timeline.key}${tlId}${item.id}`}
 				initialNumToRender={20}
 				ListEmptyComponent={<Text>No data {errorMsg}</Text>}
 				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => onRefresh()} />}
@@ -96,10 +101,14 @@ export default (props: FromTimelineRootToTimeline) => {
 					setTimeout(() => setShowToTop(false), 2000)
 				}}
 			/>
+			<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
+				<MaterialIcons name="keyboard-arrow-up" size={27} />
+			</TouchableOpacity>
 		</View>
+		</TopBtnContext.Provider>
 	)
 }
-function createStyle(width: number) {
+function createStyle(width: number, height: number) {
 	return StyleSheet.create({
 		center: {
 			justifyContent: 'center',
@@ -109,14 +118,19 @@ function createStyle(width: number) {
 			flex: 0,
 			width: width,
 			backgroundColor: 'transparent',
-			marginBottom: 95,
+			marginBottom: 0,
+			borderRightColor: '#eee',
+			borderRightWidth: 1
 		},
 		toTop: {
-			padding: 5,
+			position: 'absolute',
+			top: height - (isIPhoneX(width, height) ? 95 : 75) - 70,
+			height: 50,
+			width: 50,
 			borderTopLeftRadius: 10,
-			borderTopRightRadius: 10,
-			backgroundColor: 'rgba(0,0,0,0.5)',
-			zIndex: 999999,
+			backgroundColor: '#eee',
+			right: 0,
+			display: 'flex',
 			justifyContent: 'center',
 			alignItems: 'center'
 		},

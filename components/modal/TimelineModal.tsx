@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions } from 'react-native'
-import { Text, View, Button, TouchableOpacity } from '../Themed'
+import { Text, View, Button, TouchableOpacity, TextInput } from '../Themed'
 import * as storage from '../../utils/storage'
 import * as Alert from '../../utils/alert'
 import { commonStyle } from '../../utils/styles'
@@ -18,6 +18,7 @@ import { ChangeTlContext } from '../../utils/context/changeTl'
 import timelineLabel from '../../utils/timelineLabel'
 import { IState, ParamList } from '../../interfaces/ParamList'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { SetConfigContext } from '../../utils/context/config'
 
 let ios = true
 if (Platform.OS != 'ios') ios = false
@@ -35,6 +36,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const useWidth = tablet ? 550 : deviceWidth
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
+    const { config } = React.useContext(SetConfigContext)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
     const [inited, setInited] = React.useState(false)
@@ -47,8 +49,10 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const [accountList, setAccountList] = React.useState<string[]>([])
     const [accountTxt, setAccountTxt] = React.useState<string>('')
     const [account, setAccount] = React.useState<string>('')
+    const [local, setLocal] = React.useState<string>('')
     const [listSelect, setListSelect] = React.useState(false)
     const [anchor, setAnchor] = React.useState<null | number>(0)
+    const tlPerScreen = config.tlPerScreen
     const init = async () => {
         const tls = await storage.getItem('timelines')
         if (tls) setTimelines(tls)
@@ -84,7 +88,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const select = async (i: number | undefined) => {
         try {
             dismiss()
-            setNowSelecting(i ? i : 0)
+            setNowSelecting(i ? i : 0, true)
         } catch (e) {
 
         }
@@ -94,26 +98,11 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         setTimeout(() => {
             setModal(false)
         }, 200)
-        handleAnimation()
-    }
-    const handleAnimation = () => {
-        Animated.timing(animation, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: false,
-        }).start()
     }
     const save = async () => {
         await storage.setItem('timelines', timelines)
         setEditMode(false)
         setNowSelecting(0)
-    }
-    const boxInterpolation = animation.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['rgba(0,0,0,0.5)', 'rgba(0,0,0,0)'],
-    })
-    const animatedStyle = {
-        backgroundColor: boxInterpolation,
     }
     const useTl = (type: TLType) => {
         const tl = { type, acct: account, acctName: accountTxt, activated: true, key: `${type} ${account} ${timelines.length}`, timelineData: { target: '' } }
@@ -148,13 +137,19 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         if (goTarget < 0. || goTarget === timelines.length) return
         let i = 0
         const newTl = timelines.filter((item) => item.key !== targetItem.key)
-        console.log(newTl.map((item) => item.type))
         newTl.splice(goTarget, 0, targetItem)
-        console.log(goTarget, newTl.map((item) => item.type))
         setTimelines(newTl)
     }
     const selectList = async () => {
         navigation.navigate('ListManager', { acctId: account })
+    }
+    const addNoAuth = async () => {
+        const tl = { type: 'noAuth' as const, acct: account, acctName: accountTxt, activated: true, key: `noAuth ${local} ${timelines.length}`, timelineData: { target: local } }
+        const cl = timelines
+        cl.push(tl)
+        storage.setItem('timelines', cl)
+        setTimelines(cl)
+        setMode('select')
     }
     const configOption = () =>
         ActionSheetIOS.showActionSheetWithOptions(
@@ -176,10 +171,13 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
         const tlLabel = timelineLabel(item)
         return (
-            <TouchableOpacity onPress={() => editMode ? true : select(index)} style={[commonStyle.horizonal, { width: useWidth }]}>
-                <View style={styles.menu}>
-                    <Text numberOfLines={1}>{tlLabel}</Text>
-                    <Text>{item.acctName}</Text>
+            <TouchableOpacity onPress={() => editMode || index % tlPerScreen !== 0 ? true : select(index)} style={[commonStyle.horizonal, { width: useWidth }]}>
+                <View style={[styles.menu, commonStyle.horizonal]}>
+                    {index % tlPerScreen !== 0 && <MaterialIcons name="chevron-right" size={25} style={{ marginTop: 5 }} />}
+                    <View>
+                        <Text numberOfLines={1}>{tlLabel}</Text>
+                        <Text>{item.type === 'noAuth' ? item.timelineData.target : item.acctName}</Text>
+                    </View>
                 </View>
                 {editMode &&
                     <View style={[commonStyle.horizonal, { paddingTop: 10 }]}>
@@ -199,7 +197,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
             </TouchableOpacity>)
     }
     return (
-        <Animated.View style={web ? [styles.wrap] : { ...styles.wrap, ...animatedStyle }}>
+        <View style={styles.wrap}>
             <Modal visible={internalShow} animationType={tablet ? 'fade' : 'slide'} transparent={true}>
                 <View style={tablet ? styles.center : styles.bottom}>
                     <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
@@ -242,11 +240,16 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                 <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
                                 <Button title="お気に入り" onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
                             </View>
+                            <View style={{ marginVertical: 5 }} />
+                            <View style={commonStyle.horizonal}>
+                                <TextInput placeholder="ドメイン*" onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
+                                <Button title="追加" onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                            </View>
                         </View>
                     }
                 </View>
             </Modal>
-        </Animated.View>
+        </View>
     )
 }
 function createStyle(deviceWidth: number, deviceHeight: number) {
@@ -283,7 +286,6 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             position: 'absolute',
         },
         wrap: {
-            backgroundColor: 'rgba(0,0,0,0.5)',
             height: deviceHeight,
             width: useWidth,
             top: 0,
@@ -314,6 +316,13 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             justifyContent: 'center',
             alignItems: 'center',
             marginHorizontal: 5
-        }
+        },
+        form: {
+			marginVertical: 2,
+			borderWidth: 1,
+			width: '70%',
+			padding: 10,
+			borderRadius: 10,
+		},
     })
 }

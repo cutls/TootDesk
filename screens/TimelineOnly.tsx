@@ -13,6 +13,7 @@ import { commonStyle } from '../utils/styles'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import timelineLabel from '../utils/timelineLabel'
+import TimelineRoot from '../components/TimelineRoot'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'TimelineOnly'>) {
 	const { height, width } = useWindowDimensions()
 	const deviceWidth = width
@@ -54,12 +55,12 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				</View>
 				<View>
 					<View style={styles.psudo}>
-						<Timeline
+						<TimelineRoot
 							navigation={navigation}
 							loading={loading}
-							setNewNotif={setNewNotif}
 							setLoading={setLoading}
-							timeline={timeline}
+							setNewNotif={setNewNotif}
+							timelines={[timeline]}
 							imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
 							reply={reply}
 						/>

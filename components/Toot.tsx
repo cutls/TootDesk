@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useMemo, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
@@ -21,6 +21,7 @@ import { statusPost } from '../utils/changeStatus'
 import Poll from './Poll'
 import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
+import { ImageModalContext } from '../utils/context/imageModal'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -30,16 +31,16 @@ moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 interface FromTimelineToToot {
 	toot: M.Toot
-	imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
 	deletable: boolean
 	reply: (id: string, acct: string) => void
 	navigation: StackNavigationProp<ParamList, any>
 	acctId: string
 	width: number
+	tlId: number
 }
 
 export default (props: FromTimelineToToot) => {
-	const { toot: rawToot, imgModalTrigger, reply, navigation, acctId, deletable, width } = props
+	const { toot: rawToot, reply, navigation, acctId, deletable, width, tlId } = props
 	const styles = createStyle(width)
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
 	let topComponent: null | JSX.Element = null
@@ -47,9 +48,11 @@ export default (props: FromTimelineToToot) => {
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
 	const [isCwShow, setIsCwShow] = useState(false)
 	const { setLoading } = useContext(LoadingContext)
+	const { setImageModal } = useContext(ImageModalContext)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
-    const txtColor = isDark ? 'white' : 'black'
+	const txtColor = isDark ? 'white' : 'black'
+	const imgModalTrigger = (url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })
 	const showMedia = (media: any, isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
@@ -61,11 +64,11 @@ export default (props: FromTimelineToToot) => {
 			let cloneI = parseInt(i.toString())
 			ret.push(
 				isSensitive ?
-					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id} >
+					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
 						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
 						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: 50 }} />
 					</TouchableOpacity >
-					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={mid.id}>
+					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
 						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
 					</TouchableOpacity>
 			)
@@ -127,6 +130,18 @@ export default (props: FromTimelineToToot) => {
 			}
 		)
 	}
+	const TootContent = React.memo(({ content, emojis }: { content: string, emojis: M.Emoji[] }) => <HTML
+		source={{ html: emojify(content, emojis) }}
+		tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff' } }}
+		customHTMLElementModels={renderers}
+		classesStyles={{ invisible: { fontSize: 0.01 } }}
+		renderersProps={{
+			a: {
+				onPress: async (e, href) => linkHandler(href),
+			},
+		}}
+		contentWidth={width - 50}
+	/>)
 	const linkHandler = async (href: string) => {
 		// https://2m.cutls.com/@Cutls
 		const tagDetector = href.match(/\/tags\/(.+)/)
@@ -179,17 +194,9 @@ export default (props: FromTimelineToToot) => {
 							<Text>{isCwShow ? '隠す' : '見る'}</Text>
 						</TouchableOpacity>
 					</View>}
-					{!toot.spoiler_text || isCwShow ? <HTML
-						source={{ html: emojify(toot.content, toot.emojis) }}
-						tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff'} }}
-						customHTMLElementModels={renderers}
-						classesStyles={{ invisible: { fontSize: 0.01 } }}
-						renderersProps={{
-							a: {
-								onPress: async (e, href) => linkHandler(href),
-							},
-						}}
-						contentWidth={width - 50}
+					{!toot.spoiler_text || isCwShow ? <TootContent
+						content={toot.content}
+						emojis={toot.emojis}
 					/> : null}
 					{toot.card ? <Card card={toot.card} width={width} /> : null}
 					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
@@ -226,6 +233,8 @@ function createStyle(deviceWidth: number) {
 			marginVertical: 5,
 			paddingHorizontal: 5,
 			width: deviceWidth - 65,
+			borderBottomColor: '#eee',
+			borderBottomWidth: 1
 		},
 		horizonal: {
 			flexDirection: 'row',

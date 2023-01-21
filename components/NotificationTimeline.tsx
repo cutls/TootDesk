@@ -17,7 +17,6 @@ import { ParamList } from '../interfaces/ParamList'
 
 interface FromRootToTimeline {
     acctId: string
-    imgModalTrigger: (arg0: string[], arg1: number, show: boolean) => void
     reply: (id: string, acct: string) => void
     dismiss?: () => void
     navigation: StackNavigationProp<ParamList, any>
@@ -72,9 +71,9 @@ export default (props: FromRootToTimeline) => {
                     navigation={navigation}
                     deletable={false}
                     key={`notification ${item.id}`}
-                    imgModalTrigger={(url: string[], i: number, show: boolean) => props.imgModalTrigger(url, i, show)}
                     reply={reply}
                     width={deviceWidth}
+                    tlId={-1}
                  />
                 <View style={commonStyle.separator} />
             </View>
@@ -121,7 +120,7 @@ export default (props: FromRootToTimeline) => {
             </View>
         )
     }
-    return <FlatList ref={flatlistRef} data={toots} renderItem={renderItem} style={styles.container} initialNumToRender={20} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} />
+    return <FlatList ref={flatlistRef} data={toots} renderItem={renderItem} keyExtractor={(item) => item.id} style={styles.container} initialNumToRender={20} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} />
 }
 function createStyle(deviceWidth: number, deviceHeight: number) {
     return StyleSheet.create({

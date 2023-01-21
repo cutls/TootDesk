@@ -236,7 +236,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
 			<View style={styles.container}>
 				<View>
-					<FlatList data={accounts} renderItem={renderItem} />
+					<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
 				</View>
 				<View>
 					<Text>アカウントを追加</Text>

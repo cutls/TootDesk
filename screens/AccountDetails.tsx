@@ -186,6 +186,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					key={`acctDetails ${item.id}`}
 					imgModalTrigger={(url: string[], i: number, show: boolean) => true}
 					width={deviceWidth}
+					tlId={-1}
 					reply={() => true} />
 				<View style={commonStyle.separator} />
 			</>
@@ -278,8 +279,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
 				}}
 			/>
-			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={showAccts} renderItem={compactAcct} /> : null}
-			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={uTl} renderItem={compactToot} /> : null}
+			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={showAccts} renderItem={compactAcct} /> : null}
+			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={uTl} renderItem={compactToot} /> : null}
 			<Post show={tooting} acct={acctId} tooting={setTooting} replyId={replyId} insertText={''} />
 		</View>
 	)

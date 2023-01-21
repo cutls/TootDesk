@@ -6,4 +6,4 @@ export default interface TimelineProps {
 	acctName: string
 	timelineData?: any
 }
-export type TLType = 'home' | 'local' | 'public' | 'list' | 'hashtag' | 'user' | 'bookmark' | 'fav' | 'notif'
+export type TLType = 'home' | 'local' | 'public' | 'list' | 'hashtag' | 'user' | 'bookmark' | 'fav' | 'notif' | 'noAuth'
