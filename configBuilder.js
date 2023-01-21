@@ -8,7 +8,7 @@ async function main() {
     const v = await readUserInput(`What is the new version versioning?(current: ${current.expo.version}): `);
     const versionCode = current.expo.android.versionCode
     const newCode = versionCode + 1
-    template.expo.version = v
+    template.expo.version = v || current.expo.version
     template.expo.android.versionCode = newCode
     template.expo.ios.buildNumber = `${newCode}`
     const tJson = JSON.stringify(template)

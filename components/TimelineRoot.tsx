@@ -53,14 +53,15 @@ export default (props: FromRootToTimeline) => {
     const [refreshing, setRefreshing] = useState(false)
     const [onScroll, setOnScroll] = useState(false)
     const tlPerScreen = config.tlPerScreen
-    useEffect(() => {
-        const newTls = timelines.filter((d, i) => targetTimelineId.includes(i))
-        setTargetTimelines(newTls)
-    }, [targetTimelineId])
 
     const onRefresh = React.useCallback(async () => {
         setRefreshing(true)
-        await baseStreaming()
+        if (!targetTimelines.length) return
+        for (const domain of Object.keys(ws)) {
+            if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
+            ws[domain] = null
+        }
+        await baseStreaming(undefined, true)
         setRefreshing(false)
     }, [])
     const { timelines, loading, setLoading, setNewNotif, reply, navigation } = props
@@ -81,7 +82,7 @@ export default (props: FromRootToTimeline) => {
     const loadTimeline = async (tlId: number, mode?: 'more' | 'update') => {
         //if (!mode) setToots([])
         const timeline = timelines[tlId]
-        console.log('re rendering', timeline.type)
+        console.log('loading', timeline.type)
         const moreLoad = mode === 'more'
         const updateLoad = mode === 'update'
         if (!timeline) return false
@@ -164,14 +165,14 @@ export default (props: FromRootToTimeline) => {
             if (streamable === 'list') wsParam.list = timeline.timelineData.target
             if (streamable === 'hashtag') wsParam.tag = timeline.timelineData.target
             const wss = ws[domain]
-            console.log(wsParam)
             if (wss) wss.send(JSON.stringify(wsParam))
         }
     }
-    const baseStreaming = async (update?: boolean) => {
+    const baseStreaming = async (tls?: TimelineProps[], update?: boolean) => {
         const updateStr = update ? 'update' : undefined
         let ii = 0
-        for (const timeline of targetTimelines) {
+        const useTls = tls || targetTimelines
+        for (const timeline of useTls) {
             const i = targetTimelineId[ii]
             const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
             const isNoAuth = timeline.type === 'noAuth'
@@ -179,7 +180,7 @@ export default (props: FromRootToTimeline) => {
             console.log('get stream of ', domain)
             const useThisStreamOn = []
             let j = 0
-            for (const tl of targetTimelines) {
+            for (const tl of useTls) {
                 if (tl.acct === acct.id) useThisStreamOn.push(j)
                 j++
             }
@@ -192,8 +193,8 @@ export default (props: FromRootToTimeline) => {
                 wss.onopen = async (e) => {
                     resolve(null)
                     console.log('onopen', new Date())
-                    if(!isNoAuth) wss.send(JSON.stringify({ type: 'subscribe', stream: 'user' }))
-                    for (let k = 0; k < targetTimelines.length; k++) {
+                    if (!isNoAuth) wss.send(JSON.stringify({ type: 'subscribe', stream: 'user' }))
+                    for (let k = 0; k < useTls.length; k++) {
                         loadTimeline(targetTimelineId[k], updateStr)
                     }
                 }
@@ -203,10 +204,11 @@ export default (props: FromRootToTimeline) => {
                 const { event } = JSON.parse(e.data)
                 console.log('stream received', event)
                 if (event === 'update' || event === 'conversation') {
+                    if (appState.current.match(/inactive|background/)) return
                     //markers show中はダメ
                     const { stream, payload } = JSON.parse(e.data)
                     const obj = JSON.parse(payload)
-                    const tlKeys = streamTypeToTlNumber(stream, targetTimelines, targetTimelineId)
+                    const tlKeys = streamTypeToTlNumber(stream, useTls, targetTimelineId)
                     for (const x of tlKeys) {
                         console.log(`update to`, x)
                         const t = tootGet(x)
@@ -218,14 +220,14 @@ export default (props: FromRootToTimeline) => {
                     setNewNotif(true)
                 } else if (event === 'delete') {
                     const { payload } = JSON.parse(e.data)
-                    for (let i = 0; i < targetTimelines.length; i++) {
+                    for (let i = 0; i < useTls.length; i++) {
                         const newTl = tootGet(i).filter((item) => item.id !== payload)
                         tootUpdator(i, newTl)
                     }
                 } else if (event === 'status.update') {
                     const { payload, stream } = JSON.parse(e.data)
                     const obj: M.Toot = JSON.parse(payload)
-                    const tlKeys = streamTypeToTlNumber(stream, targetTimelines, targetTimelineId)
+                    const tlKeys = streamTypeToTlNumber(stream, useTls, targetTimelineId)
                     for (const x of tlKeys) {
                         const newTl = tootGet(x).map((item) => item.id !== obj.id ? item : obj)
                         tootUpdator(x, newTl)
@@ -247,11 +249,21 @@ export default (props: FromRootToTimeline) => {
     useEffect(() => {
         const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
             if ((nextAppState === 'inactive' || nextAppState === 'background') && appState.current === 'active') {
+                if (!targetTimelines.length) return
+                for (const domain of Object.keys(ws)) {
+                    if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
+                    ws[domain] = null
+                }
                 console.log('App has come to the background!')
             }
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 console.log('App has come to the foreground!')
-                await baseStreaming(true)
+                if (!targetTimelines.length) return
+                for (const domain of Object.keys(ws)) {
+                    if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
+                    ws[domain] = null
+                }
+                await baseStreaming(undefined, true)
             }
             appState.current = nextAppState
             setAppStateVisible(appState.current)
@@ -262,15 +274,17 @@ export default (props: FromRootToTimeline) => {
         }
     }, [])
     useEffect(() => {
-        console.log(targetTimelines, targetTimelineId)
-        if (!targetTimelines.length) return
+        if (!targetTimelineId.length) return
+        const newTls = timelines.filter((d, i) => targetTimelineId.includes(i))
+        setTargetTimelines(newTls)
+        if (!timelines || !newTls.length || !targetTimelineId.length) return
         for (const domain of Object.keys(ws)) {
             if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
             ws[domain] = null
         }
         console.log('base streaming')
-        baseStreaming()
-    }, [targetTimelines])
+        baseStreaming(newTls)
+    }, [targetTimelineId])
     if (loading && !toots0.length) {
         return (
             <View style={[styles.container, styles.center]}>

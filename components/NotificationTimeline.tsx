@@ -89,7 +89,7 @@ export default (props: FromRootToTimeline) => {
                     <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
                     <Text>さんが{label}</Text>
                 </TouchableOpacity>
-                <Account account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
+                <Account width={deviceWidth} account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
                 <View style={commonStyle.separator} />
             </View>
         )

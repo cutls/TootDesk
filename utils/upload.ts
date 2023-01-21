@@ -66,6 +66,7 @@ export const pickImage = async (setUploading: (value: any) => void, callback: an
         callback(n)
         return true
     } catch {
+        Alert.alert('Error')
         return false
     }
 }

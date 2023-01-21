@@ -22,6 +22,7 @@ import Poll from './Poll'
 import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
 import { ImageModalContext } from '../utils/context/imageModal'
+import { SetConfigContext } from '../utils/context/config'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -49,6 +50,7 @@ export default (props: FromTimelineToToot) => {
 	const [isCwShow, setIsCwShow] = useState(false)
 	const { setLoading } = useContext(LoadingContext)
 	const { setImageModal } = useContext(ImageModalContext)
+	const { config } = useContext(SetConfigContext)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
@@ -65,11 +67,11 @@ export default (props: FromTimelineToToot) => {
 			ret.push(
 				isSensitive ?
 					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
-						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
+						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
 						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: 50 }} />
 					</TouchableOpacity >
 					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
-						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: 50, borderWidth: 1 }} />
+						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
 					</TouchableOpacity>
 			)
 			i++
@@ -174,7 +176,7 @@ export default (props: FromTimelineToToot) => {
 			<View style={styles.horizonal}>
 				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false })}>
 					<Image source={{ uri: toot.account.avatar }} style={{ width: 50, height: 50, borderRadius: 5 }} />
-					<Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>
+					{config.useRelativeTime && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
 					<MaterialIcons name={visiIcon} style={{ marginTop: 5 }} />
 					{toot.edited_at && <MaterialIcons name="create" />}
 				</TouchableOpacity>
@@ -185,7 +187,7 @@ export default (props: FromTimelineToToot) => {
 					</View>
 					<View style={[styles.horizonal, styles.sameHeight]}>
 						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
-							@{toot.account.acct} {moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
+							@{toot.account.acct} {config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
 						</Text>
 					</View>
 					{!!toot.spoiler_text && <View style={commonStyle.horizonal}>

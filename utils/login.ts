@@ -15,7 +15,7 @@ export const loginFirst = async (BASE_URL: string) => {
     let os = 'iOS'
     if (android) os = 'Android'
     const clientName = `TootDesk(${os})`
-    const red = __DEV__ ? `urn:ietf:wg:oauth:2.0:oob` : Linking.createURL('account')
+    const red = Linking.createURL('account')
     const start: string = `https://${BASE_URL}/api/v1/apps`
     try {
         const appAxios = await axios.post(start, {
@@ -32,10 +32,12 @@ export const loginFirst = async (BASE_URL: string) => {
             client_secret: app.client_secret,
             domain: BASE_URL
         })
-        await WebBrowser.openAuthSessionAsync(auth)
-        return true
-    } catch (e) {
-        return false
+        const session = await WebBrowser.openAuthSessionAsync(auth, red)
+        if(session.type === 'success') {
+            return session.url
+        }
+    } catch (e: any) {
+        throw e
     }
 
 }

@@ -32,13 +32,13 @@ interface BottomToTLModalProps {
 
 export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalProps) => {
     const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
-    const styles = createStyle(deviceWidth, deviceHeight)
+    const theme = useColorScheme()
+    const isDark = theme === 'dark'
+    const styles = createStyle(deviceWidth, deviceHeight, isDark)
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const useWidth = tablet ? 550 : deviceWidth
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
     const { config } = React.useContext(SetConfigContext)
-    const theme = useColorScheme()
-    const isDark = theme === 'dark'
     const [inited, setInited] = React.useState(false)
     const [animation, setAnimation] = React.useState(new Animated.Value(0))
     const [internalShow, setInternalShow] = React.useState(true)
@@ -154,8 +154,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const configOption = () =>
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'リスト管理', 'キャンセル'],
-                cancelButtonIndex: 4,
+                options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'リスト管理', '設定', 'キャンセル'],
+                cancelButtonIndex: 5,
                 anchor: anchor || undefined,
             },
             (buttonIndex) => {
@@ -165,7 +165,14 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                     navigation.navigate('Search')
                     dismiss()
                 }
-                if (buttonIndex === 3) navigation.navigate('ListManager', { acctId: account })
+                if (buttonIndex === 3) {
+                    navigation.navigate('ListManager', { acctId: account })
+                    dismiss()
+                }
+                if (buttonIndex === 4) {
+                    navigation.navigate('Config')
+                    dismiss()
+                }
             }
         )
     const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
@@ -252,7 +259,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         </View>
     )
 }
-function createStyle(deviceWidth: number, deviceHeight: number) {
+function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean) {
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const heightBottmed = 420
     const heightCentered = 600
@@ -277,13 +284,12 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             left: deviceWidth / 2 - 275,
             paddingLeft: 25,
             padding: 10,
-            paddingTop: 0,
             width: useWidth,
             height: heightCentered,
-            borderColor: 'white',
+            borderColor: isDark ? 'white' : 'black',
             borderWidth: 1,
             borderRadius: 10,
-            position: 'absolute',
+            position: 'absolute'
         },
         wrap: {
             height: deviceHeight,

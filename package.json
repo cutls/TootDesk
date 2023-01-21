@@ -8,6 +8,8 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "build": "node configBuilder.js && eas build",
+    "build:local": "node configBuilder.js && eas build --local",
+    "build:local:dev": "node configBuilder.js && eas build --local --profile=preview --platform=ios",
     "ota": "eas update --branch production"
   },
   "dependencies": {

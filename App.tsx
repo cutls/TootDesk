@@ -12,6 +12,7 @@ import Toot from './screens/Toot'
 import TimelineOnly from './screens/TimelineOnly'
 import ListManager from './screens/ListManager'
 import Search from './screens/Search'
+import Config from './screens/Config'
 const Stack = createStackNavigator()
 const LinkingConfiguration = {
 	prefixes: [Linking.makeUrl('/')],
@@ -20,7 +21,8 @@ const LinkingConfiguration = {
 			Root: '',
 			AccountManager: 'account',
 			AccountDetails: 'account_details',
-			Toot: 'toot'
+			Toot: 'toot',
+			Config: 'config'
 		},
 	},
 }
@@ -46,6 +48,7 @@ export default function App() {
 				<Stack.Screen name="AccountDetails" component={AccountDetails} options={{ presentation: 'modal', title: 'アカウント' }} />
 				<Stack.Screen name="TimelineOnly" component={TimelineOnly} options={{ presentation: 'modal', title: 'タイムライン' }} />
 				<Stack.Screen name="Search" component={Search} options={{ presentation: 'modal', title: '検索' }} />
+				<Stack.Screen name="Config" component={Config} options={{ presentation: 'modal', title: '設定' }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)

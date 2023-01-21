@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import * as WebBrowser from 'expo-web-browser'
@@ -52,22 +52,26 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [codeInput, setCodeInput] = useState('')
 	let code: string
 	let state: string
-	if (route.params) {
-		code = route.params.code
-		state = route.params.state
-		const finalize = async (code: string) => {
-			try {
-				const newAcct = await getAt(code)
-				setAccounts(newAcct)
-				if (!__DEV__) {
-					WebBrowser.dismissBrowser()
-					pushNotf(newAcct[newAcct.length - 1])
+	useEffect(() => {
+		if (route.params) {
+			code = route.params.code
+			state = route.params.state
+			const finalize = async (code: string) => {
+				try {
+					const newAcct = await getAt(code)
+					setAccounts(newAcct)
+					if (!__DEV__) {
+						WebBrowser.dismissBrowser()
+						pushNotf(newAcct[newAcct.length - 1])
+					}
+					//if (__DEV__) pushNotf(newAcct[newAcct.length - 1])
+				} catch (e) {
+					console.error(e)
 				}
-				if (__DEV__) pushNotf(newAcct[newAcct.length - 1])
-			} catch (e) { }
+			}
+			finalize(code)
 		}
-		finalize(code)
-	}
+	}, [route])
 	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 	const init = async () => {
 		try {
@@ -98,13 +102,21 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [domain, setDomain] = useState('')
 	const loginDo = async (domain: string) => {
 		setAttemptingLogin(true)
-		const ret = await loginFirst(domain)
-		if (!ret) {
-			alert('インスタンスが見つかりませんでした')
+		try {
+			const ret = await loginFirst(domain)
+			if (!ret) {
+				alert('インスタンスが見つかりませんでした')
+				setAttemptingLogin(false)
+			} else {
+				const codeM = ret.match(/(\?|&)code=([^&]+)/)
+				if (!codeM) return
+				codeDo(codeM[2])
+				setList([])
+			}
+		} catch (e: any) {
 			setAttemptingLogin(false)
-		} else {
-			setList([])
 		}
+
 	}
 	const codeDo = async (code: string) => {
 		const newAcct = await getAt(code)
@@ -133,23 +145,23 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	}
 	const pushNotf = async (acct: S.Account) => {
 		async function registerForPushNotificationsAsync() {
-			let token;
+			let token
 			try {
 				if (!token) {
-					const { status: existingStatus } = await Notifications.getPermissionsAsync();
+					const { status: existingStatus } = await Notifications.getPermissionsAsync()
 					let finalStatus = existingStatus;
 					if (existingStatus !== 'granted') {
-						const { status } = await Notifications.requestPermissionsAsync();
+						const { status } = await Notifications.requestPermissionsAsync()
 						finalStatus = status;
 					}
 					if (finalStatus !== 'granted') {
-						alert('プッシュ通知の許可が取れませんでした。');
+						alert('プッシュ通知の許可が取れませんでした。')
 						return;
 					}
 					token = (await Notifications.getExpoPushTokenAsync()).data
 					console.log(token)
 				} else {
-					alert('Must use physical device for Push Notifications');
+					alert('Must use physical device for Push Notifications')
 				}
 				const data = await axios.post(`https://${myNotify}/subscribe`, {
 					at: acct.at,
@@ -171,7 +183,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				init()
 			}
 		}
-		const a = await Alert.promise('プッシュ通知の利用', 'このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、開発者管理のサーバで復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。', [{ text: 'キャンセル', style: 'cancel' }, { text: '承認', style: 'destructive' }])
+		const a = await Alert.promise('プッシュ通知の利用', `このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、"${myNotify}"で復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。`, [{ text: 'キャンセル', style: 'cancel' }, { text: '承認', style: 'destructive' }])
 		if (a === 1) {
 			registerForPushNotificationsAsync()
 		} else {
@@ -235,6 +247,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	return (
 		<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
 			<View style={styles.container}>
+				{!!route.params?.code && <Text>ログインコールバックを受信しました</Text>}
 				<View>
 					<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
 				</View>

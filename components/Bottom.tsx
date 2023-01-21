@@ -32,8 +32,8 @@ export default (params: PropBottomFromRoot) => {
     const isDark = theme === 'dark'
     const { width: deviceWidth } = useWindowDimensions()
     const styles = createStyle(deviceWidth, isDark)
-    const { changeTl: setNowSelecting } = useContext(ChangeTlContext)
-    const { timelines, nowSelecting, newNotif, setNewNotif, reply, goToAccountManager, navigation, insertText, replyId, setReplyId, setInsertText } = params
+    const { changeTl: setNowSelecting, tl: nowSelecting } = useContext(ChangeTlContext)
+    const { timelines, newNotif, setNewNotif, reply, goToAccountManager, navigation, insertText, replyId, setReplyId, setInsertText } = params
     const timeline = timelines[nowSelecting[0]]
     const [acct, setAcct] = useState({ id: 'a' } as S.Account)
     const [showNotif, setShowNotif] = useState(false)
@@ -42,10 +42,11 @@ export default (params: PropBottomFromRoot) => {
     const { config } = useContext(SetConfigContext)
     const tlPerScreen = config.tlPerScreen
     const init = async () => {
+        if (!timeline) return
         const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
         setAcct(acct)
     }
-    useEffect(() => { init() }, [timeline])
+    useEffect(() => { init() }, [nowSelecting])
     const showTrgNotif = () => {
         setShowNotif(true)
         setNewNotif(false)
@@ -58,8 +59,7 @@ export default (params: PropBottomFromRoot) => {
     useEffect(() => {
         if (insertText) setTooting(true)
     }, [insertText])
-    if (!timeline) return null
-    const tlSelected: ViewStyle = { borderRightColor: '#eee', borderRightWidth: 1 ,paddingHorizontal: 10 }
+    const tlSelected: ViewStyle = { borderRightColor: '#eee', borderRightWidth: 1, paddingHorizontal: 10 }
     return (
         <View style={styles.bottom}>
             {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} navigation={navigation} /> : null}
@@ -71,7 +71,7 @@ export default (params: PropBottomFromRoot) => {
                 <Text style={styles.tlChangerText}>{nowSelecting[0] === 0 ? 1 : 1 + tlPerScreen}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.centerMenu, commonStyle.horizonal]} onPress={() => setShowTL(true)}>
-                {nowSelecting.map((tl, i) => <View style={i === nowSelecting.length - 1 ? { paddingHorizontal: 10 } : tlSelected}>
+                {nowSelecting.map((tl, i) => <View style={i === nowSelecting.length - 1 ? { paddingHorizontal: 10 } : tlSelected} key={tl}>
                     <Text numberOfLines={1}>{timelineLabel(timelines[tl])}</Text>
                     <Text>{timelines[tl].type === 'noAuth' ? timelines[tl].timelineData.target : timelines[tl].acctName}</Text>
                 </View>)}

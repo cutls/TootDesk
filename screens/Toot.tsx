@@ -21,6 +21,9 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+import { SetConfigContext } from '../utils/context/config'
+import { ImageModalContext } from '../utils/context/imageModal'
+import { configInit, IConfig } from '../interfaces/Config'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -50,6 +53,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			)
 		})
 	}, [navigation, openUrl, WebBrowser, isDark])
+	const [config, setConfig] = useState<IConfig>(configInit)
 	const [ready, setReady] = useState(false)
 	const [inited, setInited] = useState(false)
 	const [tooting, setTooting] = useState(false)
@@ -166,62 +170,65 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 
 	const showAccts = accounts[selectedIndex]
 	return (
-		<View style={commonStyle.container}>
-			<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
-				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
-			</Modal>
-			{ancestors.length ? (
-				<FlatList
-					data={ancestors}
-					renderItem={compactToot}
-					keyExtractor={(item) => item.id}
-					style={{
-						maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
-					}}
-				/>
-			) : null}
-			<Toot
-				navigation={navigation}
-				deletable={deletable}
-				acctId={acctId}
-				toot={toot}
-				imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })}
-				reply={reply}
-				width={deviceWidth}
-				tlId={-1}
-			/>
-			{descendants.length ? (
-				<FlatList
-					data={descendants}
-					renderItem={compactToot}
-					keyExtractor={(item) => item.id}
-					style={{
-						maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
-					}}
-				/>
-			) : null}
-			<SegmentedControl
-				style={{ marginVertical: 15 }}
-				values={['お気に入りした人', 'ブーストした人']}
-				selectedIndex={selectedIndex}
-				onChange={(event) => {
-					setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
-				}}
-			/>
-			{showAccts ? (
-				<FlatList
-					data={showAccts}
-					renderItem={compactAcct}
-					keyExtractor={(item) => item.id}
-					ListEmptyComponent={() => <Text>データがありません</Text>}
-					style={{
-						maxHeight: showAccts.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : showAccts.length * 50,
-					}}
-				/>
-			) : (
-				<Text style={commonStyle.textCenter}>いません</Text>
-			)}
-			<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} replyId={replyId} />
-		</View>
+		<SetConfigContext.Provider value={{ config, setConfig }}>
+			<ImageModalContext.Provider value={{ imageModal, setImageModal }}>
+				<View style={commonStyle.container}>
+					<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
+						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
+					</Modal>
+					{ancestors.length ? (
+						<FlatList
+							data={ancestors}
+							renderItem={compactToot}
+							keyExtractor={(item) => item.id}
+							style={{
+								maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
+							}}
+						/>
+					) : null}
+					<Toot
+						navigation={navigation}
+						deletable={deletable}
+						acctId={acctId}
+						toot={toot}
+						reply={reply}
+						width={deviceWidth}
+						tlId={-1}
+					/>
+					{descendants.length ? (
+						<FlatList
+							data={descendants}
+							renderItem={compactToot}
+							keyExtractor={(item) => item.id}
+							style={{
+								maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
+							}}
+						/>
+					) : null}
+					<SegmentedControl
+						style={{ marginVertical: 15 }}
+						values={['お気に入りした人', 'ブーストした人']}
+						selectedIndex={selectedIndex}
+						onChange={(event) => {
+							setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
+						}}
+					/>
+					{showAccts ? (
+						<FlatList
+							data={showAccts}
+							renderItem={compactAcct}
+							keyExtractor={(item) => item.id}
+							ListEmptyComponent={() => <Text>データがありません</Text>}
+							style={{
+								maxHeight: showAccts.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : showAccts.length * 50,
+							}}
+						/>
+					) : (
+						<Text style={commonStyle.textCenter}>いません</Text>
+					)}
+					<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} replyId={replyId} />
+				</View>
+			</ImageModalContext.Provider>
+		</SetConfigContext.Provider>
 	)
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme, useWindowDimensions } from 'react-native'
 import { TouchableOpacity, View, Text } from '../components/Themed'
 import Bottom from '../components/Bottom'
@@ -21,7 +21,7 @@ import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
 import { configInit, IConfig } from '../interfaces/Config'
 
-export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>) {
+export default function App({ navigation, route }: StackScreenProps<ParamList, 'Root'>) {
 	const { height, width } = useWindowDimensions()
 	const deviceWidth = width
 	const deviceHeight = StatusBar.currentHeight ? height : height - 20
@@ -31,7 +31,6 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const [config, setConfig] = useState<IConfig>(configInit)
 	const [insertText, setInsertText] = useState('')
 	const [replyId, setReplyId] = useState('')
-	const [inited, setInited] = useState(false)
 	const [nowSelecting, setNowSelecting] = useState([0])
 	const [timelines, setTimelines] = useState<TimelineProps[]>([])
 	const theme = useColorScheme()
@@ -40,8 +39,9 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 	const bgColorAI = { backgroundColor: bgColorValAI }
 	const tlPerScreen = config.tlPerScreen
 	const init = async () => {
-		setInited(true)
 		const tls = await storage.getItem('timelines')
+		const config = await storage.getItem('config')
+		if (config) setConfig(config)
 		if (tls) setTimelines(tls)
 		if (!tls) {
 			return goToAccountManager()
@@ -56,11 +56,22 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 				}
 			}
 		}
+		const start = 0
+		const end = Math.min(0 + tlPerScreen, timelines.length)
+		const ns = []
+		for (let i = start; i < end; i++) ns.push(i)
+		if (!ns.length) return
+		setNowSelecting(ns)
+	}
+	useEffect(() => { init() }, [])
+	useEffect(() => {
+		const unsubscribe = navigation.addListener('focus', () => {
+			if (route.params?.refresh) init()
+		})
+		return unsubscribe
+	}, [navigation])
 
-	}
-	if (!inited) {
-		init()
-	}
+
 	const [newNotif, setNewNotif] = useState(false)
 	const [imageModal, setImageModal] = useState({
 		url: [''],
@@ -108,7 +119,7 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 							</View>
 							<View style={styles.stickToBottom}>
 								<View style={styles.bottom}>
-									<Bottom
+									{!!timelines.length && <Bottom
 										goToAccountManager={goToAccountManager}
 										timelines={timelines}
 										nowSelecting={nowSelecting}
@@ -121,6 +132,7 @@ export default function App({ navigation }: StackScreenProps<ParamList, 'Root'>)
 										setInsertText={setInsertText}
 										navigation={navigation}
 									/>
+									}
 								</View>
 							</View>
 							<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">

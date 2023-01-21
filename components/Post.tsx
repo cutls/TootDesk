@@ -25,6 +25,7 @@ interface FromRootToPost {
 export default (props: FromRootToPost) => {
 	const { width, height } = useWindowDimensions()
 	const styles = createStyle(width, height)
+    const tablet = width > height ? height > 500 : width > 500
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const { acct, tooting } = props
@@ -35,19 +36,20 @@ export default (props: FromRootToPost) => {
 	const [uploading, setUploading] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [showCW, setShowCW] = useState(false)
-	const [CWText, setCWText] = useState('' as string)
-	const [vis, setVis] = useState('public' as IVisTxt)
-	const [accountTxt, setAccountTxt] = useState('' as string)
-	const [account, setAccount] = useState('' as string)
-	const [accountListTxt, setAccountListTxt] = useState([] as string[])
-	const [accountList, setAccountList] = useState([] as string[])
-	const [uploaded, setUploaded] = useState([] as M.Media[])
+	const [CWText, setCWText] = useState('')
+	const [vis, setVis] = useState<IVisTxt>('public')
+	const [accountTxt, setAccountTxt] = useState('')
+	const [account, setAccount] = useState('')
+	const [acctObj, setAcctObj] = useState<S.Account | null>(null)
+	const [accountListTxt, setAccountListTxt] = useState<string[]>([])
+	const [accountList, setAccountList] = useState<string[]>([])
+	const [uploaded, setUploaded] = useState< M.Media[]>([])
 	const [keyboardHeight] = useKeyboard()
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
 	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0)
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 270 : 250) + addHeight
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 270 : 250) + addHeight + (tablet ? 100 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -76,7 +78,8 @@ export default (props: FromRootToPost) => {
 	const actionSheet = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
-				options: accountListTxt
+				options: accountListTxt,
+				anchor: anchorAcct || undefined
 			},
 			(buttonIndex) => {
 				const id = accountList[buttonIndex]
@@ -94,6 +97,7 @@ export default (props: FromRootToPost) => {
 			itemTxt.push(a.acct)
 			console.log(a.acct, acct)
 			if (a.acct === acct) {
+				setAcctObj(a)
 				setAccount(a.id)
 				setAccountTxt(a.acct)
 			}
@@ -133,6 +137,7 @@ export default (props: FromRootToPost) => {
 	const upCb = (m: M.Media) => {
 		const cl = uploaded
 		cl.push(m)
+		Alert.alert('アップロードが完了しました', '確認できない場合は、一度トゥートエリアをタップしてキーボードを表示させると表示される場合があります')
 		setUploaded(cl)
 		return cl
 	}
@@ -156,8 +161,8 @@ export default (props: FromRootToPost) => {
 				spoiler_text: showCW ? CWText : '',
 				in_reply_to_id: replyId
 			}
-			const acct = (await storage.getCertainItem('accounts', 'id', account)) as S.Account
-			await api.postV1Statuses(acct.domain, acct.at, param)
+			if (!acctObj) return
+			await api.postV1Statuses(acctObj.domain, acctObj.at, param)
 			setLoading(false)
 			closeToot()
 		} catch (e: any) {
@@ -185,9 +190,9 @@ export default (props: FromRootToPost) => {
 							</TouchableOpacity>
 							<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
-						{uploaded.length ? <View style={{ height: 50 }}>
+						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
-						</View> : null}
+						</View>
 						{replyId ? <Text>返信モード</Text> : null}
 						<View style={styles.action}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
@@ -199,14 +204,14 @@ export default (props: FromRootToPost) => {
 							<TouchableOpacity onPress={() => selectVis()}>
 								<MaterialIcons name={getVisicon(vis)} size={20} style={styles.icon} ref={(c: any) => setAnchorVis(findNodeHandle(c))} />
 							</TouchableOpacity>
-							<TouchableOpacity onPress={() => upload.pickImage(setUploading, upCb, acct)}>
+							{account && <TouchableOpacity onPress={() => upload.pickImage(setUploading, upCb, account)}>
 								<MaterialIcons name="attach-file" size={20} style={styles.icon} />
-							</TouchableOpacity>
+							</TouchableOpacity>}
 							<TouchableOpacity onPress={() => setIsEmojiOpen(true)}>
 								<MaterialIcons name="insert-emoticon" size={20} style={styles.icon} />
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => true}>
-								<MaterialIcons name="more-vert" size={20} style={styles.icon} />
+								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => Alert.alert('Coming Soon')} />
 							</TouchableOpacity>
 						</View>
 						<View style={{ height: (keyboardHeight > 100 ? keyboardHeight - addHeight : 0) }} />
@@ -217,6 +222,7 @@ export default (props: FromRootToPost) => {
 	)
 }
 function createStyle(deviceWidth: number, deviceHeight: number) {
+    const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
 	return StyleSheet.create({
 		container: {
 			position: 'absolute',
@@ -234,7 +240,7 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			width: deviceWidth - 40,
 			textAlignVertical: 'top',
 			padding: 5,
-			minHeight: 70,
+			minHeight: tablet ? 170 : 70,
 			maxHeight: deviceHeight - 200
 		},
 		cwArea: {
