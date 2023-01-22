@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import TimelineProps from '../interfaces/TimelineProps'
+import TimelineProps, { TLType } from '../interfaces/TimelineProps'
 import { StyleSheet, AppState, Dimensions, FlatList, RefreshControl, AppStateStatus, useWindowDimensions } from 'react-native'
 import { Text, View } from './Themed'
 import Toot from './Toot'
@@ -17,6 +17,8 @@ import { ChangeTlContext } from '../utils/context/changeTl'
 import Timeline from './Timeline'
 import { commonStyle } from '../utils/styles'
 import { SetConfigContext } from '../utils/context/config'
+import * as Speech from 'expo-speech'
+import { stripTags } from '../utils/stringUtil'
 
 interface FromRootToTimeline {
     timelines: TimelineProps[]
@@ -33,6 +35,8 @@ export default (props: FromRootToTimeline) => {
     const appState = React.useRef(AppState.currentState)
     const [appStateVisible, setAppStateVisible] = useState(appState.current)
     const [targetTimelines, setTargetTimelines] = useState<TimelineProps[]>([])
+    const targetTimelinesRef = useRef<TimelineProps[]>()
+    targetTimelinesRef.current = targetTimelines
     const { config } = useContext(SetConfigContext)
     const [toots0, setToots0] = useState<M.Toot[]>([])
     const toots0Ref = useRef<M.Toot[]>()
@@ -56,7 +60,7 @@ export default (props: FromRootToTimeline) => {
 
     const onRefresh = React.useCallback(async () => {
         setRefreshing(true)
-        if (!targetTimelines.length) return
+        if (!targetTimelinesRef.current?.length) return setRefreshing(false)
         for (const domain of Object.keys(ws)) {
             if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
             ws[domain] = null
@@ -79,7 +83,7 @@ export default (props: FromRootToTimeline) => {
         if (tlId === 3) return toots3Ref.current || []
         return toots0Ref.current || []
     }
-    const loadTimeline = async (tlId: number, mode?: 'more' | 'update') => {
+    const loadTimeline = async (tlId: number, wss?: WebSocket, mode?: 'more' | 'update') => {
         //if (!mode) setToots([])
         const timeline = timelines[tlId]
         console.log('loading', timeline.type)
@@ -164,14 +168,16 @@ export default (props: FromRootToTimeline) => {
             const wsParam = { type: 'subscribe', stream: streamable } as any
             if (streamable === 'list') wsParam.list = timeline.timelineData.target
             if (streamable === 'hashtag') wsParam.tag = timeline.timelineData.target
-            const wss = ws[domain]
-            if (wss) wss.send(JSON.stringify(wsParam))
+            const useWss = wss || ws[domain]
+            if (useWss) useWss.send(JSON.stringify(wsParam))
         }
     }
     const baseStreaming = async (tls?: TimelineProps[], update?: boolean) => {
+        await Speech.stop()
         const updateStr = update ? 'update' : undefined
         let ii = 0
-        const useTls = tls || targetTimelines
+        const useTls = tls || targetTimelinesRef.current
+        if (!useTls) return
         for (const timeline of useTls) {
             const i = targetTimelineId[ii]
             const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
@@ -184,7 +190,7 @@ export default (props: FromRootToTimeline) => {
                 if (tl.acct === acct.id) useThisStreamOn.push(j)
                 j++
             }
-            if (ws[domain] && (ws[domain]?.readyState || 9) <= 1) return loadTimeline(targetTimelineId[i], updateStr)
+            if (ws[domain] && (ws[domain]?.readyState || 9) <= 1) return loadTimeline(targetTimelineId[i], undefined, updateStr)
             const param = isNoAuth ? `stream=public:local` : `access_token=${acct.at}`
             const wss = new WebSocket(`wss://${domain}/api/v1/streaming/?${param}`)
             ws[domain] = wss
@@ -195,7 +201,7 @@ export default (props: FromRootToTimeline) => {
                     console.log('onopen', new Date())
                     if (!isNoAuth) wss.send(JSON.stringify({ type: 'subscribe', stream: 'user' }))
                     for (let k = 0; k < useTls.length; k++) {
-                        loadTimeline(targetTimelineId[k], updateStr)
+                        await loadTimeline(targetTimelineId[k], wss, updateStr)
                     }
                 }
             })
@@ -207,11 +213,13 @@ export default (props: FromRootToTimeline) => {
                     if (appState.current.match(/inactive|background/)) return
                     //markers show中はダメ
                     const { stream, payload } = JSON.parse(e.data)
-                    const obj = JSON.parse(payload)
+                    const obj: M.Toot = JSON.parse(payload)
                     const tlKeys = streamTypeToTlNumber(stream, useTls, targetTimelineId)
                     for (const x of tlKeys) {
                         console.log(`update to`, x)
                         const t = tootGet(x)
+                        const str = stripTags(obj.reblog ? obj.reblog.content : obj.content).replace(/https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/, '')
+                        if (timelines[x].config?.speech) Speech.speak(str)
                         const cloneX = deepClone<M.Toot[]>(t)
                         cloneX.unshift(obj)
                         tootUpdator(x, cloneX)
@@ -235,8 +243,7 @@ export default (props: FromRootToTimeline) => {
                 }
             }
             wss.onclose = async (e) => {
-                console.log('closed', e)
-                ws[domain] = null
+                console.log('closed')
                 setWs(ws)
                 //if (!killStreaming) await loadTimeline()
             }
@@ -252,7 +259,6 @@ export default (props: FromRootToTimeline) => {
                 if (!targetTimelines.length) return
                 for (const domain of Object.keys(ws)) {
                     if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
-                    ws[domain] = null
                 }
                 console.log('App has come to the background!')
             }
@@ -261,7 +267,6 @@ export default (props: FromRootToTimeline) => {
                 if (!targetTimelines.length) return
                 for (const domain of Object.keys(ws)) {
                     if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
-                    ws[domain] = null
                 }
                 await baseStreaming(undefined, true)
             }
@@ -279,12 +284,18 @@ export default (props: FromRootToTimeline) => {
         setTargetTimelines(newTls)
         if (!timelines || !newTls.length || !targetTimelineId.length) return
         for (const domain of Object.keys(ws)) {
-            if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
-            ws[domain] = null
+            if ((ws[domain]?.readyState || 9) <= 1) {
+                for (const timeline of targetTimelinesRef.current || []) {
+                    ws[domain]?.send(JSON.stringify({ type: 'unsubscribe', stream: tlTypeToStream(timeline.type) }))
+                }
+                ws[domain]?.close()
+            }
         }
+        const newWs = ws
+        setWs(newWs)
         console.log('base streaming')
         baseStreaming(newTls)
-    }, [targetTimelineId])
+    }, [targetTimelineId, ws])
     if (loading && !toots0.length) {
         return (
             <View style={[styles.container, styles.center]}>
@@ -293,7 +304,7 @@ export default (props: FromRootToTimeline) => {
         )
     }
     const moreLoad = (tlid: number) => {
-        loadTimeline(tlid, 'more')
+        loadTimeline(tlid, undefined, 'more')
     }
     return (
         <View style={[styles.container]}>
@@ -328,9 +339,25 @@ function createStyle(deviceWidth: number) {
             flex: 0,
             width: deviceWidth,
             backgroundColor: 'transparent',
-            marginBottom: 0,
+            marginBottom: 110,
         },
     })
+}
+const tlTypeToStream = (type: TLType) => {
+    switch (type) {
+        case 'home':
+            return 'user'
+        case 'local':
+            return 'public:local'
+        case 'noAuth':
+            return 'public:local'
+        case 'public':
+            return 'public'
+        case 'hashtag':
+            return 'hashtag'
+        case 'list':
+            return 'list'
+    }
 }
 const streamTypeToTlNumber = (stream: string[], tls: TimelineProps[], targetTimelineId: number[]) => {
     const ret = []

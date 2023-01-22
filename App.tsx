@@ -13,6 +13,7 @@ import TimelineOnly from './screens/TimelineOnly'
 import ListManager from './screens/ListManager'
 import Search from './screens/Search'
 import Config from './screens/Config'
+import LangFilter from './screens/LangFilter'
 const Stack = createStackNavigator()
 const LinkingConfiguration = {
 	prefixes: [Linking.makeUrl('/')],
@@ -49,6 +50,7 @@ export default function App() {
 				<Stack.Screen name="TimelineOnly" component={TimelineOnly} options={{ presentation: 'modal', title: 'タイムライン' }} />
 				<Stack.Screen name="Search" component={Search} options={{ presentation: 'modal', title: '検索' }} />
 				<Stack.Screen name="Config" component={Config} options={{ presentation: 'modal', title: '設定' }} />
+				<Stack.Screen name="LangFilter" component={LangFilter} options={{ presentation: 'modal', title: '言語フィルター' }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)

@@ -23,6 +23,7 @@ import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
+import { translate } from '../utils/tootAction'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -45,9 +46,10 @@ export default (props: FromTimelineToToot) => {
 	const styles = createStyle(width)
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
 	let topComponent: null | JSX.Element = null
-	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: rawToot.reblogs_count })
+	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: toot.reblogs_count })
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
 	const [isCwShow, setIsCwShow] = useState(false)
+	const [translatedToot, setTranslatedToot] = useState('')
 	const { setLoading } = useContext(LoadingContext)
 	const { setImageModal } = useContext(ImageModalContext)
 	const { config } = useContext(SetConfigContext)
@@ -68,7 +70,7 @@ export default (props: FromTimelineToToot) => {
 				isSensitive ?
 					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
 						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
-						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: 50 }} />
+						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: config.imageHeight }} />
 					</TouchableOpacity >
 					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
 						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
@@ -132,7 +134,8 @@ export default (props: FromTimelineToToot) => {
 			}
 		)
 	}
-	const TootContent = React.memo(({ content, emojis }: { content: string, emojis: M.Emoji[] }) => <HTML
+	const TootContent = React.memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
+		return <HTML
 		source={{ html: emojify(content, emojis) }}
 		tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff' } }}
 		customHTMLElementModels={renderers}
@@ -143,7 +146,7 @@ export default (props: FromTimelineToToot) => {
 			},
 		}}
 		contentWidth={width - 50}
-	/>)
+	/>})
 	const linkHandler = async (href: string) => {
 		// https://2m.cutls.com/@Cutls
 		const tagDetector = href.match(/\/tags\/(.+)/)
@@ -169,6 +172,11 @@ export default (props: FromTimelineToToot) => {
 		} else {
 			await WebBrowser.openBrowserAsync(href)
 		}
+	}
+	if (tlId >= 0 && toot.filtered?.length) {
+		return <TouchableOpacity style={styles.container} onPress={() => actionSheet(toot.id)}>
+			<Text>フィルターされました{toot.filtered?.map((t) => t.filter.title).join(',')}</Text>
+		</TouchableOpacity>
 	}
 	return (
 		<View style={styles.container}>
@@ -200,6 +208,17 @@ export default (props: FromTimelineToToot) => {
 						content={toot.content}
 						emojis={toot.emojis}
 					/> : null}
+					{toot.language && toot.language !== 'ja' &&
+						<>
+							<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={styles.cwBtn}>
+								<Text>翻訳</Text>
+							</TouchableOpacity>
+							<TootContent
+								content={translatedToot}
+								emojis={toot.emojis}
+								source="translate"
+							/>
+						</>}
 					{toot.card ? <Card card={toot.card} width={width} /> : null}
 					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>

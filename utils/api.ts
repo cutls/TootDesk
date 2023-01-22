@@ -3,6 +3,7 @@ import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 const getApi = async (url: string, at: string, param?: any, needHeader?: boolean) => {
     const searchParams = new URLSearchParams(param).toString()
+    console.log(`${url}?${searchParams}`)
     try {
         const api = await axios.get(`${url}?${searchParams}`, {
             headers: {
@@ -12,7 +13,7 @@ const getApi = async (url: string, at: string, param?: any, needHeader?: boolean
         })
         if (needHeader) {
             const link = api.headers['link']
-            const min_ids = link.match(/<(.+)>/)[1].match(/min_id=([0-9]+)/)
+            const min_ids = link.match(/<(.+)>/)[1].match(/max_id=([0-9]+)/)
             const min_id = min_ids ? min_ids[1] : ''
             return [api.data, min_id]
         }
@@ -95,8 +96,8 @@ export const getV1TimelinesLocal = async (domain: string, at: string, param?: R.
 export const getV1TimelinesPublic = async (domain: string, at: string, param?: R.FTL) => { return await getApi(`https://${domain}/api/v1/timelines/public`, at, { local: false, ...param }) as M.Toot[] }
 export const getV1TimelinesHashtag = async (domain: string, at: string, tag: string, param?: R.TTL) => { return await getApi(`https://${domain}/api/v1/timelines/tag/${tag}`, at, param) as M.Toot[] }
 export const getV1TimelinesList = async (domain: string, at: string, id: string, param?: R.TL) => { return await getApi(`https://${domain}/api/v1/timelines/list/${id}`, at, param) as M.Toot[] }
-export const getV1Bookmarks = async (domain: string, at: string, param?: R.TL) => { return await getApi(`https://${domain}/api/v1/bookmarks`, at, param) as TLLinking }
-export const getV1Favourites = async (domain: string, at: string, param?: R.TL) => { return await getApi(`https://${domain}/api/v1/favourites`, at, param) as TLLinking }
+export const getV1Bookmarks = async (domain: string, at: string, param?: R.TL) => { return await getApi(`https://${domain}/api/v1/bookmarks`, at, param, true) as TLLinking }
+export const getV1Favourites = async (domain: string, at: string, param?: R.TL) => { return await getApi(`https://${domain}/api/v1/favourites`, at, param, true) as TLLinking }
 export const getV1AccountsStatuses = async (domain: string, at: string, id: string, param?: R.UTL) => { return await getApi(`https://${domain}/api/v1/accounts/${id}/statuses`, at, param) as M.Toot[] }
 export const getV1CutsomEmojis = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/custom_emojis`, at) as M.CustomEmoji[] }
 export const getV1Notifications = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/notifications`, at) as M.Notification[] }
@@ -143,3 +144,4 @@ export const deleteV1ListUser = async (domain: string, at: string, listId:string
 export const deleteV1List = async (domain: string, at: string, listId:string) => { return await deleteApi(`https://${domain}/api/v1/lists/${listId}`, at) as {}}
 export const postV1ListUser = async (domain: string, at: string, listId: string,userId: string) => { return await postApi(`https://${domain}/api/v1/lists/${listId}/accounts`, at, { account_ids: [userId] }) as {} }
 export const postV1Poll = async (domain: string, at: string, pollId: string, optionId: number[]) => { return await postApi(`https://${domain}/api/v1/polls/${pollId}/votes`, at, { choices: optionId }) as M.Poll }
+export const postV1Translate = async (domain: string, at: string, tootId: string) => { return await postApi(`https://${domain}/api/v1/statuses/${tootId}/translate`, at, {}) as M.Translate }

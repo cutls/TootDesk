@@ -8,7 +8,7 @@ import { Swipeable } from 'react-native-gesture-handler'
 import * as S from '../../interfaces/Storage'
 import * as api from '../../utils/api'
 import * as R from '../../interfaces/MastodonApiRequests'
-import TimelineProps, { TLType } from '../../interfaces/TimelineProps'
+import TimelineProps, { TLType, TimelineConfig } from '../../interfaces/TimelineProps'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
 moment.locale('ja')
@@ -19,6 +19,7 @@ import timelineLabel from '../../utils/timelineLabel'
 import { IState, ParamList } from '../../interfaces/ParamList'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SetConfigContext } from '../../utils/context/config'
+import deepClone from '../../utils/deepClone'
 
 let ios = true
 if (Platform.OS != 'ios') ios = false
@@ -175,6 +176,37 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                 }
             }
         )
+    const actionTl = (key: string) => {
+        const tlId = timelines.findIndex((item) => item.key === key)
+        ActionSheetIOS.showActionSheetWithOptions(
+            {
+                options: [`読み上げ${timelines[tlId].config?.speech ? 'On' : 'Off'}`, '言語フィルター設定へ', 'キャンセル'],
+                cancelButtonIndex: 2,
+            },
+            (buttonIndex) => {
+                let key: keyof TimelineConfig | null = null
+                if (buttonIndex === 0) key = 'speech'
+                if (buttonIndex === 1) {
+                    navigation.navigate('LangFilter', { tlId })
+                    dismiss()
+                    return
+                }
+                if (!key) return
+                const config = deepClone<TimelineConfig>(timelines[tlId].config || {})
+                if (!config) {
+                    const newConfig: TimelineConfig = {}
+                    newConfig[key] = true
+                    timelines[tlId].config = config
+                    setTimelines(deepClone<TimelineProps[]>(timelines))
+                } else {
+                    const newConfig = !!!config[key]
+                    config[key] = newConfig
+                    timelines[tlId].config = config
+                    setTimelines(deepClone<TimelineProps[]>(timelines))
+                }
+                save()
+            })
+    }
     const renderItem = ({ item, index }: { item: TimelineProps, index: number }) => {
         const tlLabel = timelineLabel(item)
         return (
@@ -186,7 +218,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                         <Text>{item.type === 'noAuth' ? item.timelineData.target : item.acctName}</Text>
                     </View>
                 </View>
-                {editMode &&
+                {editMode ?
                     <View style={[commonStyle.horizonal, { paddingTop: 10 }]}>
                         <TouchableOpacity onPress={() => moveTl('up', item.key)} style={styles.editMenu}>
                             <MaterialIcons size={20} name="arrow-upward" color={isDark ? 'white' : 'black'} />
@@ -198,7 +230,12 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                             <MaterialIcons size={20} name="delete" color="red" />
                         </TouchableOpacity>
                     </View>
-
+                    :
+                    <View style={[commonStyle.horizonal, { paddingTop: 10, marginLeft: 60 }]}>
+                        <TouchableOpacity onPress={() => actionTl(item.key)} style={[styles.editMenu]}>
+                            <MaterialIcons size={20} name="settings" color={isDark ? 'white' : 'black'} />
+                        </TouchableOpacity>
+                    </View>
                 }
                 <View style={commonStyle.separator} />
             </TouchableOpacity>)
@@ -324,11 +361,11 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean)
             marginHorizontal: 5
         },
         form: {
-			marginVertical: 2,
-			borderWidth: 1,
-			width: '70%',
-			padding: 10,
-			borderRadius: 10,
-		},
+            marginVertical: 2,
+            borderWidth: 1,
+            width: '70%',
+            padding: 10,
+            borderRadius: 10,
+        },
     })
 }

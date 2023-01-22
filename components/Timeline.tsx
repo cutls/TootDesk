@@ -38,6 +38,7 @@ export default (props: FromTimelineRootToTimeline) => {
 	const renderItem = (e: any) => {
 		const item = e.item as M.Toot
 		const deletable = (item.reblog ? `@${item.reblog.account.acct}@${domain}` : `@${item.account.acct}@${domain}`) === acct
+		if (timeline.config?.languageHide && timeline.config?.languageHide.includes(item.language || '')) return null
 		return (
 			<Toot
 				navigation={navigation}
@@ -124,7 +125,7 @@ function createStyle(width: number, height: number) {
 		},
 		toTop: {
 			position: 'absolute',
-			top: height - (isIPhoneX(width, height) ? 95 : 75) - 70,
+			top: height - (isIPhoneX(width, height) ? 95 : 75) - 110,
 			height: 50,
 			width: 50,
 			borderTopLeftRadius: 10,

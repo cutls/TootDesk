@@ -15,6 +15,7 @@ import axios from 'axios'
 import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
 import TimelineProps from '../interfaces/TimelineProps'
+const platform = Platform.OS === 'ios' ? 'iOS' : 'Android'
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
 
@@ -46,8 +47,10 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 
 	const [accounts, setAccounts] = useState([] as S.Account[])
 	const [attemptingLogin, setAttemptingLogin] = useState(false)
-	const [myNotifySet, setMyNotifySet] = useState(false)
+	const [loading, setLoading] = useState(false)
+	const [detailConfig, setDetailConfig] = useState(false)
 	const [myNotify, setMyNotify] = useState('push.0px.io')
+	const [via, setVia] = useState(`TootDesk(${platform})`)
 	const [ready, setReady] = useState(false)
 	const [codeInput, setCodeInput] = useState('')
 	let code: string
@@ -79,6 +82,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			setAccounts(newAcct)
 			setReady(true)
 			setAttemptingLogin(false)
+			setLoading(false)
 			if (newAcct) {
 				const useAcct = newAcct[0]
 				const tls = await storage.getItem('timelines')
@@ -102,11 +106,13 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [domain, setDomain] = useState('')
 	const loginDo = async (domain: string) => {
 		setAttemptingLogin(true)
+		setLoading(true)
 		try {
-			const ret = await loginFirst(domain)
+			const ret = await loginFirst(domain, via)
 			if (!ret) {
 				alert('インスタンスが見つかりませんでした')
 				setAttemptingLogin(false)
+				setLoading(false)
 			} else {
 				const codeM = ret.match(/(\?|&)code=([^&]+)/)
 				if (!codeM) return
@@ -115,11 +121,14 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			}
 		} catch (e: any) {
 			setAttemptingLogin(false)
+			setLoading(false)
 		}
 
 	}
 	const codeDo = async (code: string) => {
+		setLoading(true)
 		const newAcct = await getAt(code)
+		setLoading(false)
 		console.log(newAcct, newAcct.length - 1)
 		pushNotf(newAcct[newAcct.length - 1])
 		setAccounts(newAcct)
@@ -247,7 +256,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	return (
 		<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
 			<View style={styles.container}>
-				{!!route.params?.code && <Text>ログインコールバックを受信しました</Text>}
 				<View>
 					<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
 				</View>
@@ -257,7 +265,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						<View>
 							<View style={styles.horizonal}>
 								<TextInput placeholder="ドメイン(mastodon.social)*" onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
-								<Button title="ログイン" onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+								<Button title="ログイン" onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 							</View>
 							{list.length ? (<View style={styles.horizonal}>
 								<Text>Powered by </Text>
@@ -269,14 +277,18 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 					) : (
 						<View style={styles.horizonal}>
 							<TextInput placeholder="コード*" onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
-							<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+							<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 						</View>
 					)}
 					<View style={{ height: 10 }} />
-					{myNotifySet ? <View>
+					{detailConfig ? <View>
 						<Text>TootDesk対応通知サーバのドメインを入力してください(初期値: push.0px.io)</Text>
 						<TextInput placeholder="サーバ*" onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
-					</View> : <TouchableOpacity onPress={() => setMyNotifySet(true)}>
+						<Text>認証時のアプリ名(via, 初期値: "TootDesk({platform})")</Text>
+						<TextInput placeholder="via*" onChangeText={(text) => setVia(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={via} />
+						
+					</View>
+					 : <TouchableOpacity onPress={() => setDetailConfig(true)}>
 						<Text style={{ textDecorationLine: 'underline' }}>通知サーバを設定する</Text>
 					</TouchableOpacity>}
 				</View>

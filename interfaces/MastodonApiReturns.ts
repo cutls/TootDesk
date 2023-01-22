@@ -80,6 +80,11 @@ export interface Toot {
     poll?: Poll | null
     pinned?: boolean
     customPinned?: boolean
+    filtered?: {
+        filter: FilterBase
+        keyword_matches: string[]
+        status_matches?: string[]
+    }[]
     [x: string]: any
 }
 export interface Attachment {
@@ -224,4 +229,29 @@ export interface Search {
     accounts: Account[]
     statuses: Toot[]
     hashtags: Tag[]
+}
+export interface Translate {
+    content: string
+    detected_source_language: string
+    provider: string
+}
+interface FilterKeyword {
+    id: string
+    keyword: string
+    whole_word: boolean
+}
+interface FilterStatus {
+    id: string
+    status_id: string
+}
+interface FilterBase {
+    id: string
+    title: string
+    context: ('home' | 'notifications' | 'public' | 'thread' | 'account')[]
+    expires_at?: string
+    filter_action: 'warn' | 'hide'
+}
+export interface FilterV2 extends FilterBase {
+    keywords: FilterKeyword[]
+    statuses: FilterStatus[]
 }

@@ -1,7 +1,5 @@
 import * as Linking from 'expo-linking'
 import { Platform } from 'react-native'
-let android = false
-if (Platform.OS === 'android') android = true
 import * as WebBrowser from 'expo-web-browser'
 import { makeRedirectUri } from 'expo-auth-session'
 import * as storage from './storage'
@@ -11,10 +9,8 @@ import * as api from '../utils/api'
 import * as Alert from '../utils/alert'
 import uuid from './uuid'
 
-export const loginFirst = async (BASE_URL: string) => {
-    let os = 'iOS'
-    if (android) os = 'Android'
-    const clientName = `TootDesk(${os})`
+export const loginFirst = async (BASE_URL: string, via: string) => {
+    const clientName = via
     const red = Linking.createURL('account')
     const start: string = `https://${BASE_URL}/api/v1/apps`
     try {

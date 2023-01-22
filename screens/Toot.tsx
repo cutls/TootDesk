@@ -156,6 +156,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 					account={item}
 					acctId={acctId}
 					key={`notification ${item.id}`}
+					width={deviceWidth}
 					goToAccount={(id: string) =>
 						navigation.navigate('AccountDetails', {
 							acctId,
