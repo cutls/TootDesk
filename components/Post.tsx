@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, Text, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle } from 'react-native'
-import { TouchableOpacity, View, Button } from '../components/Themed'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Dimensions, StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, Platform } from 'react-native'
+import { TouchableOpacity, View, Button, Text } from '../components/Themed'
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
-import { IState } from '../interfaces/ParamList'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 import * as storage from '../utils/storage'
@@ -14,28 +13,40 @@ import * as upload from '../utils/upload'
 import { useKeyboard } from '../utils/keyboard'
 import { isIPhoneX } from '../utils/statusBar'
 import { FlatList } from 'react-native-gesture-handler'
+import RNDateTimePicker, { IOSNativeProps } from '@react-native-community/datetimepicker'
+import moment from 'moment'
+import { commonStyle } from '../utils/styles'
 
 interface FromRootToPost {
 	show: boolean
 	acct: string
 	tooting: (a: boolean) => void
 	insertText: string
-	replyId: string
+	txtActionId: string
 }
 export default (props: FromRootToPost) => {
 	const { width, height } = useWindowDimensions()
-	const styles = createStyle(width, height)
-    const tablet = width > height ? height > 500 : width > 500
+	const tablet = width > height ? height > 500 : width > 500
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
+	const styles = createStyle(width, height, isDark)
 	const { acct, tooting } = props
-	const { show, replyId, insertText } = props
+	const { show, txtActionId, insertText } = props
 	const [nsfw, setNsfw] = useState(false)
 	const [text, setText] = useState(insertText)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [uploading, setUploading] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [showCW, setShowCW] = useState(false)
+	const [showPoll, setShowPoll] = useState(false)
+	const [poll1, setPoll1] = useState('')
+	const [poll2, setPoll2] = useState('')
+	const [poll3, setPoll3] = useState('')
+	const [poll4, setPoll4] = useState('')
+	const [multiplePoll, setMultiplePoll] = useState(false)
+	const [hiddenPoll, setHiddenPoll] = useState(false)
+	const [endPoll, setEndPoll] = useState(300)
+	const [pollDeadline, setPollDeadline] = useState(moment().add('24', 'hour').toDate())
 	const [CWText, setCWText] = useState('')
 	const [vis, setVis] = useState<IVisTxt>('public')
 	const [accountTxt, setAccountTxt] = useState('')
@@ -43,18 +54,18 @@ export default (props: FromRootToPost) => {
 	const [acctObj, setAcctObj] = useState<S.Account | null>(null)
 	const [accountListTxt, setAccountListTxt] = useState<string[]>([])
 	const [accountList, setAccountList] = useState<string[]>([])
-	const [uploaded, setUploaded] = useState< M.Media[]>([])
+	const [uploaded, setUploaded] = useState<M.Media[]>([])
 	const [keyboardHeight] = useKeyboard()
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0)
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 270 : 250) + addHeight + (tablet ? 100 : 0)
+	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0)
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + addHeight + (tablet ? 50 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
 	const visList = ['public', 'unlisted', 'private', 'direct'] as IVisTxt[]
-	const visTxt = ['公開', '未収載', '非公開', 'ダイレクト']
+	const visTxt = ['公開', '未収載', '非公開', 'ダイレクト', 'キャンセル']
 	const getVisicon = (vis: IVisTxt): IVisIcon => {
 		if (vis === 'public') return 'public'
 		if (vis === 'unlisted') return 'lock-open'
@@ -62,17 +73,51 @@ export default (props: FromRootToPost) => {
 		if (vis === 'direct') return 'mail'
 		return 'public'
 	}
-    const [anchorVis, setAnchorVis] = React.useState<null | number>(0)
-    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
+	const [anchorVis, setAnchorVis] = React.useState<null | number>(0)
+	const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
+	const [anchorMore, setAnchorMore] = React.useState<null | number>(0)
+	const [anchorEndPoll, setAnchorEndPoll] = React.useState<null | number>(0)
+	useEffect(() => { setText(insertText) }, [insertText])
 	const selectVis = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options: visTxt,
 				anchor: anchorVis || undefined,
+				cancelButtonIndex: 4
 			},
 			(buttonIndex) => {
 				const vis = visList[buttonIndex]
 				setVis(vis)
+			}
+		)
+	const moreOption = () =>
+		ActionSheetIOS.showActionSheetWithOptions(
+			{
+				options: ['投票', '時間指定投稿', 'キャンセル'],
+				anchor: anchorMore || undefined,
+				cancelButtonIndex: 2
+			},
+			(buttonIndex) => {
+				if (buttonIndex === 0) setShowPoll(!showPoll)
+				if (buttonIndex === 1) Alert.alert('coming soon')
+			}
+		)
+	
+		const endPollSet = () =>
+		ActionSheetIOS.showActionSheetWithOptions(
+			{
+				options: ['5分', '30分', '1時間', '6時間', '1日', '3日', '7日', 'キャンセル'],
+				anchor: anchorEndPoll || undefined,
+				cancelButtonIndex: 7
+			},
+			(buttonIndex) => {
+				if (buttonIndex === 0) setEndPoll(300)
+				if (buttonIndex === 1) setEndPoll(1800)
+				if (buttonIndex === 2) setEndPoll(3600)
+				if (buttonIndex === 3) setEndPoll(21600)
+				if (buttonIndex === 4) setEndPoll(86400)
+				if (buttonIndex === 5) setEndPoll(86400 * 3)
+				if (buttonIndex === 6) setEndPoll(86400 * 7)
 			}
 		)
 	const actionSheet = () =>
@@ -151,6 +196,7 @@ export default (props: FromRootToPost) => {
 		setVis('public')
 	}
 	const post = async () => {
+		const m = txtActionId.match(/^([^:]+):([^:]+)$/)
 		try {
 			setLoading(true)
 			const param: R.Status = {
@@ -159,10 +205,22 @@ export default (props: FromRootToPost) => {
 				visibility: vis,
 				sensitive: nsfw,
 				spoiler_text: showCW ? CWText : '',
-				in_reply_to_id: replyId
 			}
+			if (m && m[1] === 'reply') param.in_reply_to_id = m[1]
 			if (!acctObj) return
-			await api.postV1Statuses(acctObj.domain, acctObj.at, param)
+			if (showPoll) {
+				param.poll = {
+					options: [poll1, poll2, poll3, poll4].filter((i) => !!i),
+					expires_in: endPoll,
+					multiple: multiplePoll,
+					hide_totals: hiddenPoll
+				}
+			}
+			if (m && m[1] === 'edit') {
+				await api.putV1Statuses(acctObj.domain, acctObj.at, m[2], param)
+			} else {
+				await api.postV1Statuses(acctObj.domain, acctObj.at, param)
+			}
 			setLoading(false)
 			closeToot()
 		} catch (e: any) {
@@ -175,7 +233,6 @@ export default (props: FromRootToPost) => {
 			<Pressable onPress={() => closeToot()} style={styles.pressable}>
 				<View style={[styles.container, { bottom: show ? 0 : 0 - height, height: postAvoid }]}>
 					<Pressable>
-						<Button title="" icon="close" onPress={() => closeToot()} color="transparent" borderLess={true} textColor={isDark ? 'white' : 'black'} style={styles.closeBtn} />
 						{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={account} /> : null}
 						<Text>{textLength}</Text>
 						<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder="何か書いてください" onContentSizeChange={(event) => {
@@ -193,7 +250,7 @@ export default (props: FromRootToPost) => {
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
-						{replyId ? <Text>返信モード</Text> : null}
+						{txtActionId ? <Text>返信/編集モード</Text> : null}
 						<View style={styles.action}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
 								<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
@@ -211,27 +268,54 @@ export default (props: FromRootToPost) => {
 								<MaterialIcons name="insert-emoticon" size={20} style={styles.icon} />
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => true}>
-								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => Alert.alert('Coming Soon')} />
+								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()}  ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
 							</TouchableOpacity>
 						</View>
-						<View style={{ height: (keyboardHeight > 100 ? keyboardHeight - addHeight : 0) }} />
+						{showPoll && <View>
+							<TextInput style={[styles.pollArea]} placeholder="選択肢1" value={poll1} onChangeText={(text) => setPoll1(text)} />
+							<TextInput style={[styles.pollArea]} placeholder="選択肢2" value={poll2} onChangeText={(text) => setPoll2(text)} />
+							<TextInput style={[styles.pollArea]} placeholder="選択肢3(オプション)" value={poll3} onChangeText={(text) => setPoll3(text)} />
+							<TextInput style={[styles.pollArea]} placeholder="選択肢4(オプション)" value={poll4} onChangeText={(text) => setPoll4(text)} />
+							<View style={[commonStyle.horizonal, { marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }]}>
+								<View>
+									<MaterialCommunityIcons name={multiplePoll ? 'checkbox-multiple-marked-outline' : 'checkbox-marked-outline'} size={20} color={isDark ? 'white' : 'black'} onPress={() => setMultiplePoll(!multiplePoll)} />
+								</View>
+								<View>
+									<TouchableOpacity onPress={() => endPollSet()} style={commonStyle.horizonal}>
+										<MaterialIcons name="timer" size={18} style={styles.icon}  ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
+										<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{moment().add(endPoll, 'seconds').fromNow()}</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
+							<View style={[commonStyle.horizonal, { justifyContent: 'space-between'}]}>
+								<TouchableOpacity onPress={() => setHiddenPoll(!hiddenPoll)} style={commonStyle.horizonal}>
+									<MaterialCommunityIcons name={hiddenPoll ? 'checkbox-marked-outline' : 'crop-square'} size={18} color={isDark ? 'white' : 'black'} />
+									<Text>終了まで票数を隠す</Text>
+								</TouchableOpacity>
+								<TouchableOpacity onPress={() => setShowPoll(false)} style={commonStyle.horizonal}>
+									<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>投票を削除</Text>
+								</TouchableOpacity>
+
+							</View>
+						</View>}
 					</Pressable>
 				</View>
 			</Pressable>
 		</Modal>
 	)
 }
-function createStyle(deviceWidth: number, deviceHeight: number) {
-    const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
+function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean) {
+	const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
 	return StyleSheet.create({
 		container: {
 			position: 'absolute',
 			width: deviceWidth,
-			backgroundColor: 'white',
+			backgroundColor: isDark ? 'black' : 'white',
 			padding: 20
 		},
 		icon: {
 			marginHorizontal: 15,
+			color: isDark ? 'white' : 'black'
 		},
 		textarea: {
 			marginVertical: 10,
@@ -241,7 +325,9 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			textAlignVertical: 'top',
 			padding: 5,
 			minHeight: tablet ? 170 : 70,
-			maxHeight: deviceHeight - 200
+			maxHeight: deviceHeight - 200,
+			color: isDark ? 'white' : 'black',
+			borderColor: isDark ? 'white' : 'black'
 		},
 		cwArea: {
 			marginVertical: 10,
@@ -250,6 +336,18 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			width: deviceWidth - 40,
 			textAlignVertical: 'top',
 			padding: 5,
+			color: isDark ? 'white' : 'black',
+			borderColor: isDark ? 'white' : 'black'
+		},
+		pollArea: {
+			marginVertical: 4,
+			borderWidth: 1,
+			borderRadius: 5,
+			width: deviceWidth - 40,
+			textAlignVertical: 'top',
+			padding: 5,
+			color: isDark ? 'white' : 'black',
+			borderColor: isDark ? 'white' : 'black'
 		},
 		action: {
 			height: 40,

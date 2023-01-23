@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme, useWindowDimensions } from 'react-native'
-import { TouchableOpacity, View, Text } from '../components/Themed'
+import { StyleSheet, StatusBar, Platform, Modal, SafeAreaView, ActivityIndicator, useColorScheme, useWindowDimensions } from 'react-native'
+import { View, Text } from '../components/Themed'
 import Bottom from '../components/Bottom'
-import Timeline from '../components/Timeline'
 import ImageModal from '../components/modal/ImageModal'
-import Post from '../components/Post'
 import { Loading, ParamList } from '../interfaces/ParamList'
+import * as S from '../interfaces/Storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import * as storage from '../utils/storage'
 import * as Alert from '../utils/alert'
+import * as api from '../utils/api'
 import TimelineProps from '../interfaces/TimelineProps'
 import * as Updates from 'expo-updates'
-import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
-import { MaterialIcons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../utils/context/changeTl'
 import { LoadingContext } from '../utils/context/loading'
 import TimelineRoot from '../components/TimelineRoot'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
 import { configInit, IConfig } from '../interfaces/Config'
+import { stripTags } from '../utils/stringUtil'
+type IConfigType = keyof IConfig
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Root'>) {
 	const { height, width } = useWindowDimensions()
@@ -30,7 +30,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	const [config, setConfig] = useState<IConfig>(configInit)
 	const [insertText, setInsertText] = useState('')
-	const [replyId, setReplyId] = useState('')
+	const [txtActionId, setTxtActionId] = useState('')
 	const [nowSelecting, setNowSelecting] = useState([0])
 	const [timelines, setTimelines] = useState<TimelineProps[]>([])
 	const theme = useColorScheme()
@@ -40,8 +40,16 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const tlPerScreen = config.tlPerScreen
 	const init = async () => {
 		const tls = await storage.getItem('timelines')
-		const config = await storage.getItem('config')
-		if (config) setConfig(config)
+		const newConfig = await storage.getItem('config')
+		if (!newConfig) return
+		for (const keyConfigRaw of Object.keys(configInit)) {
+			const keyConfig = keyConfigRaw as IConfigType
+			let c = newConfig[keyConfig]
+			if (c !== undefined) c = newConfig[keyConfig]
+			if (c === undefined) c = configInit[keyConfig]
+			newConfig[keyConfig] = c
+		}
+		if (newConfig) setConfig(newConfig)
 		if (tls) setTimelines(tls)
 		if (!tls) {
 			return goToAccountManager()
@@ -95,9 +103,28 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		for (let i = start; i < end; i++) tls.push(i)
 		setNowSelecting(tls)
 	}
-	const reply = (id: string, acct: string) => {
-		setInsertText(`@${acct} `)
-		setReplyId(id)
+	const txtAction = async (id: string, insertText: string, type: 'reply' | 'edit') => {
+		if (type === 'reply') {
+			setInsertText(`@${insertText} `)
+			setTxtActionId(`${type}:${id}`)
+		}
+		if (type === 'edit') {
+			const acct = (await storage.getCertainItem('accounts', 'id', insertText)) as S.Account
+			try {
+				const data = await api.getV1Source(acct.domain, acct.at, id)
+				const text = data.text
+				if (!text) throw ''
+				setInsertText(text)
+				setTxtActionId(`${type}:${id}`)
+			} catch (e: any) {
+				const r = await Alert.promise('Error', '編集非対応(~v4.0.0)のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
+				if (r === 0) return
+				const data = await api.deleteV1Status(acct.domain, acct.at, id)
+				const text = data.text || stripTags(data.content)
+				if (!text) throw ''
+				setInsertText(text)
+			}
+		}
 	}
 	return (
 		<SetConfigContext.Provider value={{ config, setConfig }}>
@@ -113,7 +140,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 										setNewNotif={setNewNotif}
 										setLoading={setLoading}
 										timelines={timelines}
-										reply={reply}
+										txtAction={txtAction}
 									/>}
 								</View>
 							</View>
@@ -125,10 +152,10 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 										nowSelecting={nowSelecting}
 										setNewNotif={setNewNotif}
 										newNotif={newNotif}
-										reply={reply}
+										txtAction={txtAction}
 										insertText={insertText}
-										replyId={replyId}
-										setReplyId={setReplyId}
+										txtActionId={txtActionId}
+										setTxtActionId={setTxtActionId}
 										setInsertText={setInsertText}
 										navigation={navigation}
 									/>

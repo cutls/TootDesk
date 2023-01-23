@@ -1,5 +1,3 @@
-import { ILangs } from "./Languages"
-
 export default interface TimelineProps {
 	type: TLType
 	acct: string
@@ -13,4 +11,4 @@ export interface TimelineConfig {
 	speech?: boolean
 	languageHide?: string[]
 }
-export type TLType = 'home' | 'local' | 'public' | 'list' | 'hashtag' | 'user' | 'bookmark' | 'fav' | 'notif' | 'noAuth'
+export type TLType = 'home' | 'local' | 'public' | 'list' | 'hashtag' | 'user' | 'bookmark' | 'fav' | 'notif' | 'noAuth' | 'mix'

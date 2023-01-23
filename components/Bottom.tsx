@@ -20,11 +20,11 @@ interface PropBottomFromRoot {
     nowSelecting: number[],
     setNewNotif: IState<boolean>
     newNotif: boolean
-    reply: (id: string, acct: string) => void
+    txtAction: (id: string, insertText: string, type: 'reply' | 'edit') => void
     navigation: StackNavigationProp<ParamList, any>
     insertText: string
-    replyId: string
-    setReplyId: IState<string>
+    txtActionId: string
+    setTxtActionId: IState<string>
     setInsertText: IState<string>
 }
 export default (params: PropBottomFromRoot) => {
@@ -33,7 +33,7 @@ export default (params: PropBottomFromRoot) => {
     const { width: deviceWidth } = useWindowDimensions()
     const styles = createStyle(deviceWidth, isDark)
     const { changeTl: setNowSelecting, tl: nowSelecting } = useContext(ChangeTlContext)
-    const { timelines, newNotif, setNewNotif, reply, goToAccountManager, navigation, insertText, replyId, setReplyId, setInsertText } = params
+    const { timelines, newNotif, setNewNotif, txtAction, goToAccountManager, navigation, insertText, txtActionId, setTxtActionId, setInsertText } = params
     const timeline = timelines[nowSelecting[0]]
     const [acct, setAcct] = useState({ id: 'a' } as S.Account)
     const [showNotif, setShowNotif] = useState(false)
@@ -53,7 +53,7 @@ export default (params: PropBottomFromRoot) => {
     }
     const toot = (i: boolean) => {
         setTooting(i)
-        if (!i) setReplyId('')
+        if (!i) setTxtActionId('')
         if (!i) setInsertText('')
     }
     useEffect(() => {
@@ -63,7 +63,7 @@ export default (params: PropBottomFromRoot) => {
     return (
         <View style={styles.bottom}>
             {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} navigation={navigation} /> : null}
-            {showNotif ? <NotifitionModal navigation={navigation} setShowNotif={setShowNotif} acctId={acct.id} reply={reply} /> : null}
+            {showNotif ? <NotifitionModal navigation={navigation} setShowNotif={setShowNotif} acctId={acct.id} txtAction={txtAction} /> : null}
             <TouchableOpacity style={styles.config} onPress={() => showTrgNotif()}>
                 <Ionicons name="notifications" size={30} color={newNotif ? 'red' : isDark ? 'white' : 'black'} />
             </TouchableOpacity>
@@ -79,7 +79,7 @@ export default (params: PropBottomFromRoot) => {
             <TouchableOpacity style={styles.config} onPress={() => toot(true)}>
                 <Ionicons name="create" size={30} color={isDark ? 'white' : 'black'} />
             </TouchableOpacity>
-            <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} replyId={replyId} />
+            <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} txtActionId={txtActionId} />
         </View>
     )
 }

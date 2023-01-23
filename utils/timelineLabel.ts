@@ -12,5 +12,6 @@ export default (timeline: TimelineProps) => {
     if (timeline.type === 'hashtag') tlLabel = `Tag #${decodeURIComponent(timeline.timelineData.target)}`
     if (timeline.type === 'list') tlLabel = `List ${timeline.timelineData.title}`
     if (timeline.type === 'noAuth') tlLabel = `Glance`
+    if (timeline.type === 'mix') tlLabel = `Integrated`
     return tlLabel
 }

@@ -48,6 +48,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const styles = createStyle(deviceWidth, deviceHeight)
 	const [ready, setReady] = useState(false)
 	const [inited, setInited] = useState(false)
+	const [isMine, setIsMine] = useState(false)
 	const [tooting, setTooting] = useState(false)
 	const [deletable, setDeletable] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(0)
@@ -56,7 +57,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [fffw, setFffw] = useState([{}, {}] as [M.Account[], M.Account[]])
 	const [uTl, setUtl] = useState([] as M.Toot[])
 	const [acctId, setAcctId] = useState('')
-	const [replyId, setReplyId] = useState('' as string)
+	const [txtActionId, setTxtActionId] = useState('' as string)
 	const [imageModal, setImageModal] = useState({ url: [''], i: 0, show: false })
 	const [anchor, setAnchor] = React.useState<null | number>(0)
 	const theme = useColorScheme()
@@ -69,6 +70,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			setInited(true)
 			const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
 			const acctData = await api.getV1Account(domain, at, id)
+			setIsMine(acct === `@${acctData.acct}@${domain}`)
 			const pinnedUserTlRaw = await api.getV1AccountsStatuses(domain, at, id, { pinned: true })
 			const pinnedUserTl = pinnedUserTlRaw.map((item) => {
 				item.customPinned = true
@@ -170,7 +172,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 		const item = e.item as M.Account
 		return (
 			<TouchableOpacity onPress={() => init(acctId, item.id)} style={styles.acct}>
-				<Account acctId={acctId} account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} />
+				<Account acctId={acctId} account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} width={deviceWidth} />
 			</TouchableOpacity>
 		)
 	}
@@ -184,10 +186,9 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					navigation={navigation}
 					deletable={false}
 					key={`acctDetails ${item.id}`}
-					imgModalTrigger={(url: string[], i: number, show: boolean) => true}
 					width={deviceWidth}
 					tlId={-1}
-					reply={() => true} />
+					txtAction={() => true} />
 				<View style={commonStyle.separator} />
 			</>
 		)
@@ -237,13 +238,13 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
 				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
 			</Modal>
-			<TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
+			{!isMine && <TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
 				<Text style={{ color: 'white' }}>
 					→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
 				</Text>
 				<Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
 				<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
-			</TouchableOpacity>
+			</TouchableOpacity>}
 			<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 			<View style={commonStyle.horizonal}>
 				<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, marginRight: 10 }} />
@@ -281,7 +282,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			/>
 			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={showAccts} renderItem={compactAcct} /> : null}
 			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={uTl} renderItem={compactToot} /> : null}
-			<Post show={tooting} acct={acctId} tooting={setTooting} replyId={replyId} insertText={''} />
+			<Post show={tooting} acct={acctId} tooting={setTooting} txtActionId={txtActionId} insertText={''} />
 		</View>
 	)
 }

@@ -66,6 +66,7 @@ export interface Toot {
     muted: boolean
     bookmarked?: boolean
     content: string
+    text?: string
     reblog: Toot | null
     application?: {
         name: string | null
@@ -80,6 +81,7 @@ export interface Toot {
     poll?: Poll | null
     pinned?: boolean
     customPinned?: boolean
+    TootDeskStream?: string
     filtered?: {
         filter: FilterBase
         keyword_matches: string[]

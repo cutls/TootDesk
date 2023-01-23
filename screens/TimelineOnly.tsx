@@ -32,8 +32,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		i: 0,
 		show: false,
 	})
-	const reply = (id: string, acct: string) => {
-		Alert.alert('リプライ', 'リプライを送るためには、まずこのタイムラインをピン留めしてください')
+	const txtAction = (id: string, insertText: string, type: 'reply' | 'edit') => {
+		const action = type === 'reply' ? '返信' : '編集'
+		Alert.alert(action, `${action}するためには、まずこのタイムラインをピン留めしてください`)
 	}
 	const addTl = async () => {
 		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
@@ -61,8 +62,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							setLoading={setLoading}
 							setNewNotif={setNewNotif}
 							timelines={[timeline]}
-							imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })}
-							reply={reply}
+							txtAction={txtAction}
 						/>
 					</View>
 				</View>

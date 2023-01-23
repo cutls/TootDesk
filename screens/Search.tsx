@@ -131,8 +131,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     navigation={navigation}
                     deletable={false}
                     key={`search ${item.id}`}
-                    imgModalTrigger={(url: string[], i: number, show: boolean) => true}
-                    reply={() => true} 
+                    txtAction={() => true} 
                     width={deviceWidth}    
                     tlId={-1}
                 />
@@ -154,7 +153,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         return (
             <View>
                 <View style={commonStyle.horizonal}>
-                    <Account acctId={account} account={item} key={`userInList ${item.id}`} goToAccount={(id: string) => navigation.navigate('AccountDetails', { acctId: account, id: item.id, notification: false })} />
+                    <Account acctId={account} account={item} key={`userInList ${item.id}`} goToAccount={(id: string) => navigation.navigate('AccountDetails', { acctId: account, id: item.id, notification: false })} width={deviceWidth} />
                 </View>
                 <View style={{ height: 5 }} />
                 <View style={commonStyle.separator} />

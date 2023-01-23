@@ -118,6 +118,7 @@ export const getV1TrendTags = async (domain: string, at: string) => { return awa
 export const getV1TrendLink = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/trends/links`, at) as M.Card[] }
 export const getV1Directory = async (domain: string, at: string, param: R.Directory) => { return await getApi(`https://${domain}/api/v1/directory`, at, param) as M.Account[] }
 export const getV1Poll = async (domain: string, at: string, pollId: string) => { return await getApi(`https://${domain}/api/v1/polls/${pollId}`, at, {}) as M.Poll }
+export const getV1Source = async (domain: string, at: string, tootId: string) => { return await getApi(`https://${domain}/api/v1/statuses/${tootId}/source`, at, {}) as M.Toot }
 
 
 export const postV2Media = async (domain: string, at: string, form: FormData) => { return await postApiMedia(`https://${domain}/api/v2/media`, at, form) as M.Media }
@@ -128,8 +129,9 @@ export const postV1Unboost = async (domain: string, at: string, id: string) => {
 export const postV1FRAuthorize = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/follow_requests/${id}/authorize`, at) as M.Relationship }
 export const postV1FRReject = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/follow_requests/${id}/reject`, at) as M.Relationship }
 export const postV1Statuses = async (domain: string, at: string, param: R.Status) => { return await postApi(`https://${domain}/api/v1/statuses`, at, param) as M.Toot }
+export const putV1Statuses = async (domain: string, at: string, tootId: string, param: R.Status) => { return await putApi(`https://${domain}/api/v1/statuses/${tootId}`, at, param) as M.Toot }
 export const postV1PushSubscribe = async (domain: string, at: string, param: R.PushSubscription) => { return await postApi(`https://${domain}/api/v1/push/subscription`, at, param) as M.PushSubscription }
-export const deleteV1Status = async (domain: string, at: string, id: string) => { return await deleteApi(`https://${domain}/api/v1/statuses/${id}`, at) as {} }
+export const deleteV1Status = async (domain: string, at: string, id: string) => { return await deleteApi(`https://${domain}/api/v1/statuses/${id}`, at) as M.Toot }
 export const postV1Follow = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/follow`, at) as M.Relationship }
 export const postV1UnFollow = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unfollow`, at) as M.Relationship }
 export const postV1Mute = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/mute`, at) as M.Relationship }

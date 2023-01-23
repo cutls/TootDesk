@@ -284,7 +284,12 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                 <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
                                 <Button title="お気に入り" onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
                             </View>
+                            <View style={{ height: 10 }} />
+                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                <Button title="統合" onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
+                            </View>
                             <View style={{ marginVertical: 5 }} />
+                            <Text>認証のないローカルタイムライン</Text>
                             <View style={commonStyle.horizonal}>
                                 <TextInput placeholder="ドメイン*" onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
                                 <Button title="追加" onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />

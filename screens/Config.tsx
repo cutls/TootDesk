@@ -1,23 +1,33 @@
-import React, { useState, useRef, useEffect, useContext } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme, Switch } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, StatusBar, Platform, useWindowDimensions, useColorScheme, Switch } from 'react-native'
+import Slider from '@react-native-community/slider'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
-import * as WebBrowser from 'expo-web-browser'
 import { ParamList } from '../interfaces/ParamList'
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome, Ionicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
-import { SetConfigContext } from '../utils/context/config'
 import { configInit, IConfig } from '../interfaces/Config'
 import deepClone from '../utils/deepClone'
+import { commonStyle } from '../utils/styles'
+type IConfigType = keyof IConfig
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Config'>) {
     const [config, setConfig] = useState(configInit)
     const [tlPerScreen, setTlPerScreen] = useState(config.tlPerScreen.toString())
     const [imageHeight, setImageHeight] = useState(config.imageHeight.toString())
+    const [actionBtnSize, setActionBtnSize] = useState(config.actionBtnSize)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
     const init = async () => {
         try {
-            const newConfig: IConfig = await storage.getItem('config')
+            const newConfig = await storage.getItem('config')
+            if (!newConfig) return
+            for (const keyConfigRaw of Object.keys(configInit)) {
+                const keyConfig = keyConfigRaw as IConfigType
+                let c = newConfig[keyConfig]
+                if(c !== undefined) c = newConfig[keyConfig]
+                if(c === undefined) c = configInit[keyConfig]
+                newConfig[keyConfig] = c
+            }
             if (newConfig) setConfig(newConfig)
         } catch (e) { }
     }
@@ -38,6 +48,21 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const deviceWidth = width
     const deviceHeight = StatusBar.currentHeight ? height : height - 20
     const styles = createStyle(deviceWidth, deviceHeight)
+    interface ISwitchComponent {
+        configKey: IConfigType
+    }
+    const SwitchComponent = ({configKey}: ISwitchComponent) => {
+        return <View style={styles.switchWrap}><Switch
+            onValueChange={(tf) => {
+                const newConfig = deepClone<any>(config)
+                newConfig[configKey] = tf
+                setConfig(newConfig)
+                save(newConfig)
+            }}
+            style={[styles.switch]}
+            value={!!config[configKey]}
+        /></View>
+    }
 
     const save = async (newConfig: IConfig) => {
         try {
@@ -45,16 +70,16 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         } catch (e) { }
     }
     const saveTlPerScreen = (t: string) => {
-        if(!t) return setTlPerScreen('')
+        if (!t) return setTlPerScreen('')
         const inted = parseInt(t, 10)
-        if (!inted || inted < 1 || inted > 6) return 
+        if (!inted || inted < 1 || inted > 6) return
         setTlPerScreen(inted.toString())
         config.tlPerScreen = inted
         setConfig(config)
         save(config)
     }
     const saveImageHeight = (t: string) => {
-        if(!t) return setImageHeight('')
+        if (!t) return setImageHeight('')
         const inted = parseInt(t, 10)
         if (!inted) return
         setImageHeight(inted.toString())
@@ -66,35 +91,44 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     return (
         <View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
             <View style={styles.container}>
-				{!!route.params?.code && <Text>ログインコールバックを受信しました</Text>}
+                {!!route.params?.code && <Text>ログインコールバックを受信しました</Text>}
                 <Text style={styles.header}>タイムラインの設定</Text>
                 <Text style={styles.title}>スクリーンあたりのカラム数</Text>
-                <Text>1(スマホ向け)〜6</Text>
+                <Text>1(スマホ向け)〜6(タブレット向け)</Text>
                 <TextInput style={styles.form} value={tlPerScreen.toString()} onChangeText={(t) => saveTlPerScreen(t)} keyboardType="number-pad" />
                 <Text style={styles.title}>絶対時間を表示する</Text>
-                <Switch
-                    onValueChange={(tf) => {
-                        const newConfig = deepClone<IConfig>(config)
-                        newConfig.useAbsoluteTime = tf
-                        setConfig(newConfig)
-                        save(newConfig)
-                    }}
-                    style={[styles.switch]}
-                    value={config.useAbsoluteTime}
-                />
+                <SwitchComponent configKey="useAbsoluteTime" />
                 <Text style={styles.title}>相対時間を表示する</Text>
-                <Switch
-                    onValueChange={(tf) => {
-                        const newConfig = deepClone<IConfig>(config)
-                        newConfig.useRelativeTime = tf
-                        setConfig(newConfig)
-                        save(newConfig)
-                    }}
-                    style={[styles.switch]}
-                    value={config.useRelativeTime}
-                />
+                <SwitchComponent configKey="useRelativeTime" />
                 <Text style={styles.title}>画像の高さ設定</Text>
                 <TextInput style={styles.form} value={imageHeight.toString()} onChangeText={(t) => saveImageHeight(t)} keyboardType="number-pad" />
+                <Text style={styles.title}>リアクション数を表示</Text>
+                <SwitchComponent configKey="showReactedCount" />
+                <Text style={styles.title}>アクションボタンの大きさ</Text>
+                <View style={[commonStyle.horizonal, { alignItems: 'center' }]}>
+                    <Text style={{ width: 20, height: 39, paddingTop: 12 }}>{actionBtnSize}</Text>
+                    <FontAwesome
+                        name="retweet"
+                        size={actionBtnSize}
+                        color={"#9a9da1"}
+                    />
+                </View>
+                <Slider
+                    style={{ width: 200, height: 40 }}
+                    minimumValue={12}
+                    maximumValue={39}
+                    step={3}
+                    minimumTrackTintColor="#FFFFFF"
+                    maximumTrackTintColor="#000000"
+                    value={actionBtnSize}
+                    onValueChange={(s) => {
+                        const newConfig = deepClone<IConfig>(config)
+                        newConfig.actionBtnSize = s
+                        setActionBtnSize(s)
+                        setConfig(newConfig)
+                        save(newConfig)
+                    }}
+                />
                 <Button title="完了" onPress={() => navigation.replace('Root', { refresh: true })} style={{ marginVertical: 10 }} />
             </View>
         </View>
@@ -136,8 +170,13 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             fontSize: 16,
             marginVertical: 5
         },
+        switchWrap: {
+            width: useWidth - 20,
+            display: 'flex',
+            alignItems: 'flex-end'
+        },
         switch: {
-            marginLeft: useWidth - 220
+           
         }
     })
 }

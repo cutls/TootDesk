@@ -34,7 +34,7 @@ moment.tz.setDefault('Asia/Tokyo')
 interface FromTimelineToToot {
 	toot: M.Toot
 	deletable: boolean
-	reply: (id: string, acct: string) => void
+	txtAction: (id: string, insertText: string, type: 'reply' | 'edit') => void
 	navigation: StackNavigationProp<ParamList, any>
 	acctId: string
 	width: number
@@ -42,7 +42,7 @@ interface FromTimelineToToot {
 }
 
 export default (props: FromTimelineToToot) => {
-	const { toot: rawToot, reply, navigation, acctId, deletable, width, tlId } = props
+	const { toot: rawToot, txtAction, navigation, acctId, deletable, width, tlId } = props
 	const styles = createStyle(width)
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
 	let topComponent: null | JSX.Element = null
@@ -131,6 +131,7 @@ export default (props: FromTimelineToToot) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
 				if (buttonIndex === 1) return statusPost('delete', id, acctId)
 				if (buttonIndex === 2) return statusPost(toot.pinned ? 'unpin' : 'pin', id, acctId)
+				if (buttonIndex === 3) return txtAction(id, acctId, 'edit')
 			}
 		)
 	}
@@ -223,25 +224,25 @@ export default (props: FromTimelineToToot) => {
 					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 					<View style={styles.actionsContainer}>
-						<MaterialIcons name="reply" size={27} style={styles.actionIcon} color="#9a9da1" onPress={() => reply(toot.id, toot.account.acct)} />
-						<Text style={styles.actionCounter}>{toot.replies_count}</Text>
+						<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
+						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
 						<FontAwesome
 							name="retweet"
-							size={27}
+							size={config.actionBtnSize}
 							style={styles.actionIcon}
 							color={boosted.is ? '#03a9f4' : '#9a9da1'}
 							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
 						/>
-						<Text style={styles.actionCounter}>{boosted.ct}</Text>
+						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
 						<MaterialIcons
 							name="star"
-							size={27}
+							size={config.actionBtnSize}
 							style={styles.actionIcon}
 							color={faved.is ? '#fbc02d' : '#9a9da1'}
 							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
 						/>
-						<Text style={styles.actionCounter}>{faved.ct}</Text>
-						<MaterialIcons name="more-vert" size={27} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
+						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{faved.ct}</Text>}
+						<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 					</View>
 				</View>
 			</View>

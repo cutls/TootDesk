@@ -24,6 +24,7 @@ import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-r
 import { SetConfigContext } from '../utils/context/config'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { configInit, IConfig } from '../interfaces/Config'
+import { stripTags } from '../utils/stringUtil'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -65,7 +66,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const [accounts, setAccounts] = useState([] as M.Account[][])
 	const [acctId, setAcctId] = useState('')
 	const [text, setText] = useState('' as string)
-	const [replyId, setReplyId] = useState('' as string)
+	const [txtActionId, setTxtActionId] = useState('' as string)
 	const [imageModal, setImageModal] = useState({
 		url: [''],
 		i: 0,
@@ -133,10 +134,28 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		)
 	}
 
-	const reply = (id: string, acct: string) => {
-		setText(`@${acct} `)
-		setReplyId(id)
-		setTooting(true)
+	const txtAction = async (id: string, insertText: string, type: 'reply' | 'edit') => {
+		if (type === 'reply') {
+			setText(`@${insertText} `)
+			setTxtActionId(`${type}:${id}`)
+		}
+		if (type === 'edit') {
+			const acct = (await storage.getCertainItem('accounts', 'id', insertText)) as S.Account
+			try {
+				const data = await api.getV1Source(acct.domain, acct.at, id)
+				const text = data.text
+				if (!text) throw ''
+				setText(text)
+				setTxtActionId(`${type}:${id}`)
+			} catch (e: any) {
+				const r = await Alert.promise('Error', '編集非対応(~v4.0.0)のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
+				if (r === 0) return
+				const data = await api.deleteV1Status(acct.domain, acct.at, id)
+				const text = data.text || stripTags(data.content)
+				if (!text) throw ''
+				setText(text)
+			}
+		}
 	}
 	const compactToot = (e: any) => {
 		const item = e.item as M.Toot
@@ -192,7 +211,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 						deletable={deletable}
 						acctId={acctId}
 						toot={toot}
-						reply={reply}
+						txtAction={txtAction}
 						width={deviceWidth}
 						tlId={-1}
 					/>
@@ -227,7 +246,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 					) : (
 						<Text style={commonStyle.textCenter}>いません</Text>
 					)}
-					<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} replyId={replyId} />
+					<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} txtActionId={txtActionId} />
 				</View>
 			</ImageModalContext.Provider>
 		</SetConfigContext.Provider>

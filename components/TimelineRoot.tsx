@@ -1,31 +1,28 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
 import TimelineProps, { TLType } from '../interfaces/TimelineProps'
-import { StyleSheet, AppState, Dimensions, FlatList, RefreshControl, AppStateStatus, useWindowDimensions } from 'react-native'
+import { StyleSheet, AppState, AppStateStatus, useWindowDimensions } from 'react-native'
 import { Text, View } from './Themed'
-import Toot from './Toot'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import * as api from '../utils/api'
-import * as Alert from '../utils/alert'
 import deepClone from '../utils/deepClone'
-import { RefObject } from 'react'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList, IState, Loading } from '../interfaces/ParamList'
-import { TopBtnContext } from '../utils/context/topBtn'
 import { ChangeTlContext } from '../utils/context/changeTl'
 import Timeline from './Timeline'
 import { commonStyle } from '../utils/styles'
 import { SetConfigContext } from '../utils/context/config'
 import * as Speech from 'expo-speech'
 import { stripTags } from '../utils/stringUtil'
+import _ from 'lodash'
 
 interface FromRootToTimeline {
     timelines: TimelineProps[]
     loading: string | null
     setLoading: IState<Loading | null>
     setNewNotif: IState<boolean>
-    reply: (id: string, acct: string) => void
+    txtAction: (id: string, insertText: string, type: 'reply' | 'edit') => void
     navigation: StackNavigationProp<ParamList, any>
 }
 export default (props: FromRootToTimeline) => {
@@ -68,7 +65,7 @@ export default (props: FromRootToTimeline) => {
         await baseStreaming(undefined, true)
         setRefreshing(false)
     }, [])
-    const { timelines, loading, setLoading, setNewNotif, reply, navigation } = props
+    const { timelines, loading, setLoading, setNewNotif, txtAction, navigation } = props
     let ct = 0
     const tootUpdator = (tlId: number, item: M.Toot[]) => {
         if (tlId === 0) setToots0(deepClone(item))
@@ -106,6 +103,16 @@ export default (props: FromRootToTimeline) => {
                 case 'home':
                     streamable = 'user'
                     data = await api.getV1TimelinesHome(domain, acct.at, param)
+                    if (data.length) setMinId(data[data.length - 1].id)
+                    break
+                case 'mix':
+                    streamable = 'public:local'
+                    const home = await api.getV1TimelinesHome(domain, acct.at, param)
+                    const local = await api.getV1TimelinesLocal(domain, acct.at, param)
+                    const concated = _.concat(local, home)
+                    const uniqued = _.uniqBy(concated, 'id')
+                    const sorted = _.orderBy(uniqued, ['id'], ['desc'])
+                    data = _.slice(sorted, 0, 19)
                     if (data.length) setMinId(data[data.length - 1].id)
                     break
                 case 'local':
@@ -216,8 +223,11 @@ export default (props: FromRootToTimeline) => {
                     const obj: M.Toot = JSON.parse(payload)
                     const tlKeys = streamTypeToTlNumber(stream, useTls, targetTimelineId)
                     for (const x of tlKeys) {
+                        const isMix = timelines[x].type === 'mix'
                         console.log(`update to`, x)
+                        obj.TootDeskStream = stream
                         const t = tootGet(x)
+                        if (isMix && t.find((item) => item.id === obj.id)) return
                         const str = stripTags(obj.reblog ? obj.reblog.content : obj.content).replace(/https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/, '')
                         if (timelines[x].config?.speech) Speech.speak(str)
                         const cloneX = deepClone<M.Toot[]>(t)
@@ -229,8 +239,9 @@ export default (props: FromRootToTimeline) => {
                 } else if (event === 'delete') {
                     const { payload } = JSON.parse(e.data)
                     for (let i = 0; i < useTls.length; i++) {
-                        const newTl = tootGet(i).filter((item) => item.id !== payload)
-                        tootUpdator(i, newTl)
+                        const newTl = tootGet(targetTimelineId[i]).filter((item) => item.id !== payload)
+                        const cloneX = deepClone<M.Toot[]>(newTl)
+                        tootUpdator(targetTimelineId[i], cloneX)
                     }
                 } else if (event === 'status.update') {
                     const { payload, stream } = JSON.parse(e.data)
@@ -316,7 +327,7 @@ export default (props: FromRootToTimeline) => {
                         timeline={targetTimeline}
                         tlId={targetTimelineId[i]}
                         loading={loading}
-                        reply={reply}
+                        txtAction={txtAction}
                         navigation={navigation}
                         onRefresh={onRefresh}
                         moreLoad={moreLoad}
@@ -351,6 +362,8 @@ const tlTypeToStream = (type: TLType) => {
             return 'public:local'
         case 'noAuth':
             return 'public:local'
+        case 'mix':
+            return 'public:local'
         case 'public':
             return 'public'
         case 'hashtag':
@@ -381,6 +394,9 @@ const streamTypeToTlNumber = (stream: string[], tls: TimelineProps[], targetTime
                 break
             case 'list':
                 if (stream.includes('list')) ret.push(targetTimelineId[i])
+                break
+            case 'mix':
+                if (stream.includes('user') || stream.includes('public:local')) ret.push(targetTimelineId[i])
                 break
         }
         i++

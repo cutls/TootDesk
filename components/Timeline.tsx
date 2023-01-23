@@ -17,7 +17,7 @@ interface FromTimelineRootToTimeline {
 	timeline: TimelineProps
 	loading: string | null
 	tlId: number
-	reply: (id: string, acct: string) => void
+	txtAction: (id: string, insertText: string, type: 'reply' | 'edit') => void
 	navigation: StackNavigationProp<ParamList, any>
 	onRefresh: () => Promise<void>
 	moreLoad: (i: number) => void
@@ -32,7 +32,7 @@ export default (props: FromTimelineRootToTimeline) => {
 	const [domain, setDomain] = useState('')
 	const [showToTop, setShowToTop] = useState(false)
 	const [flatList, setFlatList] = useState<IFlatList>(undefined)
-	const { timeline, loading, reply, navigation, onRefresh, moreLoad, toots, errorMsg, tlId, refreshing, width } = props
+	const { timeline, loading, txtAction, navigation, onRefresh, moreLoad, toots, errorMsg, tlId, refreshing, width } = props
 	const { height: deviceHeight } = useWindowDimensions()
 	const styles = createStyle(width, deviceHeight)
 	const renderItem = (e: any) => {
@@ -44,7 +44,7 @@ export default (props: FromTimelineRootToTimeline) => {
 				navigation={navigation}
 				toot={item}
 				deletable={deletable}
-				reply={reply}
+				txtAction={txtAction}
 				acctId={timeline.acct}
 				width={width}
 				tlId={tlId}
@@ -93,7 +93,7 @@ export default (props: FromTimelineRootToTimeline) => {
 				data={toots}
 				renderItem={renderItem}
 				key={tlId}
-				keyExtractor={item => `${timeline.key}${tlId}${item.id}`}
+				keyExtractor={item => `${item.TootDeskStream || ''}${timeline.key}${tlId}${item.id}`}
 				initialNumToRender={20}
 				ListEmptyComponent={<Text>No data {errorMsg}</Text>}
 				refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => onRefresh()} />}

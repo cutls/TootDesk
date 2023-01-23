@@ -17,7 +17,7 @@ import { ParamList } from '../interfaces/ParamList'
 
 interface FromRootToTimeline {
     acctId: string
-    reply: (id: string, acct: string) => void
+    txtAction: (id: string, insertText: string, type:'reply' | 'edit') => void
     dismiss?: () => void
     navigation: StackNavigationProp<ParamList, any>
     width: number
@@ -35,7 +35,7 @@ export default (props: FromRootToTimeline) => {
         await loadTimeline()
         setRefreshing(false)
     }, [])
-    const { acctId, reply, navigation, dismiss } = props
+    const { acctId, txtAction, navigation, dismiss } = props
     const openAcct = (id: string) => {
         if (acct) navigation.navigate('AccountDetails', { at: acct.at, domain: acct.domain, notification: false, acctId, id })
         if (acct && typeof dismiss !== 'undefined') dismiss()
@@ -71,7 +71,7 @@ export default (props: FromRootToTimeline) => {
                     navigation={navigation}
                     deletable={false}
                     key={`notification ${item.id}`}
-                    reply={reply}
+                    txtAction={txtAction}
                     width={deviceWidth}
                     tlId={-1}
                  />
