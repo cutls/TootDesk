@@ -8,9 +8,11 @@ import * as Alert from './alert'
 import { decode as atob, encode as btoa } from 'base-64'
 const main = async (result: ImagePicker.ImagePickerResult, domain: string, at: string) => {
     try {
-        if (!result.cancelled && result.base64 && result.uri) {
+        console.log(result, domain, at)
+        if (!result.cancelled && result.uri) {
             return await upload(result, domain, at)
         }
+        throw 'Error'
     } catch (e) {
         console.error(e)
     }
@@ -18,7 +20,7 @@ const main = async (result: ImagePicker.ImagePickerResult, domain: string, at: s
 export default main
 
 async function upload(result: any, domain: string, at: string) {
-    const { base64: b64, uri } = result
+    const { uri } = result
     let mime = null
     if (uri.match(/\.png$/i)) mime = 'image/png'
     if (uri.match(/\.jpg$/i)) mime = 'image/jpeg'
@@ -27,12 +29,20 @@ async function upload(result: any, domain: string, at: string) {
     if (uri.match(/\.mov$/i)) mime = 'video/quicktime'
     if (uri.match(/\.mp3$/i)) mime = 'audio/mpeg'
     if (uri.match(/\.wav$/i)) mime = 'audio/wav'
-    if (!mime) return Alert.alert('未対応の形式', 'このソフトウェアではサポートされていないファイル形式です。')
+    let ext = ''
+    if (uri.match(/\.png$/i)) ext = '.png'
+    if (uri.match(/\.jpg$/i)) ext = '.jpeg'
+    if (uri.match(/\.jpeg$/i)) ext = '.jpeg'
+    if (uri.match(/\.mp4$/i)) ext = '.mp4'
+    if (uri.match(/\.mov$/i)) ext = '.mov'
+    if (uri.match(/\.mp3$/i)) ext = '.mp3'
+    if (uri.match(/\.wav$/i)) ext = '.wav'
+    if (!mime || !ext) return Alert.alert('未対応の形式', 'このソフトウェアではサポートされていないファイル形式です。')
     const formData = new FormData() as any
     formData.append('file', {
         uri: uri,
         type: mime,
-        name: `file.png`
+        name: `file.${ext}`
     })
     try {
         const data = await api.postV2Media(domain, at, formData)
