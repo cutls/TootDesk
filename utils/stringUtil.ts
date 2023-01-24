@@ -10,3 +10,7 @@ export const stripTags = function (str: string, allowed?: string) {
 		return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : ''
 	})
 }
+export const mb2xCount = function (str: string) {
+	const ascii = str.match(/[ -~]/g)?.length || 0
+	return str.length * 2 - ascii
+} 

@@ -2,7 +2,7 @@
   "expo": {
     "name": "TootDesk",
     "slug": "tootdesk",
-    "version": "1.1.11",
+    "version": "1.1.16",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "tootdesk",
@@ -18,7 +18,7 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "buildNumber": "25",
+      "buildNumber": "31",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "top.thedesk.toot",
@@ -28,7 +28,7 @@
         "CFBundleDevelopmentRegion": "ja_JP"
       }
     },
-    "android": { "versionCode": 25, "package": "top.thedesk.toot" },
+    "android": { "versionCode": 31, "package": "top.thedesk.toot" },
     "extra": { "eas": { "projectId": "d7f07c8c-ca06-4dd3-a754-d09eb5287ad5" } },
     "runtimeVersion": { "policy": "sdkVersion" }
   }

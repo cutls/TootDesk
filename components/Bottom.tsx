@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { StyleSheet, TouchableOpacity, Dimensions, Modal, useWindowDimensions, useColorScheme, ViewStyle } from 'react-native'
-import { Text, View, Button } from './Themed'
+import { StyleSheet, TouchableOpacity, useWindowDimensions, useColorScheme, ViewStyle } from 'react-native'
+import { Text, View } from './Themed'
 import { Ionicons } from '@expo/vector-icons'
 import { ParamList, IState } from '../interfaces/ParamList'
-import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack'
+import { StackNavigationProp } from '@react-navigation/stack'
 import TimelineProps from '../interfaces/TimelineProps'
 import NotifitionModal from '../components/modal/NotificationModal'
 import * as storage from '../utils/storage'
@@ -46,7 +46,7 @@ export default (params: PropBottomFromRoot) => {
         const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
         setAcct(acct)
     }
-    useEffect(() => { init() }, [nowSelecting])
+    useEffect(() => { init() }, [nowSelecting, timelines])
     const showTrgNotif = () => {
         setShowNotif(true)
         setNewNotif(false)

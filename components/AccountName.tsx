@@ -1,9 +1,10 @@
 import * as M from '../interfaces/MastodonApiReturns'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Dimensions, useColorScheme, useWindowDimensions } from 'react-native'
 import { Text } from './Themed'
 import twemoji from 'twemoji'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+import { SetConfigContext } from '../utils/context/config'
 const renderers = {
     img: defaultHTMLElementModels.img.extend({
         contentModel: HTMLContentModel.mixed,
@@ -16,12 +17,13 @@ interface FromTootToAcctName {
     showWithoutEllipsis?: boolean
     width: number
 }
-export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean) => {
-    const twemojified = twemoji.parse(content).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
+export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean, showGif=true) => {
+    //const twemojified = twemoji.parse(content, { }).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
+    const twemojified = content
     let emojified = twemojified
     for (let emoji of emojis) {
         const reg = new RegExp(`:${emoji.shortcode}:`, 'g')
-        emojified = emojified.replace(reg, `<img src="${emoji.url}" style="width: ${miniEmoji ? '0.7' : '1.2'}rem; height: ${miniEmoji ? '0.7' : '1.2'}rem">`)
+        emojified = emojified.replace(reg, `<img src="${showGif ? emoji.url : emoji.static_url}" style="width: ${miniEmoji ? '0.7' : '1.2'}rem; height: ${miniEmoji ? '0.7' : '1.2'}rem">`)
     }
 
     return emojified
@@ -29,6 +31,7 @@ export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean)
 const tagStyle = { b: { fontWeight: 'bold' } } as const
 export const AccountName = (props: FromTootToAcctName) => {
     const { account, miniEmoji, fontSize: fsRaw, showWithoutEllipsis, width } = props
+	const { config } = useContext(SetConfigContext)
     const fontSize = fsRaw ? fsRaw : 15
     const textProps = showWithoutEllipsis ? {} : { numberOfLines: 1 }
     const theme = useColorScheme()
@@ -36,7 +39,7 @@ export const AccountName = (props: FromTootToAcctName) => {
     const txtColor = isDark ? 'white' : 'black'
     return account.display_name ? (
         <HTML
-            source={{ html: `<b style="font-size: ${fontSize}px;color: ${txtColor}">${emojify(account.display_name, account.emojis, miniEmoji)}</b>` }}
+            source={{ html: `<b style="font-size: ${fontSize}px;color: ${txtColor}">${emojify(account.display_name, account.emojis, miniEmoji, config.showGif)}</b>` }}
             tagsStyles={tagStyle}
             customHTMLElementModels={renderers}
             contentWidth={width - 50}

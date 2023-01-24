@@ -56,8 +56,9 @@ export default (props: FromRootToTimeline) => {
         if (item.type === 'poll') label = '投票を終了'
         if (item.type === 'follow') label = 'フォロー'
         if (item.type === 'follow_request') label = 'フォローリクエスト'
+        if (item.type === 'admin.sign_up') label = 'サインアップ'
 
-        if (item.type === 'follow' || item.type === 'follow_request') icon = <MaterialIcons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
+        if (item.type === 'follow' || item.type === 'follow_request' || item.type === 'admin.sign_up') icon = <MaterialIcons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
         if (item.status) return (
             <View>
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>

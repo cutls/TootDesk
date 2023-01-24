@@ -20,6 +20,7 @@ import { IState, ParamList } from '../../interfaces/ParamList'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SetConfigContext } from '../../utils/context/config'
 import deepClone from '../../utils/deepClone'
+import { useKeyboard } from '../../utils/keyboard'
 
 let ios = true
 if (Platform.OS != 'ios') ios = false
@@ -35,7 +36,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
     const theme = useColorScheme()
     const isDark = theme === 'dark'
-    const styles = createStyle(deviceWidth, deviceHeight, isDark)
+	const [keyboardHeight] = useKeyboard()
+    const styles = createStyle(deviceWidth, deviceHeight, isDark, keyboardHeight)
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const useWidth = tablet ? 550 : deviceWidth
     const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
@@ -143,6 +145,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     }
     const selectList = async () => {
         navigation.navigate('ListManager', { acctId: account })
+        dismiss()
     }
     const addNoAuth = async () => {
         const tl = { type: 'noAuth' as const, acct: account, acctName: accountTxt, activated: true, key: `noAuth ${local} ${timelines.length}`, timelineData: { target: local } }
@@ -277,17 +280,16 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                             <View style={{ height: 10 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                                 <Button title="連合" onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
-                                <Button title="リスト" onPress={() => selectList()} style={styles.tlBtn} />
+                                <Button title="統合" onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
                             </View>
                             <View style={{ height: 10 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                                 <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
                                 <Button title="お気に入り" onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
                             </View>
-                            <View style={{ height: 10 }} />
-                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="統合" onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
-                            </View>
+                            <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
+                                <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>リスト</Text>
+                            </TouchableOpacity>
                             <View style={{ marginVertical: 5 }} />
                             <Text>認証のないローカルタイムライン</Text>
                             <View style={commonStyle.horizonal}>
@@ -301,9 +303,9 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         </View>
     )
 }
-function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean) {
+function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean, keyboardHeight: number) {
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
-    const heightBottmed = 420
+    const heightBottmed = 420 + keyboardHeight
     const heightCentered = 600
     const useHeight = tablet ? heightCentered : heightCentered
     const useWidth = tablet ? 550 : deviceWidth

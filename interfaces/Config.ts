@@ -5,6 +5,9 @@ export interface IConfig {
     imageHeight: number
     actionBtnSize: number
     showReactedCount: boolean
+    showVia: boolean
+    showGif: boolean
+    autoFold: number
 }
 export const configInit: IConfig = {
     tlPerScreen: 1,
@@ -12,5 +15,8 @@ export const configInit: IConfig = {
     useRelativeTime: true,
     imageHeight: 100,
     actionBtnSize: 27,
-    showReactedCount: true
+    showReactedCount: true,
+    showVia: false,
+    showGif: true,
+    autoFold: 500
 }

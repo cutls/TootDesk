@@ -163,7 +163,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		return (
 			<TouchableOpacity onPress={() => init(acctId, item.id)}>
 				<AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
-				<HTML source={{ html: emojify(item.content, item.emojis) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
+				<HTML source={{ html: emojify(item.content, item.emojis, false, config.showGif) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
 			</TouchableOpacity>
 		)
 	}

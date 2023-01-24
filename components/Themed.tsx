@@ -84,7 +84,7 @@ export function TextInput(props: TextInputProps) {
 export function TouchableOpacity(props: TouchableOpacityProps) {
 	const { style, lightColor, darkColor, activeOpacity, ...otherProps } = props
 	const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background')
-	return <DefaultTouchableOpacity activeOpacity={activeOpacity ? activeOpacity : 0.5} style={[{ backgroundColor }, style]} {...otherProps} />
+	return <DefaultTouchableOpacity activeOpacity={activeOpacity ? activeOpacity : 0.7} style={[{ backgroundColor }, style]} {...otherProps} />
 }
 interface ButtonExtendProps extends ButtonProps {
 	style?: StyleProp<ViewStyle>

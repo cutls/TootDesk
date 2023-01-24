@@ -40,8 +40,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const tlPerScreen = config.tlPerScreen
 	const init = async () => {
 		const tls = await storage.getItem('timelines')
-		const newConfig = await storage.getItem('config')
-		if (!newConfig) return
+		const newConfig = await storage.getItem('config') || {}
 		for (const keyConfigRaw of Object.keys(configInit)) {
 			const keyConfig = keyConfigRaw as IConfigType
 			let c = newConfig[keyConfig]
@@ -92,15 +91,17 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 
 	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 	const changeTl = async (tl: number, reloadTimeline?: boolean) => {
+		let useTl = timelines
 		if (reloadTimeline) {
-			const tls = await storage.getItem('timelines')
-			setTimelines(tls)
+			useTl = await storage.getItem('timelines')
+			setTimelines(useTl)
 		}
 		setNewNotif(false)
 		const start = tl
-		const end = Math.min(tl + tlPerScreen, timelines.length)
+		const end = Math.min(tl + tlPerScreen, useTl.length)
 		const tls = []
 		for (let i = start; i < end; i++) tls.push(i)
+		if (!tls.length) return
 		setNowSelecting(tls)
 	}
 	const txtAction = async (id: string, insertText: string, type: 'reply' | 'edit') => {

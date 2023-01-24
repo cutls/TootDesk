@@ -24,6 +24,7 @@ import { commonStyle } from '../utils/styles'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
 import { translate } from '../utils/tootAction'
+import { mb2xCount, stripTags } from '../utils/stringUtil'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -40,7 +41,7 @@ interface FromTimelineToToot {
 	width: number
 	tlId: number
 }
-
+const hasApp = (item: any): item is M.App => item && item.name
 export default (props: FromTimelineToToot) => {
 	const { toot: rawToot, txtAction, navigation, acctId, deletable, width, tlId } = props
 	const styles = createStyle(width)
@@ -57,7 +58,7 @@ export default (props: FromTimelineToToot) => {
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
 	const imgModalTrigger = (url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })
-	const showMedia = (media: any, isSensitive: boolean) => {
+	const showMedia = (media: M.Attachment[], isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
 		for (const mid of media) {
@@ -69,11 +70,11 @@ export default (props: FromTimelineToToot) => {
 			ret.push(
 				isSensitive ?
 					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
-						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
+						<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
 						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: config.imageHeight }} />
 					</TouchableOpacity >
 					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
-						<Image source={{ uri: mid.url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
+						<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
 					</TouchableOpacity>
 			)
 			i++
@@ -84,7 +85,7 @@ export default (props: FromTimelineToToot) => {
 		topComponent = (
 			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, notification: false })}>
 				<FontAwesome name="retweet" size={27} style={{ color: '#2b90d9' }} />
-				<Image source={{ uri: rawToot.account.avatar }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
+				<Image source={{ uri: config.showGif ? rawToot.account.avatar : rawToot.account.avatar_static }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
 				<AccountName account={rawToot.account} width={width} />
 			</TouchableOpacity>
 		)
@@ -137,17 +138,18 @@ export default (props: FromTimelineToToot) => {
 	}
 	const TootContent = React.memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
 		return <HTML
-		source={{ html: emojify(content, emojis) }}
-		tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff' } }}
-		customHTMLElementModels={renderers}
-		classesStyles={{ invisible: { fontSize: 0.01 } }}
-		renderersProps={{
-			a: {
-				onPress: async (e, href) => linkHandler(href),
-			},
-		}}
-		contentWidth={width - 50}
-	/>})
+			source={{ html: emojify(content, emojis, false, config.showGif) }}
+			tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff' } }}
+			customHTMLElementModels={renderers}
+			classesStyles={{ invisible: { fontSize: 0.01 } }}
+			renderersProps={{
+				a: {
+					onPress: async (e, href) => linkHandler(href),
+				},
+			}}
+			contentWidth={width - 50}
+		/>
+	})
 	const linkHandler = async (href: string) => {
 		// https://2m.cutls.com/@Cutls
 		const tagDetector = href.match(/\/tags\/(.+)/)
@@ -179,15 +181,23 @@ export default (props: FromTimelineToToot) => {
 			<Text>フィルターされました{toot.filtered?.map((t) => t.filter.title).join(',')}</Text>
 		</TouchableOpacity>
 	}
+	const appData = hasApp(toot.application) ? toot.application : null
+	const plainContent = stripTags(toot.content)
+	const tootLength = mb2xCount(plainContent)
+	const tooLong = tootLength > config.autoFold
+	const autoFold = !toot.spoiler_text && tooLong
+	const afSpoiler = autoFold ? `(${tootLength}字): ${plainContent.slice(0, 12)}…` : null
 	return (
 		<View style={styles.container}>
 			{topComponent}
 			<View style={styles.horizonal}>
 				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false })}>
-					<Image source={{ uri: toot.account.avatar }} style={{ width: 50, height: 50, borderRadius: 5 }} />
+					<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 					{config.useRelativeTime && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
-					<MaterialIcons name={visiIcon} style={{ marginTop: 5 }} />
-					{toot.edited_at && <MaterialIcons name="create" />}
+					<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
+						<MaterialIcons name={visiIcon} />
+						{toot.edited_at && <MaterialIcons name="create" />}
+					</View>
 				</TouchableOpacity>
 				<View style={{ width: '100%', marginLeft: 10 }}>
 					<View style={[styles.horizonal, styles.sameHeight]}>
@@ -197,22 +207,23 @@ export default (props: FromTimelineToToot) => {
 					<View style={[styles.horizonal, styles.sameHeight]}>
 						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
 							@{toot.account.acct} {config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
+							{config.showVia && !!appData && appData.name}
 						</Text>
 					</View>
-					{!!toot.spoiler_text && <View style={commonStyle.horizonal}>
-						<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text}</Text>
+					{(!!toot.spoiler_text || autoFold) && <View style={commonStyle.horizonal}>
+						<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text || afSpoiler}</Text>
 						<TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
-							<Text>{isCwShow ? '隠す' : '見る'}</Text>
+							<Text>{isCwShow ? '隠す' : (autoFold ? '全文' : '見る')}</Text>
 						</TouchableOpacity>
 					</View>}
-					{!toot.spoiler_text || isCwShow ? <TootContent
+					{(!toot.spoiler_text && !autoFold) || isCwShow ? <TootContent
 						content={toot.content}
 						emojis={toot.emojis}
 					/> : null}
 					{toot.language && toot.language !== 'ja' &&
 						<>
-							<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={styles.cwBtn}>
-								<Text>翻訳</Text>
+							<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={{ marginVertical: 10 }}>
+								<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>翻訳({toot.language})</Text>
 							</TouchableOpacity>
 							<TootContent
 								content={translatedToot}

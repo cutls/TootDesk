@@ -17,7 +17,7 @@ const SIZE = [
     [2436 / 3, 1125 / 3],
     [1080 / 3, 2340 / 3]
 ]
-export const isIPhoneX = (width: number, height: number) => Platform.OS === 'ios' && !Platform.isPad ? SIZE.findIndex((i) => i[0] === width && i[1] === height) : false
+export const isIPhoneX = (width: number, height: number) => Platform.OS === 'ios' && !Platform.isPad ? SIZE.findIndex((i) => i[0] === width && i[1] === height) !== -1 : false
 export const statusBarHeight = (width: number, height: number) => {
 
     return (!ios ? StatusBar.currentHeight || 44 : isIPhoneX(width, height) ? 44 : 20)

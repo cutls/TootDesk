@@ -50,6 +50,10 @@ export interface Credential extends Account {
         [x: string]: any
     }
 }
+export interface App {
+    name: string | null
+    website: string | null
+}
 export interface Toot {
     id: string
     created_at: string
@@ -68,10 +72,7 @@ export interface Toot {
     content: string
     text?: string
     reblog: Toot | null
-    application?: {
-        name: string | null
-        website: string | null
-    } | null | {}
+    application?: App | null | {}
     account: Account
     media_attachments: Attachment[] | []
     mentions: Mention[] | []
@@ -186,7 +187,7 @@ export interface Media {
 }
 export interface Notification {
     id: string
-    type: 'follow' | 'follow_request' | 'mention' | 'reblog' | 'favourite' | 'poll' | 'status'
+    type: 'follow' | 'follow_request' | 'mention' | 'reblog' | 'favourite' | 'poll' | 'status' | 'admin.sign_up'
     created_at: string
     account: Account,
     status?: Toot

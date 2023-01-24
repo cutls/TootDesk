@@ -55,16 +55,18 @@ export default (props: FromRootToTimeline) => {
     const [onScroll, setOnScroll] = useState(false)
     const tlPerScreen = config.tlPerScreen
 
-    const onRefresh = React.useCallback(async () => {
+    const onRefresh = React.useCallback(async (tlId: number) => {
         setRefreshing(true)
         if (!targetTimelinesRef.current?.length) return setRefreshing(false)
+        console.log('closing refersh')
         for (const domain of Object.keys(ws)) {
             if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
             ws[domain] = null
         }
+
         await baseStreaming(undefined, true)
         setRefreshing(false)
-    }, [])
+    }, [targetTimelineId])
     const { timelines, loading, setLoading, setNewNotif, txtAction, navigation } = props
     let ct = 0
     const tootUpdator = (tlId: number, item: M.Toot[]) => {
@@ -81,7 +83,6 @@ export default (props: FromRootToTimeline) => {
         return toots0Ref.current || []
     }
     const loadTimeline = async (tlId: number, wss?: WebSocket, mode?: 'more' | 'update') => {
-        //if (!mode) setToots([])
         const timeline = timelines[tlId]
         console.log('loading', timeline.type)
         const moreLoad = mode === 'more'
@@ -96,8 +97,8 @@ export default (props: FromRootToTimeline) => {
         let data: M.Toot[] = []
         const param = {} as any
         if (moreLoad) param.max_id = minId
-        if (updateLoad) return console.log('no deps')
         if (updateLoad) param.since_id = tootGet(tlId)[0].id
+        console.log('update', param.since_id)
         try {
             switch (timeline.type) {
                 case 'home':
@@ -228,7 +229,7 @@ export default (props: FromRootToTimeline) => {
                         obj.TootDeskStream = stream
                         const t = tootGet(x)
                         if (isMix && t.find((item) => item.id === obj.id)) return
-                        const str = stripTags(obj.reblog ? obj.reblog.content : obj.content).replace(/https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/, '')
+                        const str = stripTags(obj.reblog ? obj.reblog.content : obj.content).replace(/https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+/, '').replace(/:[a-zA-Z0-9_]:/, '')
                         if (timelines[x].config?.speech) Speech.speak(str)
                         const cloneX = deepClone<M.Toot[]>(t)
                         cloneX.unshift(obj)
@@ -275,11 +276,7 @@ export default (props: FromRootToTimeline) => {
             }
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
                 console.log('App has come to the foreground!')
-                if (!targetTimelines.length) return
-                for (const domain of Object.keys(ws)) {
-                    if ((ws[domain]?.readyState || 9) <= 1) ws[domain]?.close()
-                }
-                await baseStreaming(undefined, true)
+                onRefresh(-1)
             }
             appState.current = nextAppState
             setAppStateVisible(appState.current)
@@ -288,7 +285,7 @@ export default (props: FromRootToTimeline) => {
         return () => {
             e.remove()
         }
-    }, [])
+    }, [targetTimelineId])
     useEffect(() => {
         if (!targetTimelineId.length) return
         const newTls = timelines.filter((d, i) => targetTimelineId.includes(i))
@@ -319,7 +316,6 @@ export default (props: FromRootToTimeline) => {
     }
     return (
         <View style={[styles.container]}>
-            <View style={{ position: 'absolute', backgroundColor: 'red', width: 4, height: 4, opacity: ws ? 1 : 0, zIndex: 999, borderRadius: 2, marginLeft: 5 }} />
             <View style={commonStyle.horizonal}>
                 {targetTimelines.map((targetTimeline, i) =>
                     <Timeline
@@ -329,13 +325,14 @@ export default (props: FromRootToTimeline) => {
                         loading={loading}
                         txtAction={txtAction}
                         navigation={navigation}
-                        onRefresh={onRefresh}
+                        onRefresh={() => onRefresh(i)}
                         moreLoad={moreLoad}
                         errorMsg={errorMsg}
                         toots={tootGet(targetTimelineId[i])}
                         refreshing={refreshing}
                         width={deviceWidth / tlPerScreen}
-                    />)}
+                    />
+                )}
             </View>
         </View>
     )

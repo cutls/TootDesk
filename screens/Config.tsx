@@ -100,6 +100,10 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <SwitchComponent configKey="useAbsoluteTime" />
                 <Text style={styles.title}>相対時間を表示する</Text>
                 <SwitchComponent configKey="useRelativeTime" />
+                <Text style={styles.title}>viaを表示する</Text>
+                <SwitchComponent configKey="showVia" />
+                <Text style={styles.title}>アイコンのアニメーション表示</Text>
+                <SwitchComponent configKey="showGif" />
                 <Text style={styles.title}>画像の高さ設定</Text>
                 <TextInput style={styles.form} value={imageHeight.toString()} onChangeText={(t) => saveImageHeight(t)} keyboardType="number-pad" />
                 <Text style={styles.title}>リアクション数を表示</Text>
@@ -118,8 +122,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     minimumValue={12}
                     maximumValue={39}
                     step={3}
-                    minimumTrackTintColor="#FFFFFF"
-                    maximumTrackTintColor="#000000"
+                    minimumTrackTintColor={isDark ? '#fff' : '#000'}
+                    maximumTrackTintColor={isDark ? '#000' : '#fff'}
                     value={actionBtnSize}
                     onValueChange={(s) => {
                         const newConfig = deepClone<IConfig>(config)

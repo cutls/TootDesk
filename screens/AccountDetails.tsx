@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { StyleSheet, Dimensions, Modal, Image, FlatList, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
+import React, { useContext, useState } from 'react'
+import { StyleSheet, Dimensions, Modal, Image, Text as DefaultText, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -21,6 +21,7 @@ import { statusBarHeight } from '../utils/statusBar'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import Toot from '../components/Toot'
+import { SetConfigContext } from '../utils/context/config'
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 const renderers = {
@@ -52,6 +53,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [tooting, setTooting] = useState(false)
 	const [deletable, setDeletable] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(0)
+	const [scrollVolume, setScrollVolume] = useState(0)
 	const [account, setAccount] = useState({} as M.Account)
 	const [relationship, setRelationship] = useState({} as M.Relationship)
 	const [fffw, setFffw] = useState([{}, {}] as [M.Account[], M.Account[]])
@@ -59,7 +61,8 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [acctId, setAcctId] = useState('')
 	const [txtActionId, setTxtActionId] = useState('' as string)
 	const [imageModal, setImageModal] = useState({ url: [''], i: 0, show: false })
-	const [anchor, setAnchor] = React.useState<null | number>(0)
+	const [anchor, setAnchor] = useState<null | number>(0)
+	const { config } = useContext(SetConfigContext)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
@@ -168,32 +171,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			}
 		)
 	}
-	const compactAcct = (e: any) => {
-		const item = e.item as M.Account
-		return (
-			<TouchableOpacity onPress={() => init(acctId, item.id)} style={styles.acct}>
-				<Account acctId={acctId} account={item} key={`notification ${item.id}`} goToAccount={(id: string) => init(acctId, id)} width={deviceWidth} />
-			</TouchableOpacity>
-		)
-	}
-	const compactToot = (e: any) => {
-		const item = e.item as M.Toot
-		return (
-			<>
-				<Toot
-					toot={item}
-					acctId={acctId}
-					navigation={navigation}
-					deletable={false}
-					key={`acctDetails ${item.id}`}
-					width={deviceWidth}
-					tlId={-1}
-					txtAction={() => true} />
-				<View style={commonStyle.separator} />
-			</>
-		)
-	}
-
 	const showAccts = fffw[selectedIndex === 1 ? 0 : 1]
 	const fields = account.fields ? account.fields : []
 	interface IField {
@@ -234,54 +211,71 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 		)
 	}
 	return (
-		<View style={commonStyle.container}>
+		<View style={[commonStyle.container, { padding: 0 }]}>
+			<View style={{ padding: 10 }}>
+				<AccountName account={account} fontSize={20} showWithoutEllipsis={false} width={deviceWidth} />
+				<Text>{account.acct}</Text>
+			</View>
 			<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
 				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
 			</Modal>
-			{!isMine && <TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
-				<Text style={{ color: 'white' }}>
-					→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
-				</Text>
-				<Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
-				<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
-			</TouchableOpacity>}
-			<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
-			<View style={commonStyle.horizonal}>
-				<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, marginRight: 10 }} />
-				<View style={{ width: deviceWidth - 130 }}>
-					<AccountName account={account} fontSize={20} showWithoutEllipsis={true} width={deviceWidth} />
-					<ScrollView style={{ width: deviceWidth - 130, maxHeight: 100 }}>
-						<HTML
-							source={{ html: emojify(account.note, account.emojis) }}
-							tagsStyles={{ p: { margin: 0, color: txtColor } }}
-							contentWidth={deviceWidth - 150}
-							customHTMLElementModels={renderers}
-							renderersProps={{
-								a: {
-									onPress: async (e, href) => await WebBrowser.openBrowserAsync(href),
-								},
-							}}
-						/>
-					</ScrollView>
+			<ScrollView style={[{ backgroundColor: isDark ? 'black' : 'white', padding: 10 }]} stickyHeaderIndices={[4]}>
+				<View>
+					{!isMine && <TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
+						<Text style={{ color: 'white' }}>
+							→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
+						</Text>
+						<Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
+						<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
+					</TouchableOpacity>}
+					<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
+					<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, left: 10, position: 'absolute', top: 10, borderRadius: 10, borderWidth: 2, borderColor: '#eee' }} />
 				</View>
-			</View>
-			<View style={{ height: 10 }} />
-			<ScrollView style={{ maxHeight: fields.length ? 180 : 0, minHeight: fields.length ? 50 : 0 }}>
-				{fields[0] ? <Fields field={fields[0]} /> : null}
-				{fields[1] ? <Fields field={fields[1]} /> : null}
-				{fields[2] ? <Fields field={fields[2]} /> : null}
-				{fields[3] ? <Fields field={fields[3]} /> : null}
+				<View style={{ width: deviceWidth }}>
+					<HTML
+						source={{ html: emojify(account.note, account.emojis, false, config.showGif) }}
+						tagsStyles={{ p: { margin: 0, color: txtColor } }}
+						contentWidth={deviceWidth}
+						customHTMLElementModels={renderers}
+						renderersProps={{
+							a: {
+								onPress: async (e, href) => await WebBrowser.openBrowserAsync(href),
+							},
+						}}
+					/>
+				</View>
+				<View style={{ height: 10 }} />
+				<View>
+					{fields[0] ? <Fields field={fields[0]} /> : null}
+					{fields[1] ? <Fields field={fields[1]} /> : null}
+					{fields[2] ? <Fields field={fields[2]} /> : null}
+					{fields[3] ? <Fields field={fields[3]} /> : null}
+				</View>
+					<SegmentedControl
+						style={{ marginVertical: 15 }}
+						values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
+						selectedIndex={selectedIndex}
+						onChange={(event) => {
+							setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
+						}}
+					/>
+				{selectedIndex > 0 ?
+					showAccts.map((item) => <TouchableOpacity key={`notification ${item.id}`} onPress={() => init(acctId, item.id)} style={styles.acct}>
+						<Account acctId={acctId} account={item} goToAccount={(id: string) => init(acctId, id)} width={deviceWidth} />
+					</TouchableOpacity>)
+					: null}
+				{selectedIndex === 0 ?
+					uTl.map((item) => <Toot
+						toot={item}
+						acctId={acctId}
+						navigation={navigation}
+						deletable={false}
+						key={`acctDetails ${item.id}`}
+						width={deviceWidth - 20}
+						tlId={-1}
+						txtAction={() => true} />)
+					: null}
 			</ScrollView>
-			<SegmentedControl
-				style={{ marginVertical: 15 }}
-				values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
-				selectedIndex={selectedIndex}
-				onChange={(event) => {
-					setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
-				}}
-			/>
-			{selectedIndex > 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={showAccts} renderItem={compactAcct} /> : null}
-			{selectedIndex === 0 ? <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} keyExtractor={(item) => item.url} data={uTl} renderItem={compactToot} /> : null}
 			<Post show={tooting} acct={acctId} tooting={setTooting} txtActionId={txtActionId} insertText={''} />
 		</View>
 	)
