@@ -229,7 +229,10 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 						<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
 					</TouchableOpacity>}
 					<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
-					<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100, left: 10, position: 'absolute', top: 10, borderRadius: 10, borderWidth: 2, borderColor: '#eee' }} />
+					<TouchableOpacity onPress={() => WebBrowser.openBrowserAsync(account.url)} style={{ width: 100, height: 100, left: 10, position: 'absolute', top: 10, borderRadius: 10, borderWidth: 2, borderColor: '#eee' }}>
+						<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100}} />
+					</TouchableOpacity>
+
 				</View>
 				<View style={{ width: deviceWidth }}>
 					<HTML
@@ -251,14 +254,14 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					{fields[2] ? <Fields field={fields[2]} /> : null}
 					{fields[3] ? <Fields field={fields[3]} /> : null}
 				</View>
-					<SegmentedControl
-						style={{ marginVertical: 15 }}
-						values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
-						selectedIndex={selectedIndex}
-						onChange={(event) => {
-							setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
-						}}
-					/>
+				<SegmentedControl
+					style={{ marginVertical: 15 }}
+					values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
+					selectedIndex={selectedIndex}
+					onChange={(event) => {
+						setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
+					}}
+				/>
 				{selectedIndex > 0 ?
 					showAccts.map((item) => <TouchableOpacity key={`notification ${item.id}`} onPress={() => init(acctId, item.id)} style={styles.acct}>
 						<Account acctId={acctId} account={item} goToAccount={(id: string) => init(acctId, id)} width={deviceWidth} />

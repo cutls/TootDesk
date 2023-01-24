@@ -93,7 +93,7 @@ export default (props: FromTimelineToToot) => {
 	if (rawToot.customPinned) {
 		topComponent = (
 			<View style={styles.horizonal}>
-				<MaterialIcons name="push-pin" size={20} />
+				<MaterialIcons name="push-pin" size={20} color={isDark ? 'white' : 'black'} />
 				<Text>ピン留めされた投稿</Text>
 			</View>
 		)
