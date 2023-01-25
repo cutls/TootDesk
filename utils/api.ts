@@ -121,6 +121,7 @@ export const getV1TrendLink = async (domain: string, at: string) => { return awa
 export const getV1Directory = async (domain: string, at: string, param: R.Directory) => { return await getApi(`https://${domain}/api/v1/directory`, at, param) as M.Account[] }
 export const getV1Poll = async (domain: string, at: string, pollId: string) => { return await getApi(`https://${domain}/api/v1/polls/${pollId}`, at, {}) as M.Poll }
 export const getV1Source = async (domain: string, at: string, tootId: string) => { return await getApi(`https://${domain}/api/v1/statuses/${tootId}/source`, at, {}) as M.Toot }
+export const getV1History = async (domain: string, at: string, tootId: string) => { return await getApi(`https://${domain}/api/v1/statuses/${tootId}/history`, at, {}) as M.Toot[] }
 
 
 export const postV2Media = async (domain: string, at: string, form: FormData) => { return await postApiMedia(`https://${domain}/api/v2/media`, at, form) as M.Media }

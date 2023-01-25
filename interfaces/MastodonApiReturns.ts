@@ -81,6 +81,7 @@ export interface Toot {
     card: Card | null
     poll?: Poll | null
     pinned?: boolean
+    edited_at?: string
     customPinned?: boolean
     TootDeskStream?: string
     filtered?: {

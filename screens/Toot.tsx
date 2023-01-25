@@ -24,6 +24,8 @@ import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
 import { resolveStatus } from '../utils/tootAction'
 import { LoadingContext } from '../utils/context/loading'
+import moment from 'moment-timezone'
+import 'moment/locale/ja'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -64,12 +66,13 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const [deletable, setDeletable] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(0)
 	const [toot, setToot] = useState({} as M.Toot)
-	const [ancestors, setAncestors] = useState([] as M.Toot[])
-	const [descendants, setDescendants] = useState([] as M.Toot[])
-	const [accounts, setAccounts] = useState([] as M.Account[][])
+	const [ancestors, setAncestors] = useState<M.Toot[]>([])
+	const [descendants, setDescendants] = useState<M.Toot[]>([])
+	const [editHistory, setEditHistory] = useState<M.Toot[]>([])
+	const [accounts, setAccounts] = useState<M.Account[][]>([])
 	const [acctId, setAcctId] = useState('')
-	const [text, setText] = useState('' as string)
-	const [txtActionId, setTxtActionId] = useState('' as string)
+	const [text, setText] = useState('')
+	const [txtActionId, setTxtActionId] = useState('')
 	const [imageModal, setImageModal] = useState({
 		url: [''],
 		i: 0,
@@ -93,6 +96,11 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			setOpenUrl(tootData.uri)
 			setAncestors(context.ancestors)
 			setDescendants(context.descendants)
+			console.log(tootData)
+			if (tootData.edited_at) {
+				const history = await api.getV1History(domain, at, id)
+				setEditHistory(history)
+			}
 			setReady(true)
 		} catch (e: any) {
 			Alert.alert('Error', e.toString())
@@ -189,12 +197,13 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			}
 		}
 	}
-	const compactToot = (e: any) => {
+	const compactToot = (e: any, edited: boolean) => {
 		const item = e.item as M.Toot
 		const txtColor = isDark ? 'white' : 'black'
 		return (
-			<TouchableOpacity onPress={() => init(acctId, item.id)} style={{ maxHeight: 50, overflow: 'hidden' }}>
+			<TouchableOpacity onPress={() => !edited && init(acctId, item.id)} style={{ maxHeight: 50, overflow: 'hidden' }}>
 				<AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
+				{edited && <Text>{moment(item.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}</Text>}
 				<HTML source={{ html: emojify(item.content, item.emojis, false, config.showGif) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
 			</TouchableOpacity>
 		)
@@ -219,7 +228,8 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			</TouchableOpacity>
 		)
 	}
-
+	const segment = ['お気に入りした人', 'ブーストした人']
+	if (toot.edited_at) segment.push('編集履歴')
 	const showAccts = accounts[selectedIndex]
 	return (
 		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
@@ -232,7 +242,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 						{ancestors.length ? (
 							<FlatList
 								data={ancestors}
-								renderItem={compactToot}
+								renderItem={(item) => compactToot(item, false)}
 								keyExtractor={(item) => item.id}
 								style={{
 									maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
@@ -251,7 +261,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 						{descendants.length ? (
 							<FlatList
 								data={descendants}
-								renderItem={compactToot}
+								renderItem={(item) => compactToot(item, false)}
 								keyExtractor={(item) => item.id}
 								style={{
 									maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
@@ -260,13 +270,13 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 						) : null}
 						<SegmentedControl
 							style={{ marginVertical: 15 }}
-							values={['お気に入りした人', 'ブーストした人']}
+							values={segment}
 							selectedIndex={selectedIndex}
 							onChange={(event) => {
 								setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
 							}}
 						/>
-						{showAccts ? (
+						{selectedIndex < 2 && (
 							<FlatList
 								data={showAccts}
 								renderItem={compactAcct}
@@ -275,8 +285,16 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 								style={{
 								}}
 							/>
-						) : (
-							<Text style={commonStyle.textCenter}>いません</Text>
+						)}
+						{selectedIndex === 2 && (
+							<FlatList
+								data={editHistory}
+								renderItem={(item) => compactToot(item, true)}
+								keyExtractor={(item) => item.id}
+								ListEmptyComponent={() => <Text>データがありません</Text>}
+								style={{
+								}}
+							/>
 						)}
 						<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} txtActionId={txtActionId} />
 					</View>
