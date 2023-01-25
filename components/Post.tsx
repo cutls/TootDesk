@@ -140,7 +140,6 @@ export default (props: FromRootToPost) => {
 		for (let a of accts) {
 			item.push(a.id)
 			itemTxt.push(a.acct)
-			console.log(a.acct, acct)
 			if (a.acct === acct) {
 				setAcctObj(a)
 				setAccount(a.id)
@@ -186,8 +185,8 @@ export default (props: FromRootToPost) => {
 		setUploaded(cl)
 		return cl
 	}
-	const closeToot = async () => {
-		if (text || uploaded.length) {
+	const closeToot = async (force?: boolean) => {
+		if (!force && (text || uploaded.length)) {
 			const alertPromise = await Alert.promise('変更を破棄', '未保存の変更があります', ['破棄して閉じる', '破棄せず閉じる', 'キャンセル'])
 			if (alertPromise === 2) return
 			if (alertPromise === 1) return tooting(false)
@@ -205,6 +204,7 @@ export default (props: FromRootToPost) => {
 		const m = txtActionId.match(/^([^:]+):([^:]+)$/)
 		try {
 			setLoading(true)
+			if (loading) return
 			const param: R.Status = {
 				status: text,
 				media_ids: uploaded.map((e) => e.id),
@@ -228,7 +228,7 @@ export default (props: FromRootToPost) => {
 				await api.postV1Statuses(acctObj.domain, acctObj.at, param)
 			}
 			setLoading(false)
-			closeToot()
+			closeToot(true)
 		} catch (e: any) {
 			Alert.alert('Error', e.toString())
 			setLoading(false)
@@ -251,7 +251,7 @@ export default (props: FromRootToPost) => {
 							<TouchableOpacity onPress={() => actionSheet()}>
 								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} >{accountTxt}</Text>
 							</TouchableOpacity>
-							<Button title="トゥート" icon="create" onPress={() => post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
+							<Button title="トゥート" icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />

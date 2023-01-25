@@ -1,6 +1,7 @@
 import axios from 'axios'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
+import moment from 'moment-timezone'
 const getApi = async (url: string, at: string, param?: any, needHeader?: boolean) => {
     const searchParams = new URLSearchParams(param).toString()
     console.log(`${url}?${searchParams}`)
@@ -25,13 +26,15 @@ const getApi = async (url: string, at: string, param?: any, needHeader?: boolean
         throw e as Error
     }
 }
-const postApi = async (url: string, at: string, param?: any) => {
+const postApi = async (url: string, at: string, param?: any, idem?: boolean) => {
     try {
+        const headers: any = {
+            Authorization: `Bearer ${at}`,
+            'content-type': 'application/json'
+        }
+        if (idem) headers['Idempotency-Key'] = moment().unix()
         const api = await axios.post(`${url}`, param, {
-            headers: {
-                Authorization: `Bearer ${at}`,
-                'content-type': 'application/json'
-            }
+            headers
         })
         const data = api.data
         return data
@@ -128,7 +131,7 @@ export const postV1Unfav = async (domain: string, at: string, id: string) => { r
 export const postV1Unboost = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/unreblog`, at) as M.Toot }
 export const postV1FRAuthorize = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/follow_requests/${id}/authorize`, at) as M.Relationship }
 export const postV1FRReject = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/follow_requests/${id}/reject`, at) as M.Relationship }
-export const postV1Statuses = async (domain: string, at: string, param: R.Status) => { return await postApi(`https://${domain}/api/v1/statuses`, at, param) as M.Toot }
+export const postV1Statuses = async (domain: string, at: string, param: R.Status) => { return await postApi(`https://${domain}/api/v1/statuses`, at, param, true) as M.Toot }
 export const putV1Statuses = async (domain: string, at: string, tootId: string, param: R.Status) => { return await putApi(`https://${domain}/api/v1/statuses/${tootId}`, at, param) as M.Toot }
 export const postV1PushSubscribe = async (domain: string, at: string, param: R.PushSubscription) => { return await postApi(`https://${domain}/api/v1/push/subscription`, at, param) as M.PushSubscription }
 export const deleteV1Status = async (domain: string, at: string, id: string) => { return await deleteApi(`https://${domain}/api/v1/statuses/${id}`, at) as M.Toot }
