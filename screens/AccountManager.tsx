@@ -145,10 +145,11 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				if (acct.at !== key) cl.push(acct)
 				if (acct.at !== key) target = acct
 			}
-			setAccounts(cl)
-			await storage.setItem('accounts', cl)
 			const timelines: TimelineProps[] = await storage.getItem('timelines')
 			const newTl = timelines.map((item) => item.acct !== target.id)
+			if (!newTl.length) return Alert.alert('Error', 'アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。') 
+			setAccounts(cl)
+			await storage.setItem('accounts', cl)
 			await storage.setItem('timelines', newTl)
 		}
 	}
