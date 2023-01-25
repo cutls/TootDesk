@@ -9,12 +9,15 @@ import { StackScreenProps } from '@react-navigation/stack'
 import { configInit, IConfig } from '../interfaces/Config'
 import deepClone from '../utils/deepClone'
 import { commonStyle } from '../utils/styles'
+import { ScrollView } from 'react-native-gesture-handler'
 type IConfigType = keyof IConfig
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Config'>) {
     const [config, setConfig] = useState(configInit)
     const [tlPerScreen, setTlPerScreen] = useState(config.tlPerScreen.toString())
     const [imageHeight, setImageHeight] = useState(config.imageHeight.toString())
     const [actionBtnSize, setActionBtnSize] = useState(config.actionBtnSize)
+    const [letters, setLetters] = useState(config.autoFoldLetters.toString())
+    const [lines, setLines] = useState(config.autoFoldLines.toString())
     const theme = useColorScheme()
     const isDark = theme === 'dark'
     const init = async () => {
@@ -24,10 +27,15 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             for (const keyConfigRaw of Object.keys(configInit)) {
                 const keyConfig = keyConfigRaw as IConfigType
                 let c = newConfig[keyConfig]
-                if(c !== undefined) c = newConfig[keyConfig]
-                if(c === undefined) c = configInit[keyConfig]
+                if (c !== undefined) c = newConfig[keyConfig]
+                if (c === undefined) c = configInit[keyConfig]
                 newConfig[keyConfig] = c
             }
+            setTlPerScreen(newConfig.tlPerScreen)
+            setImageHeight(newConfig.imageHeight)
+            setActionBtnSize(newConfig.actionBtnSize)
+            setLetters(newConfig.autoFoldLetters)
+            setLines(newConfig.autoFoldLines)
             if (newConfig) setConfig(newConfig)
         } catch (e) { }
     }
@@ -51,7 +59,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     interface ISwitchComponent {
         configKey: IConfigType
     }
-    const SwitchComponent = ({configKey}: ISwitchComponent) => {
+    const SwitchComponent = ({ configKey }: ISwitchComponent) => {
         return <View style={styles.switchWrap}><Switch
             onValueChange={(tf) => {
                 const newConfig = deepClone<any>(config)
@@ -87,11 +95,23 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         setConfig(config)
         save(config)
     }
+    const saveAutoFold = (t: string, target: 'letters' | 'lines') => {
+        if (!t) return target === 'letters' ? setLetters('') : setLines('')
+        const inted = parseInt(t, 10)
+        if (!inted) return
+        target === 'letters' ? setLetters(inted.toString()) : setLines(inted.toString())
+        target === 'letters' ? config.autoFoldLetters = inted : config.autoFoldLines = inted
+        setConfig(config)
+        save(config)
+    }
 
     return (
         <View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
-            <View style={styles.container}>
-                {!!route.params?.code && <Text>ログインコールバックを受信しました</Text>}
+            <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', padding: 10 }]}>
+                <Text style={styles.header}>設定</Text>
+                <Button title="完了" onPress={() => navigation.replace('Root', { refresh: true })} style={{ marginVertical: 10 }} />
+            </View>
+            <ScrollView style={styles.container}>
                 <Text style={styles.header}>タイムラインの設定</Text>
                 <Text style={styles.title}>スクリーンあたりのカラム数</Text>
                 <Text>1(スマホ向け)〜6(タブレット向け)</Text>
@@ -108,6 +128,13 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <TextInput style={styles.form} value={imageHeight.toString()} onChangeText={(t) => saveImageHeight(t)} keyboardType="number-pad" />
                 <Text style={styles.title}>リアクション数を表示</Text>
                 <SwitchComponent configKey="showReactedCount" />
+                <Text style={styles.title}>長文自動折り畳み</Text>
+                <View style={styles.horizonal}>
+                    <TextInput style={[styles.form, { width: 100}]} value={letters.toString()} onChangeText={(t) => saveAutoFold(t, 'letters')} keyboardType="number-pad" />
+                    <Text style={styles.alongInput}>バイト</Text>
+                    <TextInput style={[styles.form, { width: 100}]} value={lines.toString()} onChangeText={(t) => saveAutoFold(t, 'lines')} keyboardType="number-pad" />
+                    <Text style={styles.alongInput}>行(改行数)</Text>
+                </View>
                 <Text style={styles.title}>アクションボタンの大きさ</Text>
                 <View style={[commonStyle.horizonal, { alignItems: 'center' }]}>
                     <Text style={{ width: 20, height: 39, paddingTop: 12 }}>{actionBtnSize}</Text>
@@ -133,8 +160,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                         save(newConfig)
                     }}
                 />
-                <Button title="完了" onPress={() => navigation.replace('Root', { refresh: true })} style={{ marginVertical: 10 }} />
-            </View>
+            </ScrollView>
         </View>
     )
 }
@@ -180,7 +206,11 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             alignItems: 'flex-end'
         },
         switch: {
-           
+
+        },
+        alongInput: {
+            marginHorizontal: 10,
+            marginTop: 12
         }
     })
 }

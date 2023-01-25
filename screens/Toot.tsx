@@ -161,7 +161,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		const item = e.item as M.Toot
 		const txtColor = isDark ? 'white' : 'black'
 		return (
-			<TouchableOpacity onPress={() => init(acctId, item.id)}>
+			<TouchableOpacity onPress={() => init(acctId, item.id)} style={{ maxHeight: 50, overflow: 'hidden' }}>
 				<AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
 				<HTML source={{ html: emojify(item.content, item.emojis, false, config.showGif) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
 			</TouchableOpacity>
@@ -240,7 +240,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 							keyExtractor={(item) => item.id}
 							ListEmptyComponent={() => <Text>データがありません</Text>}
 							style={{
-								maxHeight: showAccts.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : showAccts.length * 50,
 							}}
 						/>
 					) : (

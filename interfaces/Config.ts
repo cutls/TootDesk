@@ -7,7 +7,8 @@ export interface IConfig {
     showReactedCount: boolean
     showVia: boolean
     showGif: boolean
-    autoFold: number
+    autoFoldLetters: number
+    autoFoldLines: number
 }
 export const configInit: IConfig = {
     tlPerScreen: 1,
@@ -18,5 +19,6 @@ export const configInit: IConfig = {
     showReactedCount: true,
     showVia: false,
     showGif: true,
-    autoFold: 500
+    autoFoldLetters: 1000,
+    autoFoldLines: 20
 }

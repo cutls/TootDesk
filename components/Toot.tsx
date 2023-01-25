@@ -184,9 +184,10 @@ export default (props: FromTimelineToToot) => {
 	const appData = hasApp(toot.application) ? toot.application : null
 	const plainContent = stripTags(toot.content)
 	const tootLength = mb2xCount(plainContent)
-	const tooLong = tootLength > config.autoFold
+	const tootLines = toot.content.split(/(<br\s?\/?>|<p>)/).length - 2
+	const tooLong = tootLength > config.autoFoldLetters || tootLines > config.autoFoldLines
 	const autoFold = !toot.spoiler_text && tooLong
-	const afSpoiler = autoFold ? `(${tootLength}字): ${plainContent.slice(0, 12)}…` : null
+	const afSpoiler = autoFold ? `(${tootLength} B|${tootLines}行): ${plainContent.slice(0, 12)}…` : null
 	return (
 		<View style={styles.container}>
 			{topComponent}
@@ -236,7 +237,7 @@ export default (props: FromTimelineToToot) => {
 					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 					<View style={styles.actionsContainer}>
 						<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
-						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
+						{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
 						<FontAwesome
 							name="retweet"
 							size={config.actionBtnSize}
@@ -244,7 +245,7 @@ export default (props: FromTimelineToToot) => {
 							color={boosted.is ? '#03a9f4' : '#9a9da1'}
 							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
 						/>
-						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
+						{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
 						<MaterialIcons
 							name="star"
 							size={config.actionBtnSize}
@@ -252,7 +253,7 @@ export default (props: FromTimelineToToot) => {
 							color={faved.is ? '#fbc02d' : '#9a9da1'}
 							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
 						/>
-						{config.showReactedCount && tlId > -1 && <Text style={styles.actionCounter}>{faved.ct}</Text>}
+						{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
 						<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 					</View>
 				</View>
@@ -281,7 +282,7 @@ function createStyle(deviceWidth: number) {
 		actionsContainer: {
 			width: '100%',
 			flexDirection: 'row',
-
+			marginVertical: 5,
 			alignContent: 'center',
 			justifyContent: 'center',
 			alignItems: 'center',

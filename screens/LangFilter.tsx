@@ -59,28 +59,30 @@ export default function LangFilter({ navigation, route }: StackScreenProps<Param
     return (
         <View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
             <View style={styles.container}>
-                <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center' }]}>
+                <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', padding: 10 }]}>
                     <Text style={styles.header}>タイムラインで表示しない言語</Text>
                     <Button title="完了" onPress={() => save()} style={{ marginVertical: 10 }} />
                 </View>
-                <FlatList data={langsArray} keyExtractor={(item) => item.toString()} renderItem={({ item }: { item: string }) =>
-                    <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center' }]}>
-                        <Text>{localeObject[item][0]}({localeObject[item][1] || item})</Text>
-                        <Switch
-                            onValueChange={(tf) => {
-                                if (!tf) {
-                                    const newLangs = langs.filter((l) => l !== item)
-                                    setLangs(newLangs)
-                                } else {
-                                    langs.push(item)
-                                    setLangs(deepClone<string[]>(langs))
-                                }
-                            }}
-                            style={[styles.switch]}
-                            value={langs.includes(item)}
-                        />
-                    </View>
-                } />
+                <View style={{ height: deviceHeight - 130 }}>
+                    <FlatList data={langsArray} keyExtractor={(item) => item.toString()} renderItem={({ item }: { item: string }) =>
+                        <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', paddingHorizontal: 10 }]}>
+                            <Text>{localeObject[item][0]}({localeObject[item][1] || item})</Text>
+                            <Switch
+                                onValueChange={(tf) => {
+                                    if (!tf) {
+                                        const newLangs = langs.filter((l) => l !== item)
+                                        setLangs(newLangs)
+                                    } else {
+                                        langs.push(item)
+                                        setLangs(deepClone<string[]>(langs))
+                                    }
+                                }}
+                                style={[styles.switch]}
+                                value={langs.includes(item)}
+                            />
+                        </View>
+                    } />
+                </View>
             </View>
         </View>
     )
@@ -93,7 +95,6 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
         container: {
             flex: 0,
             height: deviceHeight,
-            padding: 10,
             width: useWidth,
             marginLeft: deviceWidth > 500 ? (deviceWidth - useWidth) / 2 : 0
         },
