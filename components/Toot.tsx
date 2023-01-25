@@ -49,6 +49,8 @@ export default (props: FromTimelineToToot) => {
 	let topComponent: null | JSX.Element = null
 	const [boosted, setBoosted] = useState({ is: rawToot.reblogged, ct: toot.reblogs_count })
 	const [faved, setFaved] = useState({ is: toot.favourited, ct: toot.favourites_count })
+	const [isPined, setIsPined] = useState(toot.pinned)
+	const [isBookmarked, setIsBookmarked] = useState(toot.bookmarked)
 	const [isCwShow, setIsCwShow] = useState(false)
 	const [translatedToot, setTranslatedToot] = useState('')
 	const { setLoading } = useContext(LoadingContext)
@@ -120,8 +122,8 @@ export default (props: FromTimelineToToot) => {
 	const actionSheet = (id: string) => {
 		if (acctId === 'noAuth') return navigation.navigate('Toot', { acctId, id: toot.id, notification: false, url: toot.url })
 		const isMine = deletable
-		const pinToggleNotation = toot.pinned ? 'ピン留め解除' : 'ピン留め'
-		const bkm = toot.bookmarked ? 'ブックマーク解除' : 'ブックマーク'
+		const pinToggleNotation = isPined ? 'ピン留め解除' : 'ピン留め'
+		const bkm = isBookmarked ? 'ブックマーク解除' : 'ブックマーク'
 		const options = isMine ? ['詳細', bkm, '削除', pinToggleNotation, '編集', '他のアカウントで詳細', 'キャンセル'] : ['詳細', bkm, '他のアカウントで詳細', 'キャンセル']
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
@@ -132,9 +134,9 @@ export default (props: FromTimelineToToot) => {
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-				if (buttonIndex === 1) return statusPost(toot.bookmarked ? 'unbookmark' : 'bookmark', id, acctId)
+				if (buttonIndex === 1) return statusPost(isBookmarked ? 'unbookmark' : 'bookmark', id, acctId, () => setIsBookmarked(!isBookmarked), true)
 				if (isMine && buttonIndex === 2) return statusPost('delete', id, acctId)
-				if (isMine && buttonIndex === 3) return statusPost(toot.pinned ? 'unpin' : 'pin', id, acctId)
+				if (isMine && buttonIndex === 3) return statusPost(isPined ? 'unpin' : 'pin', id, acctId, () => setIsPined(!isPined), true)
 				if (isMine && buttonIndex === 4) return txtAction(id, acctId, 'edit')
 				if (buttonIndex === options.length - 2) return navigation.navigate('Toot', { acctId: 'noAuth', id: toot.id, notification: false, url: toot.url })
 			}

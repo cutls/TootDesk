@@ -5,7 +5,7 @@ import * as storage from './storage'
 import * as Alert from './alert'
 type ITootAction = 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete' | 'pin' | 'unpin' | 'bookmark' | 'unbookmark'
 
-export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>) => {
+export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>, showAlert?: boolean) => {
     try {
         const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
         let positive = true
@@ -36,11 +36,32 @@ export const statusPost = async (action: ITootAction, id: string, acctId: string
         } else if (action === 'unbookmark') {
             const data = await api.postV1UnBookmark(acct.domain, acct.at, id)
         }
-        if(changeStatus) changeStatus({ is: positive, ct })
-        if (!changeStatus) Alert.alert('操作完了', `操作"${action}"が完了しました`)
-    } catch (e) { 
+        if (changeStatus) changeStatus({ is: positive, ct })
+        if (showAlert) Alert.alert('操作完了', `操作"${actionToLocale(action)}"が完了しました`)
+    } catch (e) {
         Alert.alert('エラー', `${e}`)
         console.error(e)
+    }
+}
+const actionToLocale = (action: ITootAction) => {
+    if (action === 'delete') {
+        return '削除'
+    } else if (action === 'boost') {
+        return 'ブースト'
+    } else if (action === 'fav') {
+        return 'お気に入り登録'
+    } else if (action === 'unboost') {
+        return 'ブースト解除'
+    } else if (action === 'unfav') {
+        return 'お気に入り解除'
+    } else if (action === 'pin') {
+        return 'ピン留め'
+    } else if (action === 'unpin') {
+        return 'ピン留めかいじょ'
+    } else if (action === 'bookmark') {
+        return 'ブックマーク'
+    } else if (action === 'unbookmark') {
+        return 'ブックマーク解除'
     }
 }
 export const statusPostAcct = async (action: 'authorize' | 'reject', acctId: string, id: string) => {
