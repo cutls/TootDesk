@@ -186,9 +186,15 @@ export default (props: FromRootToPost) => {
 		setUploaded(cl)
 		return cl
 	}
-	const closeToot = () => {
+	const closeToot = async () => {
+		if (text || uploaded.length) {
+			const alertPromise = await Alert.promise('変更を破棄', '未保存の変更があります', ['破棄して閉じる', '破棄せず閉じる', 'キャンセル'])
+			if (alertPromise === 2) return
+			if (alertPromise === 1) return tooting(false)
+		}
 		tooting(false)
 		setText('')
+		setCWText('')
 		setNsfw(false)
 		setLoading(false)
 		setUploading(false)
