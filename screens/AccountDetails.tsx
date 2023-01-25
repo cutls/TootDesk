@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import { StyleSheet, Dimensions, Modal, Image, Text as DefaultText, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
+import { StyleSheet, Dimensions, Modal, Image, Text as DefaultText, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme, ActivityIndicator } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -22,6 +22,7 @@ import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import Toot from '../components/Toot'
 import { SetConfigContext } from '../utils/context/config'
+import { resolveAccount } from '../utils/tootAction'
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 const renderers = {
@@ -31,6 +32,7 @@ const renderers = {
 }
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
 	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
+	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
@@ -53,7 +55,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [tooting, setTooting] = useState(false)
 	const [deletable, setDeletable] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(0)
-	const [scrollVolume, setScrollVolume] = useState(0)
 	const [account, setAccount] = useState({} as M.Account)
 	const [relationship, setRelationship] = useState({} as M.Relationship)
 	const [fffw, setFffw] = useState([{}, {}] as [M.Account[], M.Account[]])
@@ -66,11 +67,32 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
+	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+	const bgColorAI = { backgroundColor: bgColorValAI }
 	let at: string | undefined
 	let notfId: string | undefined
 	const init = async (acctIdGet: string, id: string) => {
+		const url = route.params?.url
+		setInited(true)
+		if (acctIdGet === 'noAuth' && url) {
+			const accts = (await storage.getItem('accounts')) as S.Account[]
+			const acctsTxt = accts.map((a) => a.acct)
+			ActionSheetIOS.showActionSheetWithOptions(
+				{
+					options: acctsTxt,
+				},
+				async (buttonIndex) => {
+					const acct = accts[buttonIndex]
+					setRootLoading('検索中')
+					const newAcct = await resolveAccount(acct.id, url)
+					setRootLoading(null)
+					if (!newAcct) return Alert.alert('Error', 'このアカウントでは参照できませんでした')
+					navigation.replace('AccountDetails', { at: acct.at, domain: acct.domain, notification: false, acctId: acct.id, id: newAcct.id })
+				}
+			)
+			return
+		}
 		try {
-			setInited(true)
 			const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
 			const acctData = await api.getV1Account(domain, at, id)
 			setIsMine(acct === `@${acctData.acct}@${domain}`)
@@ -133,6 +155,12 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 		return (
 			<View style={[commonStyle.container, commonStyle.blockCenter]}>
 				<Text>Loading...</Text>
+				<Modal visible={!!rootLoading} transparent={true}>
+					<View style={[styles.rootLoading, bgColorAI]}>
+						<ActivityIndicator size="large" />
+						<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
+					</View>
+				</Modal>
 			</View>
 		)
 	}
@@ -230,7 +258,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					</TouchableOpacity>}
 					<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 					<TouchableOpacity onPress={() => WebBrowser.openBrowserAsync(account.url)} style={{ width: 100, height: 100, left: 10, position: 'absolute', top: 10, borderRadius: 10, borderWidth: 2, borderColor: '#eee' }}>
-						<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100}} />
+						<Image source={{ uri: account.avatar }} style={{ width: 100, height: 100 }} />
 					</TouchableOpacity>
 
 				</View>
@@ -330,6 +358,14 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			color: '#1d7a2a',
 			top: 5,
 			right: 5
+		},
+		rootLoading: {
+			width: 200,
+			height: 100,
+			top: (deviceHeight / 2) - 50,
+			left: (deviceWidth / 2) - 100,
+			justifyContent: 'center',
+			borderRadius: 10,
 		}
 	})
 }

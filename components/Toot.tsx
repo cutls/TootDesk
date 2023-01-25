@@ -23,7 +23,7 @@ import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
-import { translate } from '../utils/tootAction'
+import { resolveAccount, translate } from '../utils/tootAction'
 import { mb2xCount, stripTags } from '../utils/stringUtil'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
@@ -83,7 +83,7 @@ export default (props: FromTimelineToToot) => {
 	}
 	if (rawToot.reblog) {
 		topComponent = (
-			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, notification: false })}>
+			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, url: rawToot.account.url, notification: false })}>
 				<FontAwesome name="retweet" size={27} style={{ color: '#2b90d9' }} />
 				<Image source={{ uri: config.showGif ? rawToot.account.avatar : rawToot.account.avatar_static }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
 				<AccountName account={rawToot.account} width={width} />
@@ -118,21 +118,25 @@ export default (props: FromTimelineToToot) => {
 	}
 	const [anchor, setAnchor] = React.useState<undefined | number>(undefined)
 	const actionSheet = (id: string) => {
-		if (!deletable) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
+		if (acctId === 'noAuth') return navigation.navigate('Toot', { acctId, id: toot.id, notification: false, url: toot.url })
+		const isMine = deletable
 		const pinToggleNotation = toot.pinned ? 'ピン留め解除' : 'ピン留め'
-		const options = ['詳細', '削除', pinToggleNotation, '編集', 'キャンセル']
+		const bkm = toot.bookmarked ? 'ブックマーク解除' : 'ブックマーク'
+		const options = isMine ? ['詳細', bkm, '削除', pinToggleNotation, '編集', '他のアカウントで詳細', 'キャンセル'] : ['詳細', bkm, '他のアカウントで詳細', 'キャンセル']
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options,
-				destructiveButtonIndex: 1,
-				cancelButtonIndex: 4,
+				destructiveButtonIndex: isMine ? 2 : undefined,
+				cancelButtonIndex: options.length - 1,
 				anchor
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-				if (buttonIndex === 1) return statusPost('delete', id, acctId)
-				if (buttonIndex === 2) return statusPost(toot.pinned ? 'unpin' : 'pin', id, acctId)
-				if (buttonIndex === 3) return txtAction(id, acctId, 'edit')
+				if (buttonIndex === 1) return statusPost(toot.bookmarked ? 'unbookmark' : 'bookmark', id, acctId)
+				if (isMine && buttonIndex === 2) return statusPost('delete', id, acctId)
+				if (isMine && buttonIndex === 3) return statusPost(toot.pinned ? 'unpin' : 'pin', id, acctId)
+				if (isMine && buttonIndex === 4) return txtAction(id, acctId, 'edit')
+				if (buttonIndex === options.length - 2) return navigation.navigate('Toot', { acctId: 'noAuth', id: toot.id, notification: false, url: toot.url })
 			}
 		)
 	}
@@ -154,6 +158,7 @@ export default (props: FromTimelineToToot) => {
 		// https://2m.cutls.com/@Cutls
 		const tagDetector = href.match(/\/tags\/(.+)/)
 		const acctDetector = href.match(/https:\/\/(.+)\/@(.+)/)
+		if (acctId === 'noAuth') await WebBrowser.openBrowserAsync(href)
 		if (tagDetector) {
 			const tag = tagDetector[1]
 			navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: acctId, activated: true, key: `glance at tag${tag}`, acctName: ``, timelineData: { target: tag } } })
@@ -163,11 +168,11 @@ export default (props: FromTimelineToToot) => {
 				setLoading('アカウントを検索しています')
 				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
 				const { domain, at } = acct
-				const data = await api.getV2Search(domain, at, { q: acctNotation, resolve: true })
+				const data = await resolveAccount(acctId, acctNotation)
 				setLoading('')
 				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
-				if (!data.accounts.length) throw 'アカウントが見つかりませんでした'
-				navigation.navigate('AccountDetails', { at, domain, notification: false, acctId, id: data.accounts[0].id })
+				if (!data) throw 'アカウントが見つかりませんでした'
+				navigation.navigate('AccountDetails', { at, domain, notification: false, acctId, id: data.id })
 			} catch (e) {
 				setLoading('')
 				await WebBrowser.openBrowserAsync(href)
@@ -192,7 +197,7 @@ export default (props: FromTimelineToToot) => {
 		<View style={styles.container}>
 			{topComponent}
 			<View style={styles.horizonal}>
-				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false })}>
+				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false, url: toot.account.url })}>
 					<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 					{config.useRelativeTime && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
 					<View style={[commonStyle.horizonal, { marginTop: 5 }]}>

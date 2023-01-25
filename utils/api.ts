@@ -4,7 +4,6 @@ import * as R from '../interfaces/MastodonApiRequests'
 import moment from 'moment-timezone'
 const getApi = async (url: string, at: string, param?: any, needHeader?: boolean) => {
     const searchParams = new URLSearchParams(param).toString()
-    console.log(`${url}?${searchParams}`)
     try {
         const api = await axios.get(`${url}?${searchParams}`, {
             headers: {
@@ -143,6 +142,8 @@ export const postV1Block = async (domain: string, at: string, id: string) => { r
 export const postV1UnBlock = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/accounts/${id}/unblock`, at) as M.Relationship }
 export const postV1Pin = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/pin`, at) as M.Toot }
 export const postV1UnPin = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/unpin`, at) as M.Toot }
+export const postV1Bookmark = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/bookmark`, at) as M.Toot }
+export const postV1UnBookmark = async (domain: string, at: string, id: string) => { return await postApi(`https://${domain}/api/v1/statuses/${id}/unbookmark`, at) as M.Toot }
 export const postV1List = async (domain: string, at: string, title: string) => { return await postApi(`https://${domain}/api/v1/lists`, at, { title }) as M.List }
 export const putV1List = async (domain: string, at: string, id:string, title: string) => { return await putApi(`https://${domain}/api/v1/lists/${id}`, at, { title }) as M.List }
 export const deleteV1ListUser = async (domain: string, at: string, listId:string, userId: string) => { return await deleteApi(`https://${domain}/api/v1/lists/${listId}/accounts`, at, { 'account_ids[]': userId }) as M.List }

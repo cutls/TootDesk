@@ -3,7 +3,7 @@ import * as S from '../interfaces/Storage'
 import * as api from './api'
 import * as storage from './storage'
 import * as Alert from './alert'
-type ITootAction = 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete' | 'pin' | 'unpin'
+type ITootAction = 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete' | 'pin' | 'unpin' | 'bookmark' | 'unbookmark'
 
 export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>) => {
     try {
@@ -31,6 +31,10 @@ export const statusPost = async (action: ITootAction, id: string, acctId: string
             const data = await api.postV1Pin(acct.domain, acct.at, id)
         } else if (action === 'unpin') {
             const data = await api.postV1UnPin(acct.domain, acct.at, id)
+        } else if (action === 'bookmark') {
+            const data = await api.postV1Bookmark(acct.domain, acct.at, id)
+        } else if (action === 'unbookmark') {
+            const data = await api.postV1UnBookmark(acct.domain, acct.at, id)
         }
         if(changeStatus) changeStatus({ is: positive, ct })
         if (!changeStatus) Alert.alert('操作完了', `操作"${action}"が完了しました`)

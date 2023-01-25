@@ -19,6 +19,7 @@ import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
 import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
+import { commonStyle } from '../utils/styles'
 type IConfigType = keyof IConfig
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Root'>) {
@@ -171,7 +172,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							<Modal visible={!!rootLoading} transparent={true}>
 								<View style={[styles.rootLoading, bgColorAI]}>
 									<ActivityIndicator size="large" />
-									<Text style={styles.rootLoadingText}>{rootLoading}</Text>
+									<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
 								</View>
 							</Modal>
 						</View>
@@ -217,10 +218,5 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			justifyContent: 'center',
 			borderRadius: 10,
 		},
-		rootLoadingText: {
-			color: 'white',
-			textAlign: 'center',
-			marginTop: 10
-		}
 	})
 }

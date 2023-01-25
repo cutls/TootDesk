@@ -45,7 +45,7 @@ export default (props: FromTimelineRootToTimeline) => {
 				toot={item}
 				deletable={deletable}
 				txtAction={txtAction}
-				acctId={timeline.acct}
+				acctId={timeline.type === 'noAuth' ? 'noAuth' : timeline.acct}
 				width={width}
 				tlId={tlId}
 			/>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { StatusBar, Modal, FlatList, useWindowDimensions, useColorScheme } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { StatusBar, Modal, FlatList, useWindowDimensions, useColorScheme, ActionSheetIOS, ActivityIndicator, StyleSheet } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -22,6 +22,8 @@ import { SetConfigContext } from '../utils/context/config'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
+import { resolveStatus } from '../utils/tootAction'
+import { LoadingContext } from '../utils/context/loading'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -29,12 +31,16 @@ const renderers = {
 }
 export default function TootIndv({ navigation, route }: StackScreenProps<ParamList, 'Toot'>) {
 	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
+	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	const { height, width } = useWindowDimensions()
+
 	const deviceWidth = width
 	const deviceHeight = StatusBar.currentHeight ? height : height - 20
-
+	const styles = createStyle(width, height)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
+	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+	const bgColorAI = { backgroundColor: bgColorValAI }
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
@@ -74,6 +80,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const init = async (acctIdGet: string, id: string) => {
 		try {
 			setInited(true)
+			if (acctIdGet === 'noAuth') return
 			const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
 			const tootData = await api.getV1Toot(domain, at, id)
 			const context = await api.getV1Context(domain, at, id)
@@ -109,8 +116,30 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			Alert.alert('Error', e.toString())
 		}
 	}
+	const useOtherAccount = route.params?.acctId === 'noAuth'
+	const operateAsOtherAccount = async () => {
+		const accts = (await storage.getItem('accounts')) as S.Account[]
+		const acctsTxt = accts.map((a) => a.acct)
+		const url = route.params?.url
+		if (!url) return
+		ActionSheetIOS.showActionSheetWithOptions(
+			{
+				options: acctsTxt,
+			},
+			async (buttonIndex) => {
+				const acct = accts[buttonIndex]
+				setRootLoading('検索中')
+				const newToot = await resolveStatus(acct.id, url)
+				setRootLoading(null)
+				if (!newToot) return Alert.alert('Error', 'このアカウントでは参照できませんでした')
+				navigation.replace('Toot', { acctId: acct.id, id: newToot.id, notification: false })
+			}
+		)
+	}
+	useEffect(() => {
+		if (toot && useOtherAccount) operateAsOtherAccount()
+	}, [useOtherAccount, toot])
 	if (!route.params) return null
-
 	if (route.params.notification) {
 		let domain = route.params.domain
 		at = route.params.at
@@ -127,6 +156,12 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		return (
 			<View style={[commonStyle.container, commonStyle.blockCenter]}>
 				<Text>Loading...</Text>
+				<Modal visible={!!rootLoading} transparent={true}>
+					<View style={[styles.rootLoading, bgColorAI]}>
+						<ActivityIndicator size="large" />
+						<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
+					</View>
+				</Modal>
 			</View>
 		)
 	}
@@ -187,64 +222,78 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 
 	const showAccts = accounts[selectedIndex]
 	return (
-		<SetConfigContext.Provider value={{ config, setConfig }}>
-			<ImageModalContext.Provider value={{ imageModal, setImageModal }}>
-				<View style={commonStyle.container}>
-					<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
-						<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
-					</Modal>
-					{ancestors.length ? (
-						<FlatList
-							data={ancestors}
-							renderItem={compactToot}
-							keyExtractor={(item) => item.id}
-							style={{
-								maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
+		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
+			<SetConfigContext.Provider value={{ config, setConfig }}>
+				<ImageModalContext.Provider value={{ imageModal, setImageModal }}>
+					<View style={commonStyle.container}>
+						<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
+							<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
+						</Modal>
+						{ancestors.length ? (
+							<FlatList
+								data={ancestors}
+								renderItem={compactToot}
+								keyExtractor={(item) => item.id}
+								style={{
+									maxHeight: ancestors.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : ancestors.length * 50,
+								}}
+							/>
+						) : null}
+						<Toot
+							navigation={navigation}
+							deletable={deletable}
+							acctId={acctId}
+							toot={toot}
+							txtAction={txtAction}
+							width={deviceWidth}
+							tlId={-1}
+						/>
+						{descendants.length ? (
+							<FlatList
+								data={descendants}
+								renderItem={compactToot}
+								keyExtractor={(item) => item.id}
+								style={{
+									maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
+								}}
+							/>
+						) : null}
+						<SegmentedControl
+							style={{ marginVertical: 15 }}
+							values={['お気に入りした人', 'ブーストした人']}
+							selectedIndex={selectedIndex}
+							onChange={(event) => {
+								setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
 							}}
 						/>
-					) : null}
-					<Toot
-						navigation={navigation}
-						deletable={deletable}
-						acctId={acctId}
-						toot={toot}
-						txtAction={txtAction}
-						width={deviceWidth}
-						tlId={-1}
-					/>
-					{descendants.length ? (
-						<FlatList
-							data={descendants}
-							renderItem={compactToot}
-							keyExtractor={(item) => item.id}
-							style={{
-								maxHeight: descendants.length * 50 > deviceHeight / 4 ? deviceHeight / 4 : descendants.length * 50,
-							}}
-						/>
-					) : null}
-					<SegmentedControl
-						style={{ marginVertical: 15 }}
-						values={['お気に入りした人', 'ブーストした人']}
-						selectedIndex={selectedIndex}
-						onChange={(event) => {
-							setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
-						}}
-					/>
-					{showAccts ? (
-						<FlatList
-							data={showAccts}
-							renderItem={compactAcct}
-							keyExtractor={(item) => item.id}
-							ListEmptyComponent={() => <Text>データがありません</Text>}
-							style={{
-							}}
-						/>
-					) : (
-						<Text style={commonStyle.textCenter}>いません</Text>
-					)}
-					<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} txtActionId={txtActionId} />
-				</View>
-			</ImageModalContext.Provider>
-		</SetConfigContext.Provider>
+						{showAccts ? (
+							<FlatList
+								data={showAccts}
+								renderItem={compactAcct}
+								keyExtractor={(item) => item.id}
+								ListEmptyComponent={() => <Text>データがありません</Text>}
+								style={{
+								}}
+							/>
+						) : (
+							<Text style={commonStyle.textCenter}>いません</Text>
+						)}
+						<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} txtActionId={txtActionId} />
+					</View>
+				</ImageModalContext.Provider>
+			</SetConfigContext.Provider>
+		</LoadingContext.Provider>
 	)
+}
+function createStyle(deviceWidth: number, deviceHeight: number) {
+	return StyleSheet.create({
+		rootLoading: {
+			width: 200,
+			height: 100,
+			top: (deviceHeight / 2) - 50,
+			left: (deviceWidth / 2) - 100,
+			justifyContent: 'center',
+			borderRadius: 10,
+		},
+	})
 }

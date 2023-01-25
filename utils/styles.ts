@@ -55,4 +55,9 @@ export const commonStyle = StyleSheet.create({
 		textDecorationColor: 'white',
 		textDecorationLine: 'underline'
 	},
+	rootLoadingText: {
+		color: 'white',
+		textAlign: 'center',
+		marginTop: 10
+	}
 })

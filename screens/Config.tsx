@@ -10,6 +10,7 @@ import { configInit, IConfig } from '../interfaces/Config'
 import deepClone from '../utils/deepClone'
 import { commonStyle } from '../utils/styles'
 import { ScrollView } from 'react-native-gesture-handler'
+import { useKeyboard } from '../utils/keyboard'
 type IConfigType = keyof IConfig
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Config'>) {
     const [config, setConfig] = useState(configInit)
@@ -19,6 +20,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const [letters, setLetters] = useState(config.autoFoldLetters.toString())
     const [lines, setLines] = useState(config.autoFoldLines.toString())
     const theme = useColorScheme()
+    const [keyboardHeight] = useKeyboard()
     const isDark = theme === 'dark'
     const init = async () => {
         try {
@@ -130,9 +132,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <SwitchComponent configKey="showReactedCount" />
                 <Text style={styles.title}>長文自動折り畳み</Text>
                 <View style={styles.horizonal}>
-                    <TextInput style={[styles.form, { width: 100}]} value={letters.toString()} onChangeText={(t) => saveAutoFold(t, 'letters')} keyboardType="number-pad" />
+                    <TextInput style={[styles.form, { width: 100 }]} value={letters.toString()} onChangeText={(t) => saveAutoFold(t, 'letters')} keyboardType="number-pad" />
                     <Text style={styles.alongInput}>バイト</Text>
-                    <TextInput style={[styles.form, { width: 100}]} value={lines.toString()} onChangeText={(t) => saveAutoFold(t, 'lines')} keyboardType="number-pad" />
+                    <TextInput style={[styles.form, { width: 100 }]} value={lines.toString()} onChangeText={(t) => saveAutoFold(t, 'lines')} keyboardType="number-pad" />
                     <Text style={styles.alongInput}>行(改行数)</Text>
                 </View>
                 <Text style={styles.title}>アクションボタンの大きさ</Text>
@@ -160,6 +162,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                         save(newConfig)
                     }}
                 />
+                <View style={{ height: keyboardHeight + 20 }} />
             </ScrollView>
         </View>
     )
@@ -171,7 +174,7 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
     return StyleSheet.create({
         container: {
             flex: 0,
-            height: deviceHeight,
+            height: deviceHeight - 150,
             padding: 10,
             width: useWidth,
             marginLeft: deviceWidth > 500 ? (deviceWidth - useWidth) / 2 : 0

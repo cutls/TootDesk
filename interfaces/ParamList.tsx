@@ -3,8 +3,8 @@ import TimelineProps from "./TimelineProps"
 export type ParamList = {
 	Root: undefined | { refresh?: boolean }
 	AccountManager: undefined | { screen: string, code: string, state: string }
-	Toot: undefined | { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
-	AccountDetails: undefined | { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
+	Toot: undefined | { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string, url?: string }
+	AccountDetails: undefined | { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string, url?: string }
 	TimelineOnly: { timeline: TimelineProps }
 	ListManager: { acctId: string, targetAcct?: string }
 	Search: undefined
