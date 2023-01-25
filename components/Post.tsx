@@ -212,7 +212,7 @@ export default (props: FromRootToPost) => {
 				sensitive: nsfw,
 				spoiler_text: showCW ? CWText : '',
 			}
-			if (m && m[1] === 'reply') param.in_reply_to_id = m[1]
+			if (m && m[1] === 'reply') param.in_reply_to_id = m[2]
 			if (!acctObj) return
 			if (showPoll) {
 				param.poll = {
@@ -256,7 +256,7 @@ export default (props: FromRootToPost) => {
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
-						{txtActionId ? <Text>返信/編集モード</Text> : null}
+						{txtActionId ? <Text>返信/編集モード: {txtActionId}</Text> : null}
 						<View style={styles.action}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
 								<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
