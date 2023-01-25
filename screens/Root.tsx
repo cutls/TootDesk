@@ -20,6 +20,7 @@ import { SetConfigContext } from '../utils/context/config'
 import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
 import { commonStyle } from '../utils/styles'
+import { refresh } from '../utils/login'
 type IConfigType = keyof IConfig
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Root'>) {
@@ -40,6 +41,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const bgColorAI = { backgroundColor: bgColorValAI }
 	const tlPerScreen = config.tlPerScreen
 	const init = async () => {
+		const accounts: S.Account[] = await storage.getItem('accounts')
+		for (const acct of accounts) refresh(acct.id)
 		const tls = await storage.getItem('timelines')
 		const newConfig = await storage.getItem('config') || {}
 		for (const keyConfigRaw of Object.keys(configInit)) {
@@ -53,16 +56,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		if (tls) setTimelines(tls)
 		if (!tls) {
 			return goToAccountManager()
-		}
-		if (!__DEV__) {
-			const update = await Updates.checkForUpdateAsync()
-			if (update.isAvailable) {
-				await Updates.fetchUpdateAsync()
-				const a = await Alert.promise('追加データのダウンロード完了', '再起動して最新のTootDeskをお使いください。', [{ text: 'スキップ', style: 'cancel' }, { text: '再起動' },])
-				if (a === 1) {
-					Updates.reloadAsync()
-				}
-			}
 		}
 		const start = 0
 		const end = Math.min(0 + tlPerScreen, timelines.length)

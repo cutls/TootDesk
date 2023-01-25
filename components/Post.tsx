@@ -34,6 +34,8 @@ export default (props: FromRootToPost) => {
 	const { show, txtActionId, insertText } = props
 	const [nsfw, setNsfw] = useState(false)
 	const [text, setText] = useState(insertText)
+	const [maxLength, setMaxLength] = useState(500)
+	const [maxMedia, setMaxMedia] = useState(4)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [uploading, setUploading] = useState(false)
 	const [loading, setLoading] = useState(false)
@@ -49,6 +51,7 @@ export default (props: FromRootToPost) => {
 	const [pollDeadline, setPollDeadline] = useState(moment().add('24', 'hour').toDate())
 	const [CWText, setCWText] = useState('')
 	const [vis, setVis] = useState<IVisTxt>('public')
+	const [defaultVis, setDefaultVis] = useState<IVisTxt>('public')
 	const [accountTxt, setAccountTxt] = useState('')
 	const [account, setAccount] = useState('')
 	const [acctObj, setAcctObj] = useState<S.Account | null>(null)
@@ -102,8 +105,8 @@ export default (props: FromRootToPost) => {
 				if (buttonIndex === 1) Alert.alert('coming soon')
 			}
 		)
-	
-		const endPollSet = () =>
+
+	const endPollSet = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options: ['5分', '30分', '1時間', '6時間', '1日', '3日', '7日', 'キャンセル'],
@@ -144,6 +147,10 @@ export default (props: FromRootToPost) => {
 				setAcctObj(a)
 				setAccount(a.id)
 				setAccountTxt(a.acct)
+				setMaxLength(a.maxLetters || 500)
+				setMaxMedia(a.maxMedia || 4)
+				setDefaultVis(a.defaultVis || 'public')
+				setVis(a.defaultVis || 'public')
 			}
 		}
 		setAccountList(item)
@@ -198,7 +205,7 @@ export default (props: FromRootToPost) => {
 		setLoading(false)
 		setUploading(false)
 		setUploaded([])
-		setVis('public')
+		setVis(defaultVis)
 	}
 	const post = async () => {
 		const m = txtActionId.match(/^([^:]+):([^:]+)$/)
@@ -240,7 +247,7 @@ export default (props: FromRootToPost) => {
 				<View style={[styles.container, { bottom: show ? 0 : 0 - height, height: postAvoid }]}>
 					<Pressable>
 						{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={account} /> : null}
-						<Text>{textLength}</Text>
+						<Text style={maxLength < textLength ? { color: 'red', fontWeight: 'bold' } : {}}>{textLength}</Text>
 						<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder="何か書いてください" onContentSizeChange={(event) => {
 							setInputHeight(event.nativeEvent.contentSize.height)
 						}}
@@ -267,14 +274,18 @@ export default (props: FromRootToPost) => {
 							<TouchableOpacity onPress={() => selectVis()}>
 								<MaterialIcons name={getVisicon(vis)} size={20} style={styles.icon} ref={(c: any) => setAnchorVis(findNodeHandle(c))} />
 							</TouchableOpacity>
-							{account && <TouchableOpacity onPress={() => upload.pickImage(setUploading, upCb, account)}>
+							{account && <TouchableOpacity onPress={() => 
+									maxMedia < uploaded.length ? 
+										Alert.alert('Error', `メディアは最大${maxMedia}枚までです`) :
+										upload.pickImage(setUploading, upCb, account)
+									}>
 								<MaterialIcons name="attach-file" size={20} style={styles.icon} />
 							</TouchableOpacity>}
 							<TouchableOpacity onPress={() => setIsEmojiOpen(true)}>
 								<MaterialIcons name="insert-emoticon" size={20} style={styles.icon} />
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => true}>
-								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()}  ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
+								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()} ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
 							</TouchableOpacity>
 						</View>
 						{showPoll && <View>
@@ -288,12 +299,12 @@ export default (props: FromRootToPost) => {
 								</View>
 								<View>
 									<TouchableOpacity onPress={() => endPollSet()} style={commonStyle.horizonal}>
-										<MaterialIcons name="timer" size={18} style={styles.icon}  ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
+										<MaterialIcons name="timer" size={18} style={styles.icon} ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
 										<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{moment().add(endPoll, 'seconds').fromNow()}</Text>
 									</TouchableOpacity>
 								</View>
 							</View>
-							<View style={[commonStyle.horizonal, { justifyContent: 'space-between'}]}>
+							<View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
 								<TouchableOpacity onPress={() => setHiddenPoll(!hiddenPoll)} style={commonStyle.horizonal}>
 									<MaterialCommunityIcons name={hiddenPoll ? 'checkbox-marked-outline' : 'crop-square'} size={18} color={isDark ? 'white' : 'black'} />
 									<Text>終了まで票数を隠す</Text>

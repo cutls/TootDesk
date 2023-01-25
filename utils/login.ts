@@ -29,7 +29,7 @@ export const loginFirst = async (BASE_URL: string, via: string) => {
             domain: BASE_URL
         })
         const session = await WebBrowser.openAuthSessionAsync(auth, red)
-        if(session.type === 'success') {
+        if (session.type === 'success') {
             return session.url
         }
     } catch (e: any) {
@@ -53,18 +53,67 @@ export const getAt = async (code: string) => {
         const token = tokenAxios.data
         const { access_token } = token
         const userData = await api.getV1AccountsVerifyCredentials(domain, access_token)
-        await storage.pushItem('accounts', {
+        const instanceData = await api.getV1Instance(domain)
+        const configInstance = instanceData.configuration
+        const maxLetters = configInstance.statuses.max_characters
+        const maxMedia = configInstance.statuses.max_media_attachments
+        const streaming = configInstance.urls.streaming_api
+
+        const vis = userData.source.privacy
+        const acct: S.Account = {
             id: uuid(),
             name: userData.display_name ? userData.display_name : userData.acct,
             acct: `@${userData.acct}@${domain}`,
             at: access_token,
-            domain: domain
-        } as S.Account)
-        const accts = await storage.getItem('accounts') as S.Account[]
-        return accts
+            domain: domain,
+            defaultVis: vis || 'public',
+            maxLetters: maxLetters || 500,
+            maxMedia: maxMedia || 4,
+            streaming
+        }
+        await storage.pushItem('accounts', acct)
+        try {
+            const instanceV2 = await api.getV2Instance(domain)
+            const config = instanceV2.configuration
+            acct.maxLetters = config.statuses.max_characters
+            acct.maxMedia = config.statuses.max_media_attachments
+            acct.streaming = config.urls.streaming
+            acct.translationEnabled = config.translation.enabled
+            await storage.updateCertainItem('accounts', 'id', acct.id, acct)
+        } finally {
+            const accts = await storage.getItem('accounts') as S.Account[]
+            return accts
+        }
     } catch (e: any) {
         Alert.alert('Error', e.toString())
         console.error(e)
         return []
+    }
+}
+export const refresh = async (acctId: string) => {
+    const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+    const { domain, at } = acct
+    const userData = await api.getV1AccountsVerifyCredentials(domain, at)
+    const instanceData = await api.getV1Instance(domain)
+    const configInstance = instanceData.configuration
+    const maxLetters = configInstance.statuses.max_characters
+    const maxMedia = configInstance.statuses.max_media_attachments
+    const streaming = instanceData.urls.streaming_api
+    const vis = userData.source.privacy
+    acct.name = userData.display_name ? userData.display_name : userData.acct
+    acct.defaultVis = vis || 'public'
+    acct.maxLetters = maxLetters || 500
+    acct.maxMedia = maxMedia || 4
+    acct.streaming = streaming
+    try {
+        const instanceV2 = await api.getV2Instance(domain)
+        const config = instanceV2.configuration
+        acct.maxLetters = config.statuses.max_characters
+        acct.maxMedia = config.statuses.max_media_attachments
+        acct.streaming = config.urls.streaming
+        acct.translationEnabled = config.translation.enabled
+        await storage.updateCertainItem('accounts', 'id', acct.id, acct)
+    } catch {
+        await storage.updateCertainItem('accounts', 'id', acct.id, acct)
     }
 }

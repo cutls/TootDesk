@@ -11,6 +11,8 @@ const main = async (result: ImagePicker.ImagePickerResult, domain: string, at: s
         console.log(result, domain, at)
         if (!result.cancelled && result.uri) {
             return await upload(result, domain, at)
+        } else {
+
         }
         throw 'Error'
     } catch (e) {
@@ -71,8 +73,8 @@ export const pickImage = async (setUploading: (value: any) => void, callback: an
         })
         setUploading(true)
         const n = await main(result, domain, at)
-        if (!n) return false
         setUploading(false)
+        if (!n) return false
         callback(n)
         return true
     } catch {

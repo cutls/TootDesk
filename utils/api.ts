@@ -92,6 +92,8 @@ const postApiMedia = async (url: string, at: string, formData: FormData) => {
     }
 }
 type TLLinking = [M.Toot[], string]
+export const getV2Instance = async (domain: string) => { return await getApi(`https://${domain}/api/v2/instance`, '', {}) as M.InstanceV2 }
+export const getV1Instance = async (domain: string) => { return await getApi(`https://${domain}/api/v1/instance`, '', {}) as M.InstanceV1 }
 export const getV1AccountsVerifyCredentials = async (domain: string, at: string) => { return await getApi(`https://${domain}/api/v1/accounts/verify_credentials`, at) as M.Credential }
 export const getV1TimelinesHome = async (domain: string, at: string, param?: R.HTL) => { return await getApi(`https://${domain}/api/v1/timelines/home`, at, param) as M.Toot[] }
 export const getV1TimelinesLocal = async (domain: string, at: string, param?: R.FTL) => { return await getApi(`https://${domain}/api/v1/timelines/public`, at, { local: true, ...param }) as M.Toot[] }

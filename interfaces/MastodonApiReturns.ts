@@ -1,3 +1,5 @@
+import { IVisTxt } from "./Storage"
+
 export interface MastodonApiError {
     error: string
 }
@@ -36,7 +38,7 @@ export interface Emoji {
 }
 export interface Credential extends Account {
     source: {
-        privacy: string
+        privacy: IVisTxt
         sensitive: boolean
         language: string
         note: string
@@ -258,4 +260,69 @@ interface FilterBase {
 export interface FilterV2 extends FilterBase {
     keywords: FilterKeyword[]
     statuses: FilterStatus[]
+}
+export interface InstanceV1 {
+    [key: string]: any
+}
+export interface InstanceV2 {
+    domain: string
+    title: string | null
+    version: string | null
+    source_url: string
+    description: string | null
+    usage: {
+        users: {
+            active_month: number
+        }
+    }
+    thumbnail: {
+        url: string
+        blurhash?: string
+        versions?: {
+            "@v1": string
+            "@v2": string
+        }
+    }
+    languages: string[]
+    configuration: InstanceConfig
+    registrations: {
+        enabled: boolean
+        approval_required: boolean
+        message: string | null
+    }
+    contact: {
+        email?: string
+        account?: Account
+    }
+    rules: {id: string, text: string}[]
+}
+interface InstanceConfig {
+    urls: {
+        streaming: string
+    }
+    accounts: {
+        max_featured_tags: number
+    }
+    statuses: {
+        max_characters: number
+        max_media_attachments: number
+        characters_reserved_per_url: number
+    }
+    media_attachments: {
+        supported_mime_types: string[]
+        image_size_limit: number
+        image_matrix_limit: number
+        video_size_limit: number
+        video_frame_rate_limit: number
+        video_matrix_limit: number
+    }
+    polls: {
+        max_options: number
+        max_characters_per_option: number
+        min_expiration: number
+        max_expiration: number
+    }
+    translation: {
+        enabled: boolean
+    }
 }
