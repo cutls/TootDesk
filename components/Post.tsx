@@ -129,11 +129,17 @@ export default (props: FromRootToPost) => {
 				options: accountListTxt,
 				anchor: anchorAcct || undefined
 			},
-			(buttonIndex) => {
+			async (buttonIndex) => {
 				const id = accountList[buttonIndex]
 				const txt = accountListTxt[buttonIndex]
 				setAccountTxt(txt)
 				setAccount(id)
+				const acctObj = (await storage.getCertainItem('accounts', 'id', id)) as S.Account
+				setAcctObj(acctObj)
+				setMaxLength(acctObj.maxLetters || 500)
+				setMaxMedia(acctObj.maxMedia || 4)
+				setDefaultVis(acctObj.defaultVis || 'public')
+				setVis(acctObj.defaultVis || 'public')
 			}
 		)
 	const init = async () => {

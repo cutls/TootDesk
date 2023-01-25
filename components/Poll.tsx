@@ -17,7 +17,7 @@ interface FromTootToPoll {
 
 export default (props: FromTootToPoll) => {
     const { poll: pollRaw, acctId } = props
-    const [showResult, setShowResult] = useState(pollRaw.voted)
+    const [showResult, setShowResult] = useState(pollRaw.voted || pollRaw.expired)
     const [poll, setPoll] = useState(pollRaw)
     const [options, setOptions] = useState(poll.options)
     const insertStyle = { backgroundColor: '#b8d1e3' }
@@ -78,11 +78,11 @@ export default (props: FromTootToPoll) => {
                     )}
                         <View style={[commonStyle.horizonal, { marginVertical: 10 }]}>
                             <Text style={{ color: '#9a9da1' }}>{poll.votes_count}票{poll.multiple ? `(${poll.voters_count}人)` : ''}</Text>
-                            <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{moment(poll.expires_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>
+                            {poll.expired ? <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>終了</Text> : <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{moment(poll.expires_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
                             <TouchableOpacity onPress={() => refresh()}>
                                 <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>更新</Text>
                             </TouchableOpacity>
-                            {!poll.voted && <TouchableOpacity onPress={() => setShowResult(false)}>
+                            {!poll.voted && !poll.expired && <TouchableOpacity onPress={() => setShowResult(false)}>
                                 <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>投票する</Text>
                             </TouchableOpacity>}
                         </View>

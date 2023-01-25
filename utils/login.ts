@@ -57,7 +57,7 @@ export const getAt = async (code: string) => {
         const configInstance = instanceData.configuration
         const maxLetters = configInstance.statuses.max_characters
         const maxMedia = configInstance.statuses.max_media_attachments
-        const streaming = configInstance.urls.streaming_api
+        const streaming = instanceData.urls.streaming_api
 
         const vis = userData.source.privacy
         const acct: S.Account = {
