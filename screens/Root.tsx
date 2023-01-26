@@ -41,20 +41,28 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const bgColorAI = { backgroundColor: bgColorValAI }
 	const tlPerScreen = config.tlPerScreen
 	const init = async () => {
-		const accounts: S.Account[] = await storage.getItem('accounts')
-		for (const acct of accounts) refresh(acct.id)
-		const tls = await storage.getItem('timelines')
-		const newConfig = await storage.getItem('config') || {}
+		let accounts: S.Account[] = []
+		try {
+			accounts = await storage.getItem('accounts') || []
+		} catch { }
+		let tls = []
+		try {
+			tls = await storage.getItem('timelines') || []
+		} catch { }
+		let newConfig = configInit
+		try {
+			const configs = await storage.getItem('config') as IConfig
+			if (configs) newConfig = configs
+		} catch { }
 		for (const keyConfigRaw of Object.keys(configInit)) {
 			const keyConfig = keyConfigRaw as IConfigType
 			let c = newConfig[keyConfig]
 			if (c !== undefined) c = newConfig[keyConfig]
 			if (c === undefined) c = configInit[keyConfig]
-			newConfig[keyConfig] = c
 		}
 		if (newConfig) setConfig(newConfig)
 		if (tls) setTimelines(tls)
-		if (!tls) {
+		if (!tls.length) {
 			return goToAccountManager()
 		}
 		const start = 0
