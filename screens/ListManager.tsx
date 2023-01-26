@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInput, RefreshControl, findNodeHandle } from 'react-native'
+import { StyleSheet, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInput, RefreshControl, findNodeHandle, useWindowDimensions } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
 import { Button, TouchableOpacity, View, Text } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
@@ -15,6 +15,8 @@ import Account from '../components/Account'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'ListManager'>) {
     const theme = useColorScheme()
     const isDark = theme === 'dark'
+    const { height, width } = useWindowDimensions()
+	const deviceWidth = width
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
@@ -206,7 +208,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         return (
             <View key={`userInList ${item.id}`}>
                 <View style={commonStyle.horizonal}>
-                    <Account acctId={account} account={item} goToAccount={(id: string) => true} />
+                    <Account acctId={account} account={item} goToAccount={(id: string) => true} width={deviceWidth} />
                     <TouchableOpacity onPress={() => delUser(item.id)} style={styles.editMenu}>
                         <MaterialIcons size={20} name="delete" color="red" />
                     </TouchableOpacity>

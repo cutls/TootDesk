@@ -57,7 +57,7 @@ const actionToLocale = (action: ITootAction) => {
     } else if (action === 'pin') {
         return 'ピン留め'
     } else if (action === 'unpin') {
-        return 'ピン留めかいじょ'
+        return 'ピン留め解除'
     } else if (action === 'bookmark') {
         return 'ブックマーク'
     } else if (action === 'unbookmark') {

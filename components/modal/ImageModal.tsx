@@ -35,7 +35,7 @@ export default (props: FromRootToImageModal) => {
 		const { status } = await MediaLibrary.requestPermissionsAsync()
 
 		if (status === 'denied') {
-			Alert.alert('権限エラー', '写真フォルダへのアクセス権限が無いため、画像を添付できません。')
+			Alert.alert('権限エラー', '写真フォルダへのアクセス権限が無いため、画像保存できません。')
 		}
 		if (!files) return false
 		const downloadResumable = FileSystem.createDownloadResumable(url, FileSystem.cacheDirectory + files[0], {})

@@ -188,7 +188,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				setText(text)
 				setTxtActionId(`${type}:${id}`)
 			} catch (e: any) {
-				const r = await Alert.promise('Error', '編集非対応(~v4.0.0)のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
+				const r = await Alert.promise('Error ~v4.0.0', '編集非対応のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
 				if (r === 0) return
 				const data = await api.deleteV1Status(acct.domain, acct.at, id)
 				const text = data.text || stripTags(data.content)

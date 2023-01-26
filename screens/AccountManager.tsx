@@ -15,6 +15,7 @@ import axios from 'axios'
 import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
 import TimelineProps from '../interfaces/TimelineProps'
+import i18n from '../utils/i18n'
 const platform = Platform.OS === 'ios' ? 'iOS' : 'Android'
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
@@ -147,7 +148,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			}
 			const timelines: TimelineProps[] = await storage.getItem('timelines')
 			const newTl = timelines.map((item) => item.acct !== target.id)
-			if (!newTl.length) return Alert.alert('Error', 'アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。') 
+			if (!newTl.length) return Alert.alert('Error', 'アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。')
 			setAccounts(cl)
 			await storage.setItem('accounts', cl)
 			await storage.setItem('timelines', newTl)
@@ -261,12 +262,12 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 					<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
 				</View>
 				<View>
-					<Text>アカウントを追加</Text>
+					<Text>{i18n.t('アカウントを追加')}</Text>
 					{!attemptingLogin ? (
 						<View>
 							<View style={styles.horizonal}>
-								<TextInput placeholder="ドメイン(mastodon.social)*" onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
-								<Button title="ログイン" onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+								<TextInput placeholder={`${i18n.t('ドメイン')}(mastodon.social)*`} onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
+								<Button title={i18n.t('ログイン')} onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 							</View>
 							{list.length ? (<View style={styles.horizonal}>
 								<Text>Powered by </Text>
@@ -277,21 +278,20 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							<FlatList data={list} renderItem={renderList} keyExtractor={(e) => e} /></View>
 					) : (
 						<View style={styles.horizonal}>
-							<TextInput placeholder="コード*" onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
-							<Button title="ログイン" onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+							<TextInput placeholder={`${i18n.t('コード')}(mastodon.social)*`} onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
+							<Button title={i18n.t('ログイン')} onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 						</View>
 					)}
 					<View style={{ height: 10 }} />
 					{detailConfig ? <View>
-						<Text>TootDesk対応通知サーバのドメインを入力してください(初期値: push.0px.io)</Text>
-						<TextInput placeholder="サーバ*" onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
-						<Text>認証時のアプリ名(via, 初期値: "TootDesk({platform})")</Text>
+						<Text>{i18n.t('TootDesk対応通知サーバのドメインを入力してください')}({i18n.t('初期値')}: push.0px.io)</Text>
+						<TextInput placeholder={i18n.t('サーバ')} onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
+						<Text>{i18n.t('認証時のアプリ名(via, 初期値: "TootDesk(%{t})")', { t: platform })}</Text>
 						<TextInput placeholder="via*" onChangeText={(text) => setVia(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={via} />
-						
 					</View>
-					 : <TouchableOpacity onPress={() => setDetailConfig(true)}>
-						<Text style={{ textDecorationLine: 'underline' }}>通知サーバを設定する</Text>
-					</TouchableOpacity>}
+						: <TouchableOpacity onPress={() => setDetailConfig(true)}>
+							<Text style={{ textDecorationLine: 'underline' }}>{i18n.t('通知サーバ, viaを設定する')}</Text>
+						</TouchableOpacity>}
 				</View>
 			</View>
 		</View>

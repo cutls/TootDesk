@@ -4,6 +4,8 @@ import { StyleSheet, Dimensions, Platform, useColorScheme, Modal, useWindowDimen
 import { MaterialIcons } from '@expo/vector-icons'
 import { commonStyle } from '../../utils/styles'
 import NotificationTimeline from '../NotificationTimeline'
+import i18n from '../../utils/i18n'
+
 
 let ios = true
 if (Platform.OS === 'android') ios = false
@@ -24,7 +26,7 @@ export default function NotificationModal({ setShowNotif, acctId, txtAction, nav
     return (
         <Modal visible={modalVisible} presentationStyle="pageSheet" animationType="slide">
             <View style={[styles.top, commonStyle.horizonal]}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>通知</Text>
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{i18n.t('通知')}</Text>
                 <TouchableOpacity onPress={() => dismiss()}>
                     <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
