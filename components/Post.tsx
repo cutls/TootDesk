@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { RefObject, useEffect, useRef, useState } from 'react'
 import { Dimensions, StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, Platform } from 'react-native'
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
@@ -43,6 +43,7 @@ export default (props: FromRootToPost) => {
 	const [loading, setLoading] = useState(false)
 	const [showCW, setShowCW] = useState(false)
 	const [showPoll, setShowPoll] = useState(false)
+	const txtAreaRef = useRef<TextInput>() as RefObject<TextInput>
 	const [poll1, setPoll1] = useState('')
 	const [poll2, setPoll2] = useState('')
 	const [poll3, setPoll3] = useState('')
@@ -64,7 +65,7 @@ export default (props: FromRootToPost) => {
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0)
+	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0) + (txtActionId ? 20 : 0)
 	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + addHeight + (tablet ? 50 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
@@ -201,6 +202,7 @@ export default (props: FromRootToPost) => {
 		return cl
 	}
 	const closeToot = async (force?: boolean) => {
+		if(txtAreaRef.current?.isFocused()) return txtAreaRef.current?.blur()
 		if (!force && (text || uploaded.length)) {
 			const alertPromise = await Alert.promise(i18n.t('変更を破棄'), i18n.t('未保存の変更があります'), [i18n.t('破棄して閉じる'), i18n.t('破棄せず閉じる'), i18n.t('キャンセル')] as string[])
 			if (alertPromise === 2) return
@@ -256,7 +258,7 @@ export default (props: FromRootToPost) => {
 					<Pressable>
 						{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={account} /> : null}
 						<Text style={maxLength < textLength ? { color: 'red', fontWeight: 'bold' } : {}}>{textLength}</Text>
-						<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder={i18n.t('何か書いてください')} onContentSizeChange={(event) => {
+						<TextInput ref={txtAreaRef} multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder={i18n.t('何か書いてください')} onContentSizeChange={(event) => {
 							setInputHeight(event.nativeEvent.contentSize.height)
 						}}
 							value={text}

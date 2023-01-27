@@ -2,7 +2,7 @@
   "expo": {
     "name": "TootDesk",
     "slug": "tootdesk",
-    "version": "1.1.22",
+    "version": "1.1.23",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "tootdesk",
@@ -18,17 +18,14 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "buildNumber": "40",
+      "buildNumber": "41",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "top.thedesk.toot",
-      "infoPlist": {
-        "NSCameraUsageDescription": "画像をアップロードし、トゥートに添付するためにカメラを使用します。",
-        "NSPhotoLibraryUsageDescription": "画像をアップロードし、トゥートに添付するためにフォトライブラリを使用します。",
-        "CFBundleDevelopmentRegion": "ja_JP"
-      }
+      "infoPlist": { "CFBundleDevelopmentRegion": "ja_JP" }
     },
-    "android": { "versionCode": 40, "package": "top.thedesk.toot" },
+    "locales": { "en": "./i18n/bundle/en.json", "ja": "./i18n/bundle/ja.json" },
+    "android": { "versionCode": 41, "package": "top.thedesk.toot" },
     "extra": { "eas": { "projectId": "d7f07c8c-ca06-4dd3-a754-d09eb5287ad5" } },
     "runtimeVersion": { "policy": "sdkVersion" }
   }
