@@ -1,0 +1,4 @@
+{
+    "NSCameraUsageDescription": "画像をアップロードし、トゥートに添付するためにカメラを使用します。",
+    "NSPhotoLibraryUsageDescription": "画像をアップロードし、トゥートに添付するためにフォトライブラリを使用します。"
+}

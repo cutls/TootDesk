@@ -9,6 +9,10 @@ import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { AccountName, emojify } from './AccountName'
 import Card from './Card'
+import * as Localization from 'expo-localization'
+const locale = Localization.getLocales()
+const langCode = locale[0].languageCode
+const isJa = langCode === 'ja'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -31,8 +35,6 @@ const renderers = {
 		contentModel: HTMLContentModel.mixed,
 	}),
 }
-moment.locale('ja')
-moment.tz.setDefault('Asia/Tokyo')
 interface FromTimelineToToot {
 	toot: M.Toot
 	deletable: boolean
@@ -210,7 +212,7 @@ export default (props: FromTimelineToToot) => {
 			<View style={styles.horizonal}>
 				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false, url: toot.account.url })}>
 					<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
-					{config.useRelativeTime && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
+					{config.useRelativeTime && isJa && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
 					<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
 						<MaterialIcons name={visiIcon} />
 						{toot.edited_at && <MaterialIcons name="create" />}
@@ -221,10 +223,14 @@ export default (props: FromTimelineToToot) => {
 						<AccountName account={toot.account} width={width} />
 						{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
 					</View>
-					<View style={[styles.horizonal, styles.sameHeight]}>
+					<View style={[styles.horizonal, styles.sameHeight, { justifyContent: 'space-between' }]}>
 						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
-							@{toot.account.acct} {config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}
+							@{toot.account.acct}
+						</Text>
+						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
 							{config.showVia && !!appData && appData.name}
+							{config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}
+							{config.useRelativeTime && !isJa && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}
 						</Text>
 					</View>
 					{(!!toot.spoiler_text || autoFold) && <View style={commonStyle.horizonal}>
@@ -313,11 +319,12 @@ function createStyle(deviceWidth: number) {
 			display: 'flex',
 			flexDirection: 'row',
 			alignItems: 'center',
+			justifyContent: 'center',
 			backgroundColor: `#aaa`,
 			padding: 10,
 			borderRadius: 5,
 			marginVertical: 5,
-			width: 50,
+			width: 60,
 		}
 	})
 }

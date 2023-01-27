@@ -14,7 +14,8 @@ import { useKeyboard } from '../utils/keyboard'
 import { isIPhoneX } from '../utils/statusBar'
 import { FlatList } from 'react-native-gesture-handler'
 import RNDateTimePicker, { IOSNativeProps } from '@react-native-community/datetimepicker'
-import moment from 'moment'
+import moment from 'moment-timezone'
+import 'moment/locale/ja'
 import { commonStyle } from '../utils/styles'
 import i18n from '../utils/i18n'
 
@@ -97,7 +98,7 @@ export default (props: FromRootToPost) => {
 	const moreOption = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
-				options: ['投票', '時間指定投稿', 'キャンセル'],
+				options: [i18n.t('投票'), i18n.t('時間指定投稿'), i18n.t('キャンセル')],
 				anchor: anchorMore || undefined,
 				cancelButtonIndex: 2
 			},

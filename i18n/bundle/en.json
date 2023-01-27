@@ -1,0 +1,4 @@
+{
+    "NSCameraUsageDescription": "This app uses camera to take image and post it.",
+    "NSPhotoLibraryUsageDescription": "This app uses media library to post choosen media."
+}

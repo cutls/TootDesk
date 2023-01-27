@@ -21,7 +21,7 @@ const platform = Platform.OS === 'ios' ? 'iOS' : 'Android'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
 
 	const allReset = async () => {
-		const a = await Alert.promise('全てのデータを初期化します', 'この操作は取り消せません。実行後はアプリを再起動します。', Alert.DELETE)
+		const a = await Alert.promise(i18n.t('全てのデータを初期化します'), i18n.t('この操作は取り消せません。実行後はアプリを再起動します。'), Alert.DELETE)
 		if (a === 1) {
 			storage.deleteAllItem()
 			Updates.reloadAsync()
@@ -111,7 +111,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		try {
 			const ret = await loginFirst(domain, via)
 			if (!ret) {
-				alert('インスタンスが見つかりませんでした')
+				alert(i18n.t('インスタンスが見つかりませんでした'))
 				setAttemptingLogin(false)
 				setLoading(false)
 			} else {
@@ -138,7 +138,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		setDomain('')
 	}
 	const delAcct = async (key: string) => {
-		const a = await Alert.promise('アカウントを削除します', 'この操作は取り消せません。', Alert.DELETE)
+		const a = await Alert.promise(i18n.t('アカウントを削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
 		let target: any = null
 		if (a === 1) {
 			const cl = []
@@ -148,7 +148,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			}
 			const timelines: TimelineProps[] = await storage.getItem('timelines')
 			const newTl = timelines.map((item) => item.acct !== target.id)
-			if (!newTl.length) return Alert.alert('Error', 'アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。')
+			if (!newTl.length) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
 			setAccounts(cl)
 			await storage.setItem('accounts', cl)
 			await storage.setItem('timelines', newTl)
@@ -166,7 +166,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						finalStatus = status;
 					}
 					if (finalStatus !== 'granted') {
-						alert('プッシュ通知の許可が取れませんでした。')
+						alert(i18n.t('プッシュ通知の許可が取れませんでした。'))
 						return;
 					}
 					token = (await Notifications.getExpoPushTokenAsync()).data
@@ -186,7 +186,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 					token,
 					platform: 'expo'
 				})
-				Alert.alert('購読完了', 'プッシュ通知の購読が完了しました。')
+				Alert.alert(i18n.t('購読完了'), i18n.t('プッシュ通知の購読が完了しました。'))
 				init()
 			} catch (e) {
 				Alert.alert('エラー', `${e}`)
@@ -194,7 +194,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				init()
 			}
 		}
-		const a = await Alert.promise('プッシュ通知の利用', `このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、"${myNotify}"で復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。`, [{ text: 'キャンセル', style: 'cancel' }, { text: '承認', style: 'destructive' }])
+		const a = await Alert.promise(i18n.t('プッシュ通知の利用'), i18n.t(`このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、"%{t}"で復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。`, { t: myNotify }), [{ text: i18n.t('キャンセル'), style: 'cancel' }, { text: i18n.t('承認'), style: 'destructive' }])
 		if (a === 1) {
 			registerForPushNotificationsAsync()
 		} else {

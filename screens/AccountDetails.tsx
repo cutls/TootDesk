@@ -24,8 +24,6 @@ import Toot from '../components/Toot'
 import { SetConfigContext } from '../utils/context/config'
 import { resolveAccount } from '../utils/tootAction'
 import i18n from '../utils/i18n'
-moment.locale('ja')
-moment.tz.setDefault('Asia/Tokyo')
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,

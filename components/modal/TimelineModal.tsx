@@ -9,10 +9,6 @@ import * as S from '../../interfaces/Storage'
 import * as api from '../../utils/api'
 import * as R from '../../interfaces/MastodonApiRequests'
 import TimelineProps, { TLType, TimelineConfig } from '../../interfaces/TimelineProps'
-import moment from 'moment-timezone'
-import 'moment/locale/ja'
-moment.locale('ja')
-moment.tz.setDefault('Asia/Tokyo')
 import { MaterialIcons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../../utils/context/changeTl'
 import timelineLabel from '../../utils/timelineLabel'
@@ -191,7 +187,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         const tlId = timelines.findIndex((item) => item.key === key)
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: [`${i18n.t('読み上げ')}${timelines[tlId].config?.speech ? 'On' : 'Off'}`, i18n.t('言語フィルター設定へ'), i18n.t('キャンセル')],
+                options: [`${i18n.t('読み上げ')}${timelines[tlId].config?.speech ? 'ON' : 'OFF'}`, i18n.t('言語フィルター設定へ'), i18n.t('キャンセル')],
                 cancelButtonIndex: 2,
             },
             (buttonIndex) => {

@@ -24,8 +24,13 @@ import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
 import { resolveStatus } from '../utils/tootAction'
 import { LoadingContext } from '../utils/context/loading'
+import * as Localization from 'expo-localization'
+const locale = Localization.getLocales()
+const langCode = locale[0].languageCode
+const isJa = langCode === 'ja'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
+moment.locale(isJa ? 'ja' : 'en')
 import i18n from '../utils/i18n'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
