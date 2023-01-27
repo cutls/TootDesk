@@ -87,6 +87,8 @@
     "他のアカウントで詳細": "Expand with other account",
     "アカウントを検索しています": "Fetching this account",
     "アカウントが見つかりませんでした": "The server cannot find this account",
+    "投稿を検索しています": "Fetching this post",
+    "投稿が見つかりませんでした": "The server cannot find this post",
     "フィルターされました": "Filtered",
     "'YY年M月D日 HH:mm:ss": "'YY/M/D HH:mm:ss",
     "隠す": "Hide",

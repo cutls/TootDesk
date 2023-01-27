@@ -27,7 +27,7 @@ import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
 import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
-import { resolveAccount, translate } from '../utils/tootAction'
+import { resolveAccount, resolveStatus, translate } from '../utils/tootAction'
 import { mb2xCount, stripTags } from '../utils/stringUtil'
 import i18n from '../utils/i18n'
 const renderers = {
@@ -156,7 +156,7 @@ export default (props: FromTimelineToToot) => {
 	const TootContent = React.memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
 		return <HTML
 			source={{ html: emojify(content, emojis, false, config.showGif) }}
-			tagsStyles={{ p: { margin: 0, color: txtColor }, a: { color: '#8c8dff' } }}
+			tagsStyles={{ p: { marginTop: 0, marginBottom: 5, color: txtColor }, a: { color: '#8c8dff' } }}
 			customHTMLElementModels={renderers}
 			classesStyles={{ invisible: { fontSize: 0.01 } }}
 			renderersProps={{
@@ -170,11 +170,26 @@ export default (props: FromTimelineToToot) => {
 	const linkHandler = async (href: string) => {
 		// https://2m.cutls.com/@Cutls
 		const tagDetector = href.match(/\/tags\/(.+)/)
+		const statusDetector = href.match(/https:\/\/(.+)\/@(.+)\/[0-9]+/)
 		const acctDetector = href.match(/https:\/\/(.+)\/@(.+)/)
 		if (acctId === 'noAuth') await WebBrowser.openBrowserAsync(href)
 		if (tagDetector) {
 			const tag = tagDetector[1]
 			navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: acctId, activated: true, key: `glance at tag${tag}`, acctName: ``, timelineData: { target: tag } } })
+		} else if (statusDetector) {
+			try {
+				setLoading(i18n.t('投稿を検索しています'))
+				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+				const { domain, at } = acct
+				const data = await resolveStatus(acctId, href)
+				setLoading('')
+				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
+				if (!data) throw i18n.t('投稿が見つかりませんでした')
+				navigation.navigate('Toot', { at, domain, notification: false, acctId, id: data.id })
+			} catch (e) {
+				setLoading('')
+				await WebBrowser.openBrowserAsync(href)
+			}
 		} else if (acctDetector) {
 			const acctNotation = `${acctDetector[2]}@${acctDetector[1]}`
 			try {
