@@ -12,6 +12,7 @@ import * as S from '../interfaces/Storage'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as api from '../utils/api'
 import Account from '../components/Account'
+import i18n from '../utils/i18n'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'ListManager'>) {
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -97,9 +98,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 
     const [anchorAction, setAnchorAction] = React.useState<null | number>(0)
     const listAction = async (item: M.List) => {
-        const actions = ['カラム追加', 'リスト情報', 'リストの削除']
-        if (targetAcct) actions.push('このリストに追加/から削除')
-        actions.push('キャンセル')
+        const actions = [i18n.t('カラム追加'), i18n.t('リスト情報'), i18n.t('リストの削除')]
+        if (targetAcct) actions.push(i18n.t('このリストに追加/から削除'))
+        actions.push(i18n.t('キャンセル'))
         setChangeName(item.title)
         ActionSheetIOS.showActionSheetWithOptions(
             {
@@ -126,7 +127,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     const addList = async () => {
         try {
-            if (!newListName) Alert.alert('Error', 'リスト名を入力してください')
+            if (!newListName) Alert.alert('Error', i18n.t('リスト名を入力してください'))
             setLoading(true)
             setMode('list')
             const acct: S.Account = await storage.getCertainItem('accounts', 'id', account)
@@ -150,7 +151,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     const changeListName = async () => {
         try {
-            if (!changeName) Alert.alert('Error', 'リスト名を入力してください')
+            if (!changeName) Alert.alert('Error', i18n.t('リスト名を入力してください'))
             setLoading(true)
             const acct: S.Account = await storage.getCertainItem('accounts', 'id', account)
             await api.putV1List(acct.domain, acct.at, selectingList, changeName)
@@ -193,7 +194,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             loadListList(account)
         } catch (e: any) {
             if (e.toString().match(/Account/)) {
-                const a = await Alert.promise('削除する', 'このリストから削除しますか？', Alert.DELETE)
+                const a = await Alert.promise(i18n.t('削除する'), i18n.t('このリストから削除しますか？'), Alert.DELETE)
                 if (a === 1) delUser(userId ,listId)
             } else {
                 Alert.alert('Error', e.toString())
@@ -226,19 +227,19 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             </TouchableOpacity>
             {mode === 'user' ?
                 <View style={commonStyle.horizonal}>
-                    <TextInput placeholder="リスト名編集" onChangeText={(text) => setChangeName(text)} style={[{ borderColor: changeName ? 'black' : '#bf1313' }, styles.form]} value={changeName} />
-                    <Button title="変更" onPress={async () => changeListName()} icon="refresh" style={{ width: '29%', marginLeft: '1%' }} />
+                    <TextInput placeholder={i18n.t('リスト名編集')} onChangeText={(text) => setChangeName(text)} style={[{ borderColor: changeName ? 'black' : '#bf1313' }, styles.form]} value={changeName} />
+                    <Button title={i18n.t('変更')} onPress={async () => changeListName()} icon="refresh" style={{ width: '29%', marginLeft: '1%' }} />
                 </View>
                 : <View style={commonStyle.horizonal}>
-                    <TextInput placeholder="新規リスト名" onChangeText={(text) => setNewListName(text)} style={[{ borderColor: newListName ? 'black' : '#bf1313' }, styles.form]} value={newListName} />
-                    <Button title="作成" onPress={async () => addList()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                    <TextInput placeholder={i18n.t('新規リスト名')} onChangeText={(text) => setNewListName(text)} style={[{ borderColor: newListName ? 'black' : '#bf1313' }, styles.form]} value={newListName} />
+                    <Button title={i18n.t('作成')} onPress={async () => addList()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
                 </View>}
             <View style={{ height: 5 }} />
-            {mode === 'user' && <Button title="戻る" onPress={async () => setMode('list')} icon="arrow-back" style={{ width: '29%', marginLeft: '1%' }} />}
+            {mode === 'user' && <Button title={i18n.t('戻る')} onPress={async () => setMode('list')} icon="arrow-back" style={{ width: '29%', marginLeft: '1%' }} />}
             <View style={{ height: 10 }} />
             {loading && <Text>Loading...</Text>}
-            {mode === 'list' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={list} keyExtractor={(item) => item.id} renderItem={renderList} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadListList(account)} />} />}
-            {mode === 'user' && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={user} keyExtractor={(item) => item.id} renderItem={renderUser} />}
+            {mode === 'list' && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={list} keyExtractor={(item) => item.id} renderItem={renderList} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadListList(account)} />} />}
+            {mode === 'user' && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={user} keyExtractor={(item) => item.id} renderItem={renderUser} />}
 
         </View>
     )

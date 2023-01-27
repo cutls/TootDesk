@@ -16,6 +16,7 @@ import { FlatList } from 'react-native-gesture-handler'
 import RNDateTimePicker, { IOSNativeProps } from '@react-native-community/datetimepicker'
 import moment from 'moment'
 import { commonStyle } from '../utils/styles'
+import i18n from '../utils/i18n'
 
 interface FromRootToPost {
 	show: boolean
@@ -68,7 +69,7 @@ export default (props: FromRootToPost) => {
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
 	const visList = ['public', 'unlisted', 'private', 'direct'] as IVisTxt[]
-	const visTxt = ['公開', '未収載', '非公開', 'ダイレクト', 'キャンセル']
+	const visTxt = [i18n.t('公開'), i18n.t('未収載'), i18n.t('非公開'), i18n.t('ダイレクト'), i18n.t('キャンセル')]
 	const getVisicon = (vis: IVisTxt): IVisIcon => {
 		if (vis === 'public') return 'public'
 		if (vis === 'unlisted') return 'lock-open'
@@ -109,7 +110,7 @@ export default (props: FromRootToPost) => {
 	const endPollSet = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
-				options: ['5分', '30分', '1時間', '6時間', '1日', '3日', '7日', 'キャンセル'],
+				options: [i18n.t('5分'), i18n.t('30分'), i18n.t('1時間'), i18n.t('6時間'), i18n.t('1日'), i18n.t('3日'), i18n.t('7日'), i18n.t('キャンセル')],
 				anchor: anchorEndPoll || undefined,
 				cancelButtonIndex: 7
 			},
@@ -169,7 +170,7 @@ export default (props: FromRootToPost) => {
 		setText(`${text}${lastLetter === ' ' ? '' : ' '}:${shortcode}: `)
 	}
 	const deleteImage = async (id: string) => {
-		const a = await Alert.promise('画像を削除します', 'この操作は取り消せません。', Alert.DELETE)
+		const a = await Alert.promise(i18n.t('画像を削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
 		if (a === 1) {
 			const cl = uploaded
 			let s = []
@@ -194,13 +195,13 @@ export default (props: FromRootToPost) => {
 	const upCb = (m: M.Media) => {
 		const cl = uploaded
 		cl.push(m)
-		Alert.alert('アップロードが完了しました', '確認できない場合は、一度トゥートエリアをタップしてキーボードを表示させると表示される場合があります')
+		Alert.alert(i18n.t('アップロードが完了しました'), i18n.t('確認できない場合は、一度トゥートエリアをタップしてキーボードを表示させると表示される場合があります'))
 		setUploaded(cl)
 		return cl
 	}
 	const closeToot = async (force?: boolean) => {
 		if (!force && (text || uploaded.length)) {
-			const alertPromise = await Alert.promise('変更を破棄', '未保存の変更があります', ['破棄して閉じる', '破棄せず閉じる', 'キャンセル'])
+			const alertPromise = await Alert.promise(i18n.t('変更を破棄'), i18n.t('未保存の変更があります'), [i18n.t('破棄して閉じる'), i18n.t('破棄せず閉じる'), i18n.t('キャンセル')] as string[])
 			if (alertPromise === 2) return
 			if (alertPromise === 1) return tooting(false)
 		}
@@ -254,22 +255,22 @@ export default (props: FromRootToPost) => {
 					<Pressable>
 						{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={emojiModal} acct={account} /> : null}
 						<Text style={maxLength < textLength ? { color: 'red', fontWeight: 'bold' } : {}}>{textLength}</Text>
-						<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder="何か書いてください" onContentSizeChange={(event) => {
+						<TextInput multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder={i18n.t('何か書いてください')} onContentSizeChange={(event) => {
 							setInputHeight(event.nativeEvent.contentSize.height)
 						}}
 							value={text}
 							onChangeText={(text) => setText(text)} />
-						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder="警告文" value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
+						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder={i18n.t('警告文')} value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 						<View style={styles.horizonal}>
 							<TouchableOpacity onPress={() => actionSheet()}>
 								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} >{accountTxt}</Text>
 							</TouchableOpacity>
-							<Button title="トゥート" icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
+							<Button title={i18n.t('トゥート')} icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
-						{txtActionId ? <Text>返信/編集モード</Text> : null}
+						{txtActionId ? <Text>{i18n.t('返信/編集モード')}</Text> : null}
 						<View style={styles.action}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
 								<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
@@ -280,11 +281,11 @@ export default (props: FromRootToPost) => {
 							<TouchableOpacity onPress={() => selectVis()}>
 								<MaterialIcons name={getVisicon(vis)} size={20} style={styles.icon} ref={(c: any) => setAnchorVis(findNodeHandle(c))} />
 							</TouchableOpacity>
-							{account && <TouchableOpacity onPress={() => 
-									maxMedia < uploaded.length ? 
-										Alert.alert('Error', `メディアは最大${maxMedia}枚までです`) :
-										upload.pickImage(setUploading, upCb, account)
-									}>
+							{account && <TouchableOpacity onPress={() =>
+								maxMedia < uploaded.length ?
+									Alert.alert('Error', i18n.t('メディアは最大%{t}枚までです', { t: maxMedia })) :
+									upload.pickImage(setUploading, upCb, account)
+							}>
 								<MaterialIcons name="attach-file" size={20} style={styles.icon} />
 							</TouchableOpacity>}
 							<TouchableOpacity onPress={() => setIsEmojiOpen(true)}>
@@ -295,10 +296,10 @@ export default (props: FromRootToPost) => {
 							</TouchableOpacity>
 						</View>
 						{showPoll && <View>
-							<TextInput style={[styles.pollArea]} placeholder="選択肢1" value={poll1} onChangeText={(text) => setPoll1(text)} />
-							<TextInput style={[styles.pollArea]} placeholder="選択肢2" value={poll2} onChangeText={(text) => setPoll2(text)} />
-							<TextInput style={[styles.pollArea]} placeholder="選択肢3(オプション)" value={poll3} onChangeText={(text) => setPoll3(text)} />
-							<TextInput style={[styles.pollArea]} placeholder="選択肢4(オプション)" value={poll4} onChangeText={(text) => setPoll4(text)} />
+							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}1`} value={poll1} onChangeText={(text) => setPoll1(text)} />
+							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}2`} value={poll2} onChangeText={(text) => setPoll2(text)} />
+							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}3(${i18n.t('オプション')})`} value={poll3} onChangeText={(text) => setPoll3(text)} />
+							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}4(${i18n.t('オプション')})`} value={poll4} onChangeText={(text) => setPoll4(text)} />
 							<View style={[commonStyle.horizonal, { marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }]}>
 								<View>
 									<MaterialCommunityIcons name={multiplePoll ? 'checkbox-multiple-marked-outline' : 'checkbox-marked-outline'} size={20} color={isDark ? 'white' : 'black'} onPress={() => setMultiplePoll(!multiplePoll)} />
@@ -313,10 +314,10 @@ export default (props: FromRootToPost) => {
 							<View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
 								<TouchableOpacity onPress={() => setHiddenPoll(!hiddenPoll)} style={commonStyle.horizonal}>
 									<MaterialCommunityIcons name={hiddenPoll ? 'checkbox-marked-outline' : 'crop-square'} size={18} color={isDark ? 'white' : 'black'} />
-									<Text>終了まで票数を隠す</Text>
+									<Text>{i18n.t('終了まで票数を隠す')}</Text>
 								</TouchableOpacity>
 								<TouchableOpacity onPress={() => setShowPoll(false)} style={commonStyle.horizonal}>
-									<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>投票を削除</Text>
+									<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('投票を削除')}</Text>
 								</TouchableOpacity>
 
 							</View>

@@ -14,6 +14,7 @@ import ListManager from './screens/ListManager'
 import Search from './screens/Search'
 import Config from './screens/Config'
 import LangFilter from './screens/LangFilter'
+import i18n from './utils/i18n'
 const Stack = createStackNavigator()
 const LinkingConfiguration = {
 	prefixes: [Linking.makeUrl('/')],
@@ -51,14 +52,14 @@ export default function App() {
 		<NavigationContainer linking={LinkingConfiguration}>
 			<Stack.Navigator screenOptions={{ headerShown: false }}>
 				<Stack.Screen name="Root" component={Root} options={{ headerShown: false, title: 'Home' }} />
-				<Stack.Screen name="AccountManager" component={AccountManager} options={{ headerShown: true, title: 'アカウント管理' }} />
-				<Stack.Screen name="Toot" component={Toot} options={{ headerShown: true, title: 'トゥート詳細' }} />
-				<Stack.Screen name="ListManager" component={ListManager} options={{ headerShown: true, title: 'リスト管理' }} />
-				<Stack.Screen name="AccountDetails" component={AccountDetails} options={{ presentation: 'modal', title: 'アカウント' }} />
-				<Stack.Screen name="TimelineOnly" component={TimelineOnly} options={{ presentation: 'modal', title: 'タイムライン' }} />
-				<Stack.Screen name="Search" component={Search} options={{ presentation: 'modal', title: '検索' }} />
-				<Stack.Screen name="Config" component={Config} options={{ presentation: 'modal', title: '設定' }} />
-				<Stack.Screen name="LangFilter" component={LangFilter} options={{ presentation: 'modal', title: '言語フィルター' }} />
+				<Stack.Screen name="AccountManager" component={AccountManager} options={{ headerShown: true, title: i18n.t('アカウント管理') }} />
+				<Stack.Screen name="Toot" component={Toot} options={{ headerShown: true, title: i18n.t('トゥート詳細') }} />
+				<Stack.Screen name="ListManager" component={ListManager} options={{ headerShown: true, title: i18n.t('リスト管理') }} />
+				<Stack.Screen name="AccountDetails" component={AccountDetails} options={{ presentation: 'modal', title: i18n.t('アカウント') }} />
+				<Stack.Screen name="TimelineOnly" component={TimelineOnly} options={{ presentation: 'modal', title: i18n.t('タイムライン') }} />
+				<Stack.Screen name="Search" component={Search} options={{ presentation: 'modal', title: i18n.t('検索') }} />
+				<Stack.Screen name="Config" component={Config} options={{ presentation: 'modal', title: i18n.t('設定') }} />
+				<Stack.Screen name="LangFilter" component={LangFilter} options={{ presentation: 'modal', title: i18n.t('言語フィルター') }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)

@@ -168,5 +168,11 @@
     "初期値": "default",
     "認証時のアプリ名(via, 初期値: \"TootDesk(%{t})\")": "App name(via): default is \"TootDesk(%{t})\"",
     "通知サーバ, viaを設定する": "Config your notification server and via",
-    "サーバ": "Server"
+    "サーバ": "Server",
+    "アカウント管理": "Account manager",
+    "トゥート詳細": "This post",
+    "タイムライン": "Timeline",
+    "言語フィルター": "Language filter",
+    "票": " votes",
+    "人": " people"
 }

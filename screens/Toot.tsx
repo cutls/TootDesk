@@ -26,6 +26,7 @@ import { resolveStatus } from '../utils/tootAction'
 import { LoadingContext } from '../utils/context/loading'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
+import i18n from '../utils/i18n'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -136,10 +137,10 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			},
 			async (buttonIndex) => {
 				const acct = accts[buttonIndex]
-				setRootLoading('検索中')
+				setRootLoading(i18n.t('検索中'))
 				const newToot = await resolveStatus(acct.id, url)
 				setRootLoading(null)
-				if (!newToot) return Alert.alert('Error', 'このアカウントでは参照できませんでした')
+				if (!newToot) return Alert.alert('Error', i18n.t('このアカウントでは参照できませんでした'))
 				navigation.replace('Toot', { acctId: acct.id, id: newToot.id, notification: false })
 			}
 		)
@@ -188,7 +189,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 				setText(text)
 				setTxtActionId(`${type}:${id}`)
 			} catch (e: any) {
-				const r = await Alert.promise('Error ~v4.0.0', '編集非対応のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
+				const r = await Alert.promise('Error ~v4.0.0', i18n.t('編集非対応のサーバーの可能性があります。「削除して再編集」を実行しますか？'), Alert.DELETE)
 				if (r === 0) return
 				const data = await api.deleteV1Status(acct.domain, acct.at, id)
 				const text = data.text || stripTags(data.content)
@@ -203,7 +204,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 		return (
 			<TouchableOpacity onPress={() => !edited && init(acctId, item.id)} style={{ maxHeight: 50, overflow: 'hidden' }}>
 				<AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
-				{edited && <Text>{moment(item.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}</Text>}
+				{edited && <Text>{moment(item.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}</Text>}
 				<HTML source={{ html: emojify(item.content, item.emojis, false, config.showGif) }} tagsStyles={{ p: { margin: 0, color: txtColor } }} customHTMLElementModels={renderers} contentWidth={deviceWidth - 50} />
 			</TouchableOpacity>
 		)
@@ -228,8 +229,8 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			</TouchableOpacity>
 		)
 	}
-	const segment = ['お気に入りした人', 'ブーストした人']
-	if (toot.edited_at) segment.push('編集履歴')
+	const segment = [i18n.t('お気に入りした人'), i18n.t('ブーストした人')]
+	if (toot.edited_at) segment.push(i18n.t('編集履歴'))
 	const showAccts = accounts[selectedIndex]
 	return (
 		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
@@ -281,7 +282,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 								data={showAccts}
 								renderItem={compactAcct}
 								keyExtractor={(item) => item.id}
-								ListEmptyComponent={() => <Text>データがありません</Text>}
+								ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>}
 								style={{
 								}}
 							/>
@@ -291,7 +292,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 								data={editHistory}
 								renderItem={(item) => compactToot(item, true)}
 								keyExtractor={(item) => item.id}
-								ListEmptyComponent={() => <Text>データがありません</Text>}
+								ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>}
 								style={{
 								}}
 							/>

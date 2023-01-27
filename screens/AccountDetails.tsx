@@ -23,6 +23,7 @@ import 'moment/locale/ja'
 import Toot from '../components/Toot'
 import { SetConfigContext } from '../utils/context/config'
 import { resolveAccount } from '../utils/tootAction'
+import i18n from '../utils/i18n'
 moment.locale('ja')
 moment.tz.setDefault('Asia/Tokyo')
 const renderers = {
@@ -31,7 +32,7 @@ const renderers = {
 	}),
 }
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
-	const [openUrl, setOpenUrl] = useState('https://toot.thedesk.top')
+	const [openUrl, setOpenUrl] = useState<string | null>(null)
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
@@ -41,7 +42,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				</TouchableOpacity>
 			),
 			headerRight: () => (
-				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10 }}>
+				<TouchableOpacity onPress={() => openUrl && WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10 }}>
 					<MaterialIcons name="open-in-browser" size={30} />
 				</TouchableOpacity>
 			),
@@ -83,10 +84,10 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				},
 				async (buttonIndex) => {
 					const acct = accts[buttonIndex]
-					setRootLoading('検索中')
+					setRootLoading(i18n.t('検索中'))
 					const newAcct = await resolveAccount(acct.id, url)
 					setRootLoading(null)
-					if (!newAcct) return Alert.alert('Error', 'このアカウントでは参照できませんでした')
+					if (!newAcct) return Alert.alert('Error', i18n.t('このアカウントでは参照できませんでした'))
 					navigation.replace('AccountDetails', { at: acct.at, domain: acct.domain, notification: false, acctId: acct.id, id: newAcct.id })
 				}
 			)
@@ -167,11 +168,17 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 
 	const accountAction = () => {
 		const { following, requested, muting, blocking, followed_by } = relationship
-		const options = [following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー', muting ? 'ミュート解除' : 'ミュート', blocking ? 'ブロック解除' : 'ブロック', 'リスト管理', 'キャンセル']
+		const options = [
+			i18n.t(following ? 'フォロー解除' : requested ? 'リクエスト解除' : 'フォロー'),
+			i18n.t(muting ? 'ミュート解除' : 'ミュート'),
+			i18n.t(blocking ? 'ブロック解除' : 'ブロック'),
+			i18n.t('リスト管理'),
+			i18n.t('キャンセル')
+		]
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options,
-				title: followed_by ? 'フォローされています' : 'フォローされていません',
+				title: i18n.t(followed_by ? 'フォローされています' : 'フォローされていません'),
 				destructiveButtonIndex: 2,
 				cancelButtonIndex: options.length - 1,
 				anchor: anchor || undefined
@@ -179,7 +186,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			async (buttonIndex) => {
 				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id })
 				if (buttonIndex === 4) return true
-				const a = await Alert.promise('確認', `${options[buttonIndex]}します。よろしいですか？`, Alert.UNSAVE)
+				const a = await Alert.promise(i18n.t('確認'), i18n.t('%tします。よろしいですか？', { t: options[buttonIndex] }), Alert.UNSAVE)
 				if (a === 1) {
 					try {
 						const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
@@ -253,7 +260,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 						<Text style={{ color: 'white' }}>
 							→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
 						</Text>
-						<Text style={{ color: 'white', fontSize: 8 }}>タップしてアクション</Text>
+						<Text style={{ color: 'white', fontSize: 8 }}>{i18n.t('タップしてアクション')}</Text>
 						<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
 					</TouchableOpacity>}
 					<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
@@ -284,7 +291,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				</View>
 				<SegmentedControl
 					style={{ marginVertical: 15 }}
-					values={[`${account.statuses_count}トゥート`, `${account.following_count}フォロー`, `${account.followers_count}フォロワー`]}
+					values={[`${account.statuses_count}${i18n.t('トゥート')}`, `${account.following_count}${i18n.t('フォロー')}`, `${account.followers_count}${i18n.t('フォロワー')}`]}
 					selectedIndex={selectedIndex}
 					onChange={(event) => {
 						setSelectedIndex(event.nativeEvent.selectedSegmentIndex)

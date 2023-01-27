@@ -14,11 +14,12 @@ import Account from '../components/Account'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Toot from '../components/Toot'
 import Card from '../components/Card'
+import i18n from '../utils/i18n'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Search'>) {
     const theme = useColorScheme()
     const isDark = theme === 'dark'
-	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
-	const styles = createStyle(deviceWidth, deviceHeight)
+    const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
+    const styles = createStyle(deviceWidth, deviceHeight)
     const [loading, setLoading] = useState<boolean>(true)
     const [mode, setMode] = useState<'trend' | 'result'>('trend')
     const [account, setAccount] = useState<string>('')
@@ -115,7 +116,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: account, acctName: accountTxt, activated: true, key: `hashtag ${account} some`, timelineData: { target: item.name } } })
         }}>
             <Text>#{item.name}</Text>
-            <Text>過去{history.length}日に{n}人が{m}回利用</Text>
+            <Text>{i18n.t('過去%a日に%b人が%c回利用', { a: history.length, b: n, c: m })}</Text>
             <View style={{ height: 5 }} />
             <View style={commonStyle.separator} />
         </TouchableOpacity>
@@ -129,8 +130,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     navigation={navigation}
                     deletable={false}
                     key={`search ${item.id}`}
-                    txtAction={() => true} 
-                    width={deviceWidth}    
+                    txtAction={() => true}
+                    width={deviceWidth}
                     tlId={-1}
                 />
                 <View style={commonStyle.separator} />
@@ -161,24 +162,24 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     return (
         <View style={{ padding: 5, flex: 1 }}>
             <TouchableOpacity onPress={() => selectAcct()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
-                <MaterialIcons style={{paddingTop: 3}} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
+                <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
             </TouchableOpacity>
             <View style={commonStyle.horizonal}>
-                <TextInput placeholder="検索" onChangeText={(text) => setQ(text)} style={[styles.form]} value={q} />
-                <Button title="検索" onPress={async () => search()} icon="search" style={{ width: '29%', marginLeft: '1%' }} />
+                <TextInput placeholder={i18n.t('検索')} onChangeText={(text) => setQ(text)} style={[styles.form]} value={q} />
+                <Button title={i18n.t('検索')} onPress={async () => search()} icon="search" style={{ width: '29%', marginLeft: '1%' }} />
             </View>
             <View style={{ height: 5 }} />
             {mode === 'result' ? <SegmentedControl
                 style={{ marginVertical: 15 }}
-                values={[`ハッシュタグ`, `トゥート`, `アカウント`]}
+                values={[i18n.t(`ハッシュタグ`), i18n.t(`トゥート`), i18n.t(`アカウント`)]}
                 selectedIndex={selectedIndex}
                 onChange={(event) => {
                     setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
                 }}
             /> : <SegmentedControl
                 style={{ marginVertical: 15 }}
-                values={[`ハッシュタグ`, `トゥート`, `ディレクトリ`, `リンク`]}
+                values={[i18n.t(`ハッシュタグ`), i18n.t(`トゥート`), i18n.t(`ディレクトリ`), i18n.t(`リンク`)]}
                 selectedIndex={selectedIndex}
                 onChange={(event) => {
                     loadTrends(account, event.nativeEvent.selectedSegmentIndex)
@@ -186,22 +187,22 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             />}
             {loading && <Text>Loading...</Text>}
             {mode === 'trend' && selectedIndex === 2 && <View>
-                <Text>{directoryOrder === 'active' ? '最近の活動順' : '新着順'}, {directoryLocal ? 'ローカルのみ' : '連合すべて'}</Text>
+                <Text>{directoryOrder === 'active' ? i18n.t('最近の活動順') : i18n.t('新着順')}, {directoryLocal ? i18n.t('ローカルのみ') : i18n.t('連合すべて')}</Text>
                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                    <Button title="最近の活動順" onPress={() => setDirectoryOrder('active')} style={styles.dBtn} disabled={directoryOrder === 'active'} />
-                    <Button title="新着順" onPress={() => setDirectoryOrder('new')} style={styles.dBtn} disabled={directoryOrder === 'new'} />
+                    <Button title={i18n.t('最近の活動順')} onPress={() => setDirectoryOrder('active')} style={styles.dBtn} disabled={directoryOrder === 'active'} />
+                    <Button title={i18n.t('新着順')} onPress={() => setDirectoryOrder('new')} style={styles.dBtn} disabled={directoryOrder === 'new'} />
                 </View>
                 <View style={{ height: 5 }} />
                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                    <Button title="ローカル" onPress={() => setDirectoryLocal(true)} style={styles.dBtn} disabled={directoryLocal} />
-                    <Button title="連合" onPress={() => setDirectoryLocal(false)} style={styles.dBtn} disabled={!directoryLocal} />
+                    <Button title={i18n.t('ローカル')} onPress={() => setDirectoryLocal(true)} style={styles.dBtn} disabled={directoryLocal} />
+                    <Button title={i18n.t('連合')} onPress={() => setDirectoryLocal(false)} style={styles.dBtn} disabled={!directoryLocal} />
                 </View>
                 <View style={{ height: 5 }} />
             </View>}
-            {selectedIndex === 0 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={tags} keyExtractor={(item) => item.name} renderItem={renderTag} />}
-            {selectedIndex === 1 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={toots} keyExtractor={(item) => item.id} renderItem={renderToot} />}
-            {selectedIndex === 2 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={users} keyExtractor={(item) => item.id} renderItem={renderUser} />}
-            {selectedIndex === 3 && <FlatList ListEmptyComponent={() => <Text>データがありません</Text>} data={cards} keyExtractor={(item) => item.url} renderItem={renderCard} />}
+            {selectedIndex === 0 && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={tags} keyExtractor={(item) => item.name} renderItem={renderTag} />}
+            {selectedIndex === 1 && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={toots} keyExtractor={(item) => item.id} renderItem={renderToot} />}
+            {selectedIndex === 2 && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={users} keyExtractor={(item) => item.id} renderItem={renderUser} />}
+            {selectedIndex === 3 && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={cards} keyExtractor={(item) => item.url} renderItem={renderCard} />}
 
         </View>
     )

@@ -6,6 +6,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { AccountName, emojify } from './AccountName'
 import { commonStyle } from '../utils/styles'
 import { statusPostAcct as statusPost } from '../utils/changeStatus'
+import i18n from '../utils/i18n'
 interface FromTimelineToToot {
     acctId: string
     account: M.Account
@@ -27,8 +28,8 @@ export default (props: FromTimelineToToot) => {
                 <AccountName account={account} width={width} />
             </TouchableOpacity>
             {
-        isFR && statusPost ? <View style={commonStyle.horizonal}><Button onPress={() => statusPost('authorize', acctId, account.id)} title="承認" icon="check" style={styles.btn} />
-            <Button onPress={() => statusPost('reject', acctId, account.id)} title="拒否" icon="close" style={styles.btn} /></View> : null
+        isFR && statusPost ? <View style={commonStyle.horizonal}><Button onPress={() => statusPost('authorize', acctId, account.id)} title={i18n.t('承認')} icon="check" style={styles.btn} />
+            <Button onPress={() => statusPost('reject', acctId, account.id)} title={i18n.t('拒否')} icon="close" style={styles.btn} /></View> : null
     }
         </View >
     )

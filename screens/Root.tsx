@@ -21,6 +21,7 @@ import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
 import { commonStyle } from '../utils/styles'
 import { refresh } from '../utils/login'
+import i18n from '../utils/i18n'
 type IConfigType = keyof IConfig
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Root'>) {
@@ -120,7 +121,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				setInsertText(text)
 				setTxtActionId(`${type}:${id}`)
 			} catch (e: any) {
-				const r = await Alert.promise(`Error ~v4.0.0`, '編集非対応のサーバーの可能性があります。「削除して再編集」を実行しますか？', Alert.DELETE)
+				const r = await Alert.promise(`Error ~v4.0.0`, i18n.t('編集非対応のサーバーの可能性があります。「削除して再編集」を実行しますか？'), Alert.DELETE)
 				if (r === 0) return
 				const data = await api.deleteV1Status(acct.domain, acct.at, id)
 				const text = data.text || stripTags(data.content)

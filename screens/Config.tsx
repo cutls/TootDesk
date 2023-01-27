@@ -11,6 +11,7 @@ import deepClone from '../utils/deepClone'
 import { commonStyle } from '../utils/styles'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useKeyboard } from '../utils/keyboard'
+import i18n from '../utils/i18n'
 type IConfigType = keyof IConfig
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Config'>) {
     const [config, setConfig] = useState(configInit)
@@ -110,34 +111,34 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     return (
         <View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
             <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', padding: 10 }]}>
-                <Text style={styles.header}>設定</Text>
-                <Button title="完了" onPress={() => navigation.replace('Root', { refresh: true })} style={{ marginVertical: 10 }} />
+                <Text style={styles.header}>{i18n.t('設定')}</Text>
+                <Button title={i18n.t('完了')} onPress={() => navigation.replace('Root', { refresh: true })} style={{ marginVertical: 10 }} />
             </View>
             <ScrollView style={styles.container}>
-                <Text style={styles.header}>タイムラインの設定</Text>
-                <Text style={styles.title}>スクリーンあたりのカラム数</Text>
-                <Text>1(スマホ向け)〜6(タブレット向け)</Text>
+                <Text style={styles.header}>{i18n.t('タイムラインの設定')}</Text>
+                <Text style={styles.title}>{i18n.t('スクリーンあたりのカラム数')}</Text>
+                <Text>1({i18n.t('スマホ向け')})〜6({i18n.t('タブレット向け')})</Text>
                 <TextInput style={styles.form} value={tlPerScreen.toString()} onChangeText={(t) => saveTlPerScreen(t)} keyboardType="number-pad" />
-                <Text style={styles.title}>絶対時間を表示する</Text>
+                <Text style={styles.title}>{i18n.t('絶対時間を表示する')}</Text>
                 <SwitchComponent configKey="useAbsoluteTime" />
-                <Text style={styles.title}>相対時間を表示する</Text>
+                <Text style={styles.title}>{i18n.t('相対時間を表示する')}</Text>
                 <SwitchComponent configKey="useRelativeTime" />
-                <Text style={styles.title}>viaを表示する</Text>
+                <Text style={styles.title}>{i18n.t('viaを表示する')}</Text>
                 <SwitchComponent configKey="showVia" />
-                <Text style={styles.title}>アイコンのアニメーション表示</Text>
+                <Text style={styles.title}>{i18n.t('アイコンのアニメーション表示')}</Text>
                 <SwitchComponent configKey="showGif" />
-                <Text style={styles.title}>画像の高さ設定</Text>
+                <Text style={styles.title}>{i18n.t('画像の高さ設定')}</Text>
                 <TextInput style={styles.form} value={imageHeight.toString()} onChangeText={(t) => saveImageHeight(t)} keyboardType="number-pad" />
-                <Text style={styles.title}>リアクション数を表示</Text>
+                <Text style={styles.title}>{i18n.t('リアクション数を表示')}</Text>
                 <SwitchComponent configKey="showReactedCount" />
-                <Text style={styles.title}>長文自動折り畳み</Text>
+                <Text style={styles.title}>{i18n.t('長文自動折り畳み')}</Text>
                 <View style={styles.horizonal}>
                     <TextInput style={[styles.form, { width: 100 }]} value={letters.toString()} onChangeText={(t) => saveAutoFold(t, 'letters')} keyboardType="number-pad" />
-                    <Text style={styles.alongInput}>バイト</Text>
+                    <Text style={styles.alongInput}>{i18n.t('バイト')}</Text>
                     <TextInput style={[styles.form, { width: 100 }]} value={lines.toString()} onChangeText={(t) => saveAutoFold(t, 'lines')} keyboardType="number-pad" />
-                    <Text style={styles.alongInput}>行(改行数)</Text>
+                    <Text style={styles.alongInput}>{i18n.t('行(改行数)')}</Text>
                 </View>
-                <Text style={styles.title}>アクションボタンの大きさ</Text>
+                <Text style={styles.title}>{i18n.t('アクションボタンの大きさ')}</Text>
                 <View style={[commonStyle.horizonal, { alignItems: 'center' }]}>
                     <Text style={{ width: 20, height: 39, paddingTop: 12 }}>{actionBtnSize}</Text>
                     <FontAwesome

@@ -3,6 +3,7 @@ import * as S from '../interfaces/Storage'
 import * as api from './api'
 import * as storage from './storage'
 import * as Alert from './alert'
+import i18n from './i18n'
 type ITootAction = 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete' | 'pin' | 'unpin' | 'bookmark' | 'unbookmark'
 
 export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>, showAlert?: boolean) => {
@@ -37,31 +38,31 @@ export const statusPost = async (action: ITootAction, id: string, acctId: string
             const data = await api.postV1UnBookmark(acct.domain, acct.at, id)
         }
         if (changeStatus) changeStatus({ is: positive, ct })
-        if (showAlert) Alert.alert('操作完了', `操作"${actionToLocale(action)}"が完了しました`)
+        if (showAlert) Alert.alert('操作完了', i18n.t(`操作"%t"が完了しました`, { t: actionToLocale(action) }))
     } catch (e) {
-        Alert.alert('エラー', `${e}`)
+        Alert.alert(i18n.t('エラー'), `${e}`)
         console.error(e)
     }
 }
 const actionToLocale = (action: ITootAction) => {
     if (action === 'delete') {
-        return '削除'
+        return i18n.t('削除')
     } else if (action === 'boost') {
-        return 'ブースト'
+        return i18n.t('ブースト')
     } else if (action === 'fav') {
-        return 'お気に入り登録'
+        return i18n.t('お気に入り登録')
     } else if (action === 'unboost') {
-        return 'ブースト解除'
+        return i18n.t('ブースト解除')
     } else if (action === 'unfav') {
-        return 'お気に入り解除'
+        return i18n.t('お気に入り解除')
     } else if (action === 'pin') {
-        return 'ピン留め'
+        return i18n.t('ピン留め')
     } else if (action === 'unpin') {
-        return 'ピン留め解除'
+        return i18n.t('ピン留め解除')
     } else if (action === 'bookmark') {
-        return 'ブックマーク'
+        return i18n.t('ブックマーク')
     } else if (action === 'unbookmark') {
-        return 'ブックマーク解除'
+        return i18n.t('ブックマーク解除')
     }
 }
 export const statusPostAcct = async (action: 'authorize' | 'reject', acctId: string, id: string) => {
@@ -72,9 +73,9 @@ export const statusPostAcct = async (action: 'authorize' | 'reject', acctId: str
         } else if (action === 'reject') {
             const data = await api.postV1FRReject(acct.domain, acct.at, id)
         }
-        Alert.alert('Success', '成功しました(拒否した場合でも一覧からは自動では消えません。)')
+        Alert.alert('Success', i18n.t('成功しました(拒否した場合でも一覧からは自動では消えません。)'))
     } catch (e) {
-        Alert.alert('エラー', `${e}`)
+        Alert.alert(i18n.t('エラー'), `${e}`)
         console.error(e)
     }
 }

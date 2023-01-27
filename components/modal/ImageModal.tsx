@@ -9,6 +9,7 @@ import PagerView from 'react-native-pager-view'
 import * as MediaLibrary from 'expo-media-library'
 import * as FileSystem from 'expo-file-system'
 import * as Alert from '../../utils/alert'
+import i18n from '../../utils/i18n'
 interface FromRootToImageModal {
 	url: string[]
 	i: number
@@ -35,7 +36,7 @@ export default (props: FromRootToImageModal) => {
 		const { status } = await MediaLibrary.requestPermissionsAsync()
 
 		if (status === 'denied') {
-			Alert.alert('権限エラー', '写真フォルダへのアクセス権限が無いため、画像保存できません。')
+			Alert.alert(i18n.t('権限エラー'), i18n.t('写真フォルダへのアクセス権限が無いため、画像保存できません。'))
 		}
 		if (!files) return false
 		const downloadResumable = FileSystem.createDownloadResumable(url, FileSystem.cacheDirectory + files[0], {})
@@ -45,10 +46,10 @@ export default (props: FromRootToImageModal) => {
 			const url = res.uri
 
 			const asset = await MediaLibrary.createAssetAsync(url)
-			Alert.alert('完了', '写真フォルダに保存しました')
+			Alert.alert(i18n.t('完了'), i18n.t('写真フォルダに保存しました'))
 			setLoading(false)
 		} catch (e: any) {
-			Alert.alert('権限エラー', '失敗しました。一つ左のボタンからブラウザを開いて、長押しして保存してください。')
+			Alert.alert(i18n.t('権限エラー'), i18n.t('失敗しました。一つ左のボタンからブラウザを開いて、長押しして保存してください。'))
 			setLoading(false)
 			console.error(e)
 		}

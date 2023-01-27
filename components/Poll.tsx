@@ -10,6 +10,7 @@ import moment from 'moment'
 import deepClone from '../utils/deepClone'
 import * as storage from '../utils/storage'
 import * as api from '../utils/api'
+import i18n from '../utils/i18n'
 interface FromTootToPoll {
     acctId: string
     poll: M.Poll
@@ -78,12 +79,12 @@ export default (props: FromTootToPoll) => {
                     )}
                         <View style={[commonStyle.horizonal, { marginVertical: 10 }]}>
                             <Text style={{ color: '#9a9da1' }}>{poll.votes_count}票{poll.multiple ? `(${poll.voters_count}人)` : ''}</Text>
-                            {poll.expired ? <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>終了</Text> : <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{moment(poll.expires_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
+                            {poll.expired ? <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{i18n.t('終了')}</Text> : <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{moment(poll.expires_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
                             <TouchableOpacity onPress={() => refresh()}>
-                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>更新</Text>
+                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>{i18n.t('更新')}</Text>
                             </TouchableOpacity>
                             {!poll.voted && !poll.expired && <TouchableOpacity onPress={() => setShowResult(false)}>
-                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>投票する</Text>
+                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>{i18n.t('投票する')}</Text>
                             </TouchableOpacity>}
                         </View>
                     </>
@@ -94,15 +95,15 @@ export default (props: FromTootToPoll) => {
                                 <Text>{d.title}</Text>
                             </TouchableOpacity>
                         )}
-                        {poll.multiple && <Button title="投票" onPress={() => pollMultiple()} />}
+                        {poll.multiple && <Button title={i18n.t('投票')} onPress={() => pollMultiple()} />}
                         <View style={[commonStyle.horizonal, { marginVertical: 10 }]}>
-                            <Text style={{ color: '#9a9da1' }}>{poll.votes_count}票{poll.multiple ? `(${poll.voters_count}人)` : ''}</Text>
+                            <Text style={{ color: '#9a9da1' }}>{poll.votes_count}{i18n.t('票')}{poll.multiple ? `(${poll.voters_count}${i18n.t('人')})` : ''}</Text>
                             <Text style={{ color: '#9a9da1', marginHorizontal: 5 }}>{moment(poll.expires_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>
                             <TouchableOpacity onPress={() => refresh()}>
-                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>更新</Text>
+                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>{i18n.t('更新')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setShowResult(true)}>
-                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>結果だけ見る</Text>
+                                <Text style={{ color: '#9a9da1', textDecorationLine: 'underline', marginHorizontal: 5 }}>{i18n.t('結果だけ見る')}</Text>
                             </TouchableOpacity>
                         </View>
                     </>

@@ -10,6 +10,7 @@ import deepClone from '../utils/deepClone'
 import TimelineProps from '../interfaces/TimelineProps'
 import { langsArray, localeObject } from '../interfaces/Languages'
 import { commonStyle } from '../utils/styles'
+import i18n from '../utils/i18n'
 export default function LangFilter({ navigation, route }: StackScreenProps<ParamList, 'LangFilter'>) {
     const tlId = route.params.tlId
     const [langs, setLangs] = useState<string[]>([])
@@ -60,8 +61,8 @@ export default function LangFilter({ navigation, route }: StackScreenProps<Param
         <View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
             <View style={styles.container}>
                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', padding: 10 }]}>
-                    <Text style={styles.header}>タイムラインで表示しない言語</Text>
-                    <Button title="完了" onPress={() => save()} style={{ marginVertical: 10 }} />
+                    <Text style={styles.header}>{i18n.t('タイムラインで表示しない言語')}</Text>
+                    <Button title={i18n.t('完了')} onPress={() => save()} style={{ marginVertical: 10 }} />
                 </View>
                 <View style={{ height: deviceHeight - 130 }}>
                     <FlatList data={langsArray} keyExtractor={(item) => item.toString()} renderItem={({ item }: { item: string }) =>

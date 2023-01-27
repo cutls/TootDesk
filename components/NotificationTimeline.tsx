@@ -14,6 +14,7 @@ import { FontAwesome, MaterialCommunityIcons, MaterialIcons } from '@expo/vector
 import { AccountName } from './AccountName'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
+import i18n from '../utils/i18n'
 
 interface FromRootToTimeline {
     acctId: string
@@ -48,15 +49,15 @@ export default (props: FromRootToTimeline) => {
         if (item.type === 'mention') icon = <MaterialCommunityIcons size={27} name="reply" style={styles.icon} color="#1f961b" />
         if (item.type === 'status') icon = <MaterialIcons size={27} name="person" style={styles.icon} color="#1b3896" />
         if (item.type === 'poll') icon = <MaterialIcons size={27} name="poll" style={styles.icon} color="#651470" />
-        let label = 'アクション'
-        if (item.type === 'favourite') label = 'お気に入り登録'
-        if (item.type === 'reblog') label = 'ブースト'
-        if (item.type === 'mention') label = '返信'
-        if (item.type === 'status') label = '投稿'
-        if (item.type === 'poll') label = '投票を終了'
-        if (item.type === 'follow') label = 'フォロー'
-        if (item.type === 'follow_request') label = 'フォローリクエスト'
-        if (item.type === 'admin.sign_up') label = 'サインアップ'
+        let label = i18n.t('アクション')
+        if (item.type === 'favourite') label = i18n.t('お気に入り登録')
+        if (item.type === 'reblog') label = i18n.t('ブースト')
+        if (item.type === 'mention') label = i18n.t('返信')
+        if (item.type === 'status') label = i18n.t('投稿')
+        if (item.type === 'poll') label = i18n.t('投票を終了')
+        if (item.type === 'follow') label = i18n.t('フォロー')
+        if (item.type === 'follow_request') label = i18n.t('フォローリクエスト')
+        if (item.type === 'admin.sign_up') label = i18n.t('サインアップ')
 
         if (item.type === 'follow' || item.type === 'follow_request' || item.type === 'admin.sign_up') icon = <MaterialIcons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
         if (item.status) return (
@@ -64,7 +65,7 @@ export default (props: FromRootToTimeline) => {
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
                     <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
-                    <Text>さんが{label}</Text>
+                    <Text>{i18n.t('さんが')}{label}</Text>
                 </TouchableOpacity>
                 <Toot
                     toot={item.status}
@@ -88,7 +89,7 @@ export default (props: FromRootToTimeline) => {
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>
                     {icon}
                     <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
-                    <Text>さんが{label}</Text>
+                    <Text>{i18n.t('さんが')}{label}</Text>
                 </TouchableOpacity>
                 <Account width={deviceWidth} account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
                 <View style={commonStyle.separator} />

@@ -9,6 +9,7 @@ import { commonStyle } from '../../utils/styles'
 import * as storage from '../../utils/storage'
 import * as S from '../../interfaces/Storage'
 import * as M from '../../interfaces/MastodonApiReturns'
+import i18n from '../../utils/i18n'
 let ios = true
 if (Platform.OS === 'android') ios = false
 export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct }: any) {
@@ -77,7 +78,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
     return (
         <Modal visible={modalVisible} presentationStyle={"formSheet"} animationType="slide">
             <View style={[styles.top, commonStyle.horizonal]}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>カスタム絵文字</Text>
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{i18n.t('カスタム絵文字')}</Text>
                 <TouchableOpacity onPress={() => dismiss()}>
                     <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>

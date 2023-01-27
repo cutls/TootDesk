@@ -6,6 +6,7 @@ import { Platform } from 'react-native'
 import * as api from './api'
 import * as Alert from './alert'
 import { decode as atob, encode as btoa } from 'base-64'
+import i18n from './i18n'
 const main = async (result: ImagePicker.ImagePickerResult, domain: string, at: string) => {
     try {
         console.log(result, domain, at)
@@ -39,7 +40,7 @@ async function upload(result: any, domain: string, at: string) {
     if (uri.match(/\.mov$/i)) ext = '.mov'
     if (uri.match(/\.mp3$/i)) ext = '.mp3'
     if (uri.match(/\.wav$/i)) ext = '.wav'
-    if (!mime || !ext) return Alert.alert('未対応の形式', 'このソフトウェアではサポートされていないファイル形式です。')
+    if (!mime || !ext) return Alert.alert(i18n.t('未対応の形式'), i18n.t('このソフトウェアではサポートされていないファイル形式です。'))
     const formData = new FormData() as any
     formData.append('file', {
         uri: uri,
@@ -62,7 +63,7 @@ export const pickImage = async (setUploading: (value: any) => void, callback: an
         if (Platform.OS !== 'web') {
             const { status } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY)
             if (status === 'denied') {
-                Alert.alert('権限エラー', '写真フォルダへのアクセス権限が無いため、画像を添付できません。')
+                Alert.alert(i18n.t('権限エラー'), i18n.t('写真フォルダへのアクセス権限が無いため、画像を添付できません。'))
             }
         }
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -88,7 +89,7 @@ export const takeImage = async (setUploading: (value: any) => void, callback: an
         if (Platform.OS !== 'web') {
             const status = await Permissions.askAsync(Permissions.CAMERA)
             if (status.status === 'denied') {
-                Alert.alert('権限エラー', '写真撮影の権限が無いため、画像を添付できません。')
+                Alert.alert(i18n.t('権限エラー'), i18n.t('写真撮影の権限が無いため、画像を添付できません。'))
             }
         }
         const result = await ImagePicker.launchCameraAsync({

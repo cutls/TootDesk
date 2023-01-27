@@ -21,6 +21,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { SetConfigContext } from '../../utils/context/config'
 import deepClone from '../../utils/deepClone'
 import { useKeyboard } from '../../utils/keyboard'
+import i18n from '../../utils/i18n'
 
 let ios = true
 if (Platform.OS != 'ios') ios = false
@@ -36,7 +37,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
     const theme = useColorScheme()
     const isDark = theme === 'dark'
-	const [keyboardHeight] = useKeyboard()
+    const [keyboardHeight] = useKeyboard()
     const styles = createStyle(deviceWidth, deviceHeight, isDark, keyboardHeight)
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const useWidth = tablet ? 550 : deviceWidth
@@ -122,8 +123,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         setMode('select')
     }
     const delTl = async (key: string) => {
-        if (timelines.length < 2) return Alert.alert('カラム数エラー', 'カラムは1つ以上必要です')
-        const a = await Alert.promise('カラムを削除します', 'この操作は取り消せません。', Alert.DELETE)
+        if (timelines.length < 2) return Alert.alert(i18n.t('カラム数エラー'), i18n.t('カラムは1つ以上必要です'))
+        const a = await Alert.promise(i18n.t('カラムを削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
         if (a === 1) {
             const cl = []
             for (const tl of timelines) {
@@ -158,7 +159,14 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const configOption = () =>
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: ['アカウントマネージャー', editMode ? '編集モード終了' : 'カラムの編集と削除', '検索', 'リスト管理', '設定', 'キャンセル'],
+                options: [
+                    i18n.t('アカウントマネージャー'),
+                    editMode ? i18n.t('編集モード終了') : i18n.t('カラムの編集と削除'),
+                    i18n.t('検索'),
+                    i18n.t('リスト管理'),
+                    i18n.t('設定'),
+                    i18n.t('キャンセル')
+                ],
                 cancelButtonIndex: 5,
                 anchor: anchor || undefined,
             },
@@ -183,7 +191,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         const tlId = timelines.findIndex((item) => item.key === key)
         ActionSheetIOS.showActionSheetWithOptions(
             {
-                options: [`読み上げ${timelines[tlId].config?.speech ? 'On' : 'Off'}`, '言語フィルター設定へ', 'キャンセル'],
+                options: [`${i18n.t('読み上げ')}${timelines[tlId].config?.speech ? 'On' : 'Off'}`, i18n.t('言語フィルター設定へ'), i18n.t('キャンセル')],
                 cancelButtonIndex: 2,
             },
             (buttonIndex) => {
@@ -261,9 +269,9 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                         <FlatList data={timelines} renderItem={renderItem}
                             keyExtractor={(item, index) => `${item.key}`} />
                         {editMode ?
-                            <Button title="完了" icon="done" onPress={() => save()} />
+                            <Button title={i18n.t('完了')} icon="done" onPress={() => save()} />
                             :
-                            <Button title="追加" icon="add" onPress={() => setMode('add')} />}
+                            <Button title={i18n.t('追加')} icon="add" onPress={() => setMode('add')} />}
                     </View> :
                         <View>
                             <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
@@ -271,30 +279,30 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
                             </TouchableOpacity>
                             <View style={{ height: 15 }} />
-                            <Text>長押しすると、カラムに追加せずに見ることができます</Text>
+                            <Text>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
                             <View style={{ height: 5 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="ホーム" onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
-                                <Button title="ローカル" onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
+                                <Button title={i18n.t('ホーム')} onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
+                                <Button title={i18n.t('ローカル')} onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
                             </View>
                             <View style={{ height: 10 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="連合" onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
-                                <Button title="統合" onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
+                                <Button title={i18n.t('連合')} onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
+                                <Button title={i18n.t('統合')} onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
                             </View>
                             <View style={{ height: 10 }} />
                             <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title="ブックマーク" onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
-                                <Button title="お気に入り" onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
+                                <Button title={i18n.t('ブックマーク')} onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
+                                <Button title={i18n.t('お気に入り')} onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
                             </View>
                             <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
-                                <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>リスト</Text>
+                                <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('リスト')}</Text>
                             </TouchableOpacity>
                             <View style={{ marginVertical: 5 }} />
-                            <Text>認証のないローカルタイムライン</Text>
+                            <Text>{i18n.t('認証のないローカルタイムライン')}</Text>
                             <View style={commonStyle.horizonal}>
-                                <TextInput placeholder="ドメイン*" onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
-                                <Button title="追加" onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                                <TextInput placeholder={`${i18n.t('ドメイン')}*`} onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
+                                <Button title={i18n.t('追加')} onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
                             </View>
                         </View>
                     }

@@ -12,6 +12,7 @@ interface AlertOptions {
     onDismiss?: () => void
 }
 import { Platform, Alert } from 'react-native'
+import i18n from './i18n'
 
 export const alert = (title: string, message?: string, buttons?: AlertButtonLegacy[], options?: AlertOptions) => {
     if (Platform.OS !== 'web') {
@@ -28,8 +29,8 @@ export const alert = (title: string, message?: string, buttons?: AlertButtonLega
         }
     }
 }
-export const UNSAVE: AlertButton[] = [{ text: 'キャンセル', style: 'cancel' }, { text: '続行', style: 'destructive' }]
-export const DELETE: AlertButton[] = [{ text: 'キャンセル', style: 'cancel' }, { text: '削除', style: 'destructive' },]
+export const UNSAVE: AlertButton[] = [{ text: i18n.t('キャンセル'), style: 'cancel' }, { text: i18n.t('続行'), style: 'destructive' }]
+export const DELETE: AlertButton[] = [{ text: i18n.t('キャンセル'), style: 'cancel' }, { text: i18n.t('削除'), style: 'destructive' },]
 export const promise = async (title: string, message: string, buttons: AlertButton[] | string[], options?: AlertOptions) => {
     return new Promise((resolve:  (value: number) => void, reject) => {
         const useButton = []

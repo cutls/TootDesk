@@ -14,6 +14,7 @@ import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
 import timelineLabel from '../utils/timelineLabel'
 import TimelineRoot from '../components/TimelineRoot'
+import i18n from '../utils/i18n'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'TimelineOnly'>) {
 	const { height, width } = useWindowDimensions()
 	const deviceWidth = width
@@ -33,8 +34,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		show: false,
 	})
 	const txtAction = (id: string, insertText: string, type: 'reply' | 'edit') => {
-		const action = type === 'reply' ? '返信' : '編集'
-		Alert.alert(action, `${action}するためには、まずこのタイムラインをピン留めしてください`)
+		const action = i18n.t(type === 'reply' ? '返信' : '編集')
+		Alert.alert(action, i18n.t(`%tするためには、まずこのタイムラインをピン留めしてください`, { t: action }))
 	}
 	const addTl = async () => {
 		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account

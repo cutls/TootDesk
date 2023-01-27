@@ -25,6 +25,7 @@ import { ImageModalContext } from '../utils/context/imageModal'
 import { SetConfigContext } from '../utils/context/config'
 import { resolveAccount, translate } from '../utils/tootAction'
 import { mb2xCount, stripTags } from '../utils/stringUtil'
+import i18n from '../utils/i18n'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed,
@@ -96,7 +97,7 @@ export default (props: FromTimelineToToot) => {
 		topComponent = (
 			<View style={styles.horizonal}>
 				<MaterialIcons name="push-pin" size={20} color={isDark ? 'white' : 'black'} />
-				<Text>ピン留めされた投稿</Text>
+				<Text>{i18n.t('ピン留めされた投稿')}</Text>
 			</View>
 		)
 	}
@@ -122,9 +123,17 @@ export default (props: FromTimelineToToot) => {
 	const actionSheet = (id: string) => {
 		if (acctId === 'noAuth') return navigation.navigate('Toot', { acctId, id: toot.id, notification: false, url: toot.url })
 		const isMine = deletable
-		const pinToggleNotation = isPined ? 'ピン留め解除' : 'ピン留め'
-		const bkm = isBookmarked ? 'ブックマーク解除' : 'ブックマーク'
-		const options = isMine ? ['詳細', bkm, '削除', pinToggleNotation, '編集', '他のアカウントで詳細', 'キャンセル'] : ['詳細', bkm, '他のアカウントで詳細', 'キャンセル']
+		const pinToggleNotation = i18n.t(isPined ? 'ピン留め解除' : 'ピン留め')
+		const bkm = i18n.t(isBookmarked ? 'ブックマーク解除' : 'ブックマーク')
+		const options = isMine ? [
+			i18n.t('詳細'),
+			bkm,
+			i18n.t('削除'),
+			pinToggleNotation,
+			i18n.t('編集'),
+			i18n.t('他のアカウントで詳細'),
+			i18n.t('キャンセル')
+		] : [i18n.t('詳細'), bkm, i18n.t('他のアカウントで詳細'), i18n.t('キャンセル')]
 		ActionSheetIOS.showActionSheetWithOptions(
 			{
 				options,
@@ -167,13 +176,13 @@ export default (props: FromTimelineToToot) => {
 		} else if (acctDetector) {
 			const acctNotation = `${acctDetector[2]}@${acctDetector[1]}`
 			try {
-				setLoading('アカウントを検索しています')
+				setLoading(i18n.t('アカウントを検索しています'))
 				const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
 				const { domain, at } = acct
 				const data = await resolveAccount(acctId, acctNotation)
 				setLoading('')
 				// { at?: string, notfId?: string, domain?: string, notification: boolean, acctId?: string, id?: string }
-				if (!data) throw 'アカウントが見つかりませんでした'
+				if (!data) throw i18n.t('アカウントが見つかりませんでした')
 				navigation.navigate('AccountDetails', { at, domain, notification: false, acctId, id: data.id })
 			} catch (e) {
 				setLoading('')
@@ -185,7 +194,7 @@ export default (props: FromTimelineToToot) => {
 	}
 	if (tlId >= 0 && toot.filtered?.length) {
 		return <TouchableOpacity style={styles.container} onPress={() => actionSheet(toot.id)}>
-			<Text>フィルターされました{toot.filtered?.map((t) => t.filter.title).join(',')}</Text>
+			<Text>{i18n.t('フィルターされました')}{toot.filtered?.map((t) => t.filter.title).join(',')}</Text>
 		</TouchableOpacity>
 	}
 	const appData = hasApp(toot.application) ? toot.application : null
@@ -214,14 +223,14 @@ export default (props: FromTimelineToToot) => {
 					</View>
 					<View style={[styles.horizonal, styles.sameHeight]}>
 						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
-							@{toot.account.acct} {config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format("'YY年M月D日 HH:mm:ss")}
+							@{toot.account.acct} {config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}
 							{config.showVia && !!appData && appData.name}
 						</Text>
 					</View>
 					{(!!toot.spoiler_text || autoFold) && <View style={commonStyle.horizonal}>
 						<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text || afSpoiler}</Text>
 						<TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
-							<Text>{isCwShow ? '隠す' : (autoFold ? '全文' : '見る')}</Text>
+							<Text>{isCwShow ? i18n.t('隠す') : (autoFold ? i18n.t('全文') : i18n.t('見る'))}</Text>
 						</TouchableOpacity>
 					</View>}
 					{(!toot.spoiler_text && !autoFold) || isCwShow ? <TootContent
@@ -231,7 +240,7 @@ export default (props: FromTimelineToToot) => {
 					{toot.language && toot.language !== 'ja' &&
 						<>
 							<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={{ marginVertical: 10 }}>
-								<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>翻訳({toot.language})</Text>
+								<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('翻訳')}({toot.language})</Text>
 							</TouchableOpacity>
 							<TootContent
 								content={translatedToot}
