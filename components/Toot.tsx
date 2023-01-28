@@ -66,21 +66,28 @@ export default (props: FromTimelineToToot) => {
 	const showMedia = (media: M.Attachment[], isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
+		const availableMedia = [] as string[]
 		for (const mid of media) {
-			mediaUrl.push(mid.url)
+			const isMediaProxy = !!mid.url.match(/media_proxy/)
+			mediaUrl.push(isMediaProxy ? (mid.remote_url || mid.url) : mid.url)
 		}
 		let i = 0
 		for (const mid of media) {
 			let cloneI = parseInt(i.toString())
 			ret.push(
-				isSensitive ?
+				mid.url.match(/media_proxy/) || !mid.preview_url ?
 					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
-						<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
-						<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: config.imageHeight }} />
+						<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('プレビューはありません')}</Text>
 					</TouchableOpacity >
-					: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
-						<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
-					</TouchableOpacity>
+					:
+					isSensitive ?
+						<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
+							<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
+							<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: config.imageHeight }} />
+						</TouchableOpacity >
+						: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
+							<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
+						</TouchableOpacity>
 			)
 			i++
 		}
