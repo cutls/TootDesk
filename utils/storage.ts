@@ -41,14 +41,14 @@ export const pushItem = async (key: string, value: any) => {
 export const getCertainItem = async (key: string, needle: string, searchedValue: string) => {
     try {
         const data = await getItem(key)
-        if(!data) return false
+        if(!data) return null
         for (let item of data) {
             if (item[needle] === searchedValue) return item
         }
-        return false
+        return null
     } catch (e) {
         console.error(e)
-        return false
+        return null
     }
 }
 export const getIndexedItem = async (key: string, index: number) => {

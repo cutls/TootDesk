@@ -1,7 +1,7 @@
 import React, { RefObject, useEffect, useRef, useState } from 'react'
-import { Dimensions, StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, Platform } from 'react-native'
+import { StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle } from 'react-native'
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
@@ -13,11 +13,57 @@ import * as upload from '../utils/upload'
 import { useKeyboard } from '../utils/keyboard'
 import { isIPhoneX } from '../utils/statusBar'
 import { FlatList } from 'react-native-gesture-handler'
-import RNDateTimePicker, { IOSNativeProps } from '@react-native-community/datetimepicker'
-import moment from 'moment-timezone'
-import 'moment/locale/ja'
-import { commonStyle } from '../utils/styles'
 import i18n from '../utils/i18n'
+import { suggest } from '../utils/tootAction'
+import PostPoll from './PostPoll'
+import { commonStyle } from '../utils/styles'
+
+const initSuggest = {
+	"acct": "Cutls@fedibird.com",
+	"avatar": "https://2m.cutls.com/avatars/original/missing.png",
+	"avatar_static": "https://2m.cutls.com/avatars/original/missing.png",
+	"bot": false,
+	"created_at": "2019-08-18T00:00:00.000Z",
+	"discoverable": false,
+	"display_name": "",
+	"emojis": [],
+	"fields": [],
+	"followers_count": 4,
+	"following_count": 3,
+	"group": false,
+	"header": "https://2m.cutls.com/headers/original/missing.png",
+	"header_static": "https://2m.cutls.com/headers/original/missing.png",
+	"id": "107147305794268079",
+	"last_status_at": "2021-10-23",
+	"locked": true,
+	"note": "<p><span class=\"h-card\"><a href=\"https://1m.cutls.com/@Cutls\" class=\"u-url mention\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">@<span>Cutls</span></a></span></p>",
+	"statuses_count": 13,
+	"url": "https://fedibird.com/@Cutls",
+	"username": "Cutls",
+}
+const initSuggest2 = {
+	"acct": "Cutls@kirhisma.com",
+	"avatar": "https://2m.cutls.com/avatars/original/missing.png",
+	"avatar_static": "https://2m.cutls.com/avatars/original/missing.png",
+	"bot": false,
+	"created_at": "2019-08-18T00:00:00.000Z",
+	"discoverable": false,
+	"display_name": "",
+	"emojis": [],
+	"fields": [],
+	"followers_count": 4,
+	"following_count": 3,
+	"group": false,
+	"header": "https://2m.cutls.com/headers/original/missing.png",
+	"header_static": "https://2m.cutls.com/headers/original/missing.png",
+	"id": "107147305794268072",
+	"last_status_at": "2021-10-23",
+	"locked": true,
+	"note": "<p><span class=\"h-card\"><a href=\"https://1m.cutls.com/@Cutls\" class=\"u-url mention\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">@<span>Cutls</span></a></span></p>",
+	"statuses_count": 13,
+	"url": "https://fedibird.com/@Cutls",
+	"username": "Cutls",
+}
 
 interface FromRootToPost {
 	show: boolean
@@ -26,6 +72,9 @@ interface FromRootToPost {
 	insertText: string
 	txtActionId: string
 }
+const isEmoji = (item: any): item is M.CustomEmoji => item.shortcode
+const isAcct = (item: any): item is M.Account => item.acct
+const isTag = (item: any): item is M.Tag => item.name
 export default (props: FromRootToPost) => {
 	const { width, height } = useWindowDimensions()
 	const tablet = width > height ? height > 500 : width > 500
@@ -44,14 +93,7 @@ export default (props: FromRootToPost) => {
 	const [showCW, setShowCW] = useState(false)
 	const [showPoll, setShowPoll] = useState(false)
 	const txtAreaRef = useRef<TextInput>() as RefObject<TextInput>
-	const [poll1, setPoll1] = useState('')
-	const [poll2, setPoll2] = useState('')
-	const [poll3, setPoll3] = useState('')
-	const [poll4, setPoll4] = useState('')
-	const [multiplePoll, setMultiplePoll] = useState(false)
-	const [hiddenPoll, setHiddenPoll] = useState(false)
-	const [endPoll, setEndPoll] = useState(300)
-	const [pollDeadline, setPollDeadline] = useState(moment().add('24', 'hour').toDate())
+	const [poll, setPoll] = useState<R.Status['poll'] | null>(null)
 	const [CWText, setCWText] = useState('')
 	const [vis, setVis] = useState<IVisTxt>('public')
 	const [defaultVis, setDefaultVis] = useState<IVisTxt>('public')
@@ -61,11 +103,14 @@ export default (props: FromRootToPost) => {
 	const [accountListTxt, setAccountListTxt] = useState<string[]>([])
 	const [accountList, setAccountList] = useState<string[]>([])
 	const [uploaded, setUploaded] = useState<M.Media[]>([])
+	const [selection, setSelection] = useState({ start: 0, end: 0 })
+	const [suggested, setSuggested] = useState<M.CustomEmoji[] | M.Account[] | M.Search['hashtags']>([])
+	const [deleteTxt, setDeleteTxt] = useState('')
 	const [keyboardHeight] = useKeyboard()
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0) + (txtActionId ? 20 : 0)
+	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0) + (txtActionId ? 20 : 0) + (suggested.length ? 50 : 0)
 	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + addHeight + (tablet ? 50 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
@@ -82,7 +127,7 @@ export default (props: FromRootToPost) => {
 	const [anchorVis, setAnchorVis] = React.useState<null | number>(0)
 	const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
 	const [anchorMore, setAnchorMore] = React.useState<null | number>(0)
-	const [anchorEndPoll, setAnchorEndPoll] = React.useState<null | number>(0)
+	const [suggestLoading, setSuggestLoading] = React.useState(false)
 	useEffect(() => { setText(insertText) }, [insertText])
 	const selectVis = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
@@ -106,24 +151,6 @@ export default (props: FromRootToPost) => {
 			(buttonIndex) => {
 				if (buttonIndex === 0) setShowPoll(!showPoll)
 				if (buttonIndex === 1) Alert.alert('coming soon')
-			}
-		)
-
-	const endPollSet = () =>
-		ActionSheetIOS.showActionSheetWithOptions(
-			{
-				options: [i18n.t('5分'), i18n.t('30分'), i18n.t('1時間'), i18n.t('6時間'), i18n.t('1日'), i18n.t('3日'), i18n.t('7日'), i18n.t('キャンセル')],
-				anchor: anchorEndPoll || undefined,
-				cancelButtonIndex: 7
-			},
-			(buttonIndex) => {
-				if (buttonIndex === 0) setEndPoll(300)
-				if (buttonIndex === 1) setEndPoll(1800)
-				if (buttonIndex === 2) setEndPoll(3600)
-				if (buttonIndex === 3) setEndPoll(21600)
-				if (buttonIndex === 4) setEndPoll(86400)
-				if (buttonIndex === 5) setEndPoll(86400 * 3)
-				if (buttonIndex === 6) setEndPoll(86400 * 7)
 			}
 		)
 	const actionSheet = () =>
@@ -202,7 +229,7 @@ export default (props: FromRootToPost) => {
 		return cl
 	}
 	const closeToot = async (force?: boolean) => {
-		if(txtAreaRef.current?.isFocused()) return txtAreaRef.current?.blur()
+		if (txtAreaRef.current?.isFocused()) return txtAreaRef.current?.blur()
 		if (!force && (text || uploaded.length)) {
 			const alertPromise = await Alert.promise(i18n.t('変更を破棄'), i18n.t('未保存の変更があります'), [i18n.t('破棄して閉じる'), i18n.t('破棄せず閉じる'), i18n.t('キャンセル')] as string[])
 			if (alertPromise === 2) return
@@ -216,6 +243,7 @@ export default (props: FromRootToPost) => {
 		setUploading(false)
 		setUploaded([])
 		setVis(defaultVis)
+		setShowPoll(false)
 	}
 	const post = async () => {
 		const m = txtActionId.match(/^([^:]+):([^:]+)$/)
@@ -231,14 +259,7 @@ export default (props: FromRootToPost) => {
 			}
 			if (m && m[1] === 'reply') param.in_reply_to_id = m[2]
 			if (!acctObj) return
-			if (showPoll) {
-				param.poll = {
-					options: [poll1, poll2, poll3, poll4].filter((i) => !!i),
-					expires_in: endPoll,
-					multiple: multiplePoll,
-					hide_totals: hiddenPoll
-				}
-			}
+			if (showPoll) param.poll = poll || undefined
 			if (m && m[1] === 'edit') {
 				await api.putV1Statuses(acctObj.domain, acctObj.at, m[2], param)
 			} else {
@@ -251,6 +272,30 @@ export default (props: FromRootToPost) => {
 			setLoading(false)
 		}
 	}
+	const sSelect = (inputIt: string) => {
+		const firstRaw = text.slice(0, selection.start) || ''
+		const newReg = new RegExp(`${deleteTxt}.?\\s?$`)
+		const first = firstRaw.replace(newReg, '')
+		const end = text.slice(selection.start) || ''
+		setText(`${first}${inputIt}${end ? '' : ' '}${end}`)
+		txtAreaRef.current?.focus()
+	}
+	const renderSuggest = (item: M.CustomEmoji | M.Account | M.Tag) => {
+		if (isEmoji(item)) return <TouchableOpacity style={[commonStyle.horizonal, styles.sIT]} onPress={() => sSelect(`:${item.shortcode}:`)}><Image source={{ uri: item.url }} style={styles.sImg} /><Text style={styles.sTxt}>:{item.shortcode}:</Text></TouchableOpacity>
+		if (isTag(item)) return <TouchableOpacity style={[commonStyle.horizonal, styles.sIT]} onPress={() => sSelect(`#${item.name}`)}><Text style={styles.sTxt}>#{item.name}</Text></TouchableOpacity>
+		if (isAcct(item)) return <TouchableOpacity style={[commonStyle.horizonal, styles.sIT]} onPress={() => sSelect(`@${item.acct}`)}><Image source={{ uri: item.avatar }} style={styles.sImg} /><Text style={styles.sTxt}>@{item.acct}</Text></TouchableOpacity>
+		return null
+	}
+	useEffect(() => {
+		const main = async () => {
+			setSuggestLoading(true)
+			const data = await suggest(selection.start, text, acctObj?.id || '')
+			setSuggested(data[0])
+			setDeleteTxt(data[1])
+			setSuggestLoading(false)
+		}
+		main()
+	}, [selection])
 	return (
 		<Modal visible={show} animationType="slide" transparent={true}>
 			<Pressable onPress={() => closeToot()} style={styles.pressable}>
@@ -261,8 +306,12 @@ export default (props: FromRootToPost) => {
 						<TextInput ref={txtAreaRef} multiline numberOfLines={5} style={[styles.textarea, { height: inputHeight }]} placeholder={i18n.t('何か書いてください')} onContentSizeChange={(event) => {
 							setInputHeight(event.nativeEvent.contentSize.height)
 						}}
+							onSelectionChange={({ nativeEvent: { selection } }) => {
+								setSelection(selection)
+							}}
 							value={text}
-							onChangeText={(text) => setText(text)} />
+							onChangeText={(text) => setText(text)}
+						/>
 						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder={i18n.t('警告文')} value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 						<View style={styles.horizonal}>
 							<TouchableOpacity onPress={() => actionSheet()}>
@@ -273,6 +322,7 @@ export default (props: FromRootToPost) => {
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
+						{!!suggested.length && <FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} />}
 						{txtActionId ? <Text>{i18n.t('返信/編集モード')}</Text> : null}
 						<View style={styles.action}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
@@ -298,33 +348,8 @@ export default (props: FromRootToPost) => {
 								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()} ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
 							</TouchableOpacity>
 						</View>
-						{showPoll && <View>
-							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}1`} value={poll1} onChangeText={(text) => setPoll1(text)} />
-							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}2`} value={poll2} onChangeText={(text) => setPoll2(text)} />
-							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}3(${i18n.t('オプション')})`} value={poll3} onChangeText={(text) => setPoll3(text)} />
-							<TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}4(${i18n.t('オプション')})`} value={poll4} onChangeText={(text) => setPoll4(text)} />
-							<View style={[commonStyle.horizonal, { marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }]}>
-								<View>
-									<MaterialCommunityIcons name={multiplePoll ? 'checkbox-multiple-marked-outline' : 'checkbox-marked-outline'} size={20} color={isDark ? 'white' : 'black'} onPress={() => setMultiplePoll(!multiplePoll)} />
-								</View>
-								<View>
-									<TouchableOpacity onPress={() => endPollSet()} style={commonStyle.horizonal}>
-										<MaterialIcons name="timer" size={18} style={styles.icon} ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
-										<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{moment().add(endPoll, 'seconds').fromNow()}</Text>
-									</TouchableOpacity>
-								</View>
-							</View>
-							<View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-								<TouchableOpacity onPress={() => setHiddenPoll(!hiddenPoll)} style={commonStyle.horizonal}>
-									<MaterialCommunityIcons name={hiddenPoll ? 'checkbox-marked-outline' : 'crop-square'} size={18} color={isDark ? 'white' : 'black'} />
-									<Text>{i18n.t('終了まで票数を隠す')}</Text>
-								</TouchableOpacity>
-								<TouchableOpacity onPress={() => setShowPoll(false)} style={commonStyle.horizonal}>
-									<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('投票を削除')}</Text>
-								</TouchableOpacity>
-
-							</View>
-						</View>}
+						{showPoll &&
+							<PostPoll setPoll={setPoll} setShowPoll={setShowPoll} />}
 					</Pressable>
 				</View>
 			</Pressable>
@@ -399,6 +424,22 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean)
 			top: 0,
 			left: 0,
 			position: 'absolute',
+		},
+		sWrap: {
+			height: 80,
+			width: deviceWidth - 40,
+			marginTop: 10
+		},
+		sIT: {
+			height: 20
+		},
+		sImg: {
+			width: 20,
+			height: 20
+		},
+		sTxt: {
+			marginLeft: 5,
+			marginRight: 10
 		}
 	})
 }

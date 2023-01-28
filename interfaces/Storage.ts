@@ -1,3 +1,4 @@
+import * as M from './MastodonApiReturns'
 export type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
 export interface Account {
     id: string
@@ -11,4 +12,9 @@ export interface Account {
     defaultVis?: IVisTxt
     translationEnabled?: boolean
     streaming?: string
+}
+export interface Emoji {
+    domain: string
+    emojis: M.CustomEmoji[]
+    updated: number
 }

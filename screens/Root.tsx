@@ -46,6 +46,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		try {
 			accounts = await storage.getItem('accounts') || []
 		} catch { }
+		for (const acct of accounts) refresh(acct.id)
 		let tls = []
 		try {
 			tls = await storage.getItem('timelines') || []
