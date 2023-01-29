@@ -314,8 +314,8 @@ export default (props: FromRootToPost) => {
 						/>
 						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder={i18n.t('警告文')} value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 						<View style={styles.horizonal}>
-							<TouchableOpacity onPress={() => actionSheet()}>
-								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} >{accountTxt}</Text>
+							<TouchableOpacity onPress={() => actionSheet()} style={{ maxWidth:( width / 2 - 20) }}>
+								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} numberOfLines={1} >{accountTxt}</Text>
 							</TouchableOpacity>
 							<Button title={i18n.t('トゥート')} icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
