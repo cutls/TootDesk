@@ -39,7 +39,9 @@ export const resolveAccount = async (acctId: string, url: Account['url']) => {
     }
 }
 export const suggest = async (startPosition: number, inputText: string, acctId: string): Promise<[M.CustomEmoji[] | M.Account[] | M.Search['hashtags'], string]> => {
-    const first = inputText.slice(0, startPosition)
+    const first1 = inputText.slice(0, startPosition)
+    const firstArr = first1.split(' ')
+    const first = firstArr[firstArr.length - 1]
     const emojiRegExp = /:([a-zA-Z0-9_]{3,})/
     const tagRegExp = /#([^- ]|\S){3,}\s?/
     const acctRegExp = /@[a-zA-Z0-9_]{3,}/

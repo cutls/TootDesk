@@ -1,5 +1,5 @@
 import React, { RefObject, useEffect, useRef, useState } from 'react'
-import { StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle } from 'react-native'
+import { StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, InputAccessoryView } from 'react-native'
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
 import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
@@ -12,7 +12,7 @@ import * as api from '../utils/api'
 import * as upload from '../utils/upload'
 import { useKeyboard } from '../utils/keyboard'
 import { isIPhoneX } from '../utils/statusBar'
-import { FlatList } from 'react-native-gesture-handler'
+import { FlatList, ScrollView } from 'react-native-gesture-handler'
 import i18n from '../utils/i18n'
 import { suggest } from '../utils/tootAction'
 import PostPoll from './PostPoll'
@@ -28,6 +28,7 @@ interface FromRootToPost {
 const isEmoji = (item: any): item is M.CustomEmoji => item.shortcode
 const isAcct = (item: any): item is M.Account => item.acct
 const isTag = (item: any): item is M.Tag => item.name
+
 export default (props: FromRootToPost) => {
 	const { width, height } = useWindowDimensions()
 	const tablet = width > height ? height > 500 : width > 500
@@ -63,8 +64,7 @@ export default (props: FromRootToPost) => {
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const addHeight = (uploaded.length ? 50 : 0) + (showCW ? 40 : 0) + (showPoll ? 250 : 0) + (txtActionId ? 20 : 0) + (suggested.length ? 50 : 0)
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + addHeight + (tablet ? 50 : 0)
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 50 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -231,7 +231,7 @@ export default (props: FromRootToPost) => {
 		const first = firstRaw.replace(newReg, '')
 		const end = text.slice(selection.start) || ''
 		setText(`${first}${inputIt}${end ? '' : ' '}${end}`)
-		txtAreaRef.current?.focus()
+		setSuggested([])
 	}
 	const renderSuggest = (item: M.CustomEmoji | M.Account | M.Tag) => {
 		if (isEmoji(item)) return <TouchableOpacity style={[commonStyle.horizonal, styles.sIT]} onPress={() => sSelect(`:${item.shortcode}:`)}><Image source={{ uri: item.url }} style={styles.sImg} /><Text style={styles.sTxt}>:{item.shortcode}:</Text></TouchableOpacity>
@@ -264,10 +264,11 @@ export default (props: FromRootToPost) => {
 							}}
 							value={text}
 							onChangeText={(text) => setText(text)}
+							inputAccessoryViewID="textAreaSuggest"
 						/>
 						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder={i18n.t('警告文')} value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 						<View style={styles.horizonal}>
-							<TouchableOpacity onPress={() => actionSheet()} style={{ maxWidth:( width / 2 - 20) }}>
+							<TouchableOpacity onPress={() => actionSheet()} style={{ maxWidth: (width / 2 - 20) }}>
 								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} numberOfLines={1} >{accountTxt}</Text>
 							</TouchableOpacity>
 							<Button title={i18n.t('トゥート')} icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
@@ -275,9 +276,11 @@ export default (props: FromRootToPost) => {
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
-						{!!suggested.length && <FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} />}
+						<InputAccessoryView nativeID="textAreaSuggest" style={{ height: suggested.length ? 40 : 0, paddingTop: 10 }}>
+							<FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} keyboardShouldPersistTaps="handled" />
+						</InputAccessoryView>
 						{txtActionId ? <Text>{i18n.t('返信/編集モード')}</Text> : null}
-						<View style={styles.action}>
+						<View style={[styles.action]}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
 								<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
 							</TouchableOpacity>
@@ -358,7 +361,7 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean)
 			height: 40,
 			flexDirection: 'row',
 			justifyContent: 'space-between',
-			marginTop: 20,
+			marginTop: 15,
 		},
 		horizonal: {
 			flexDirection: 'row',
@@ -379,20 +382,21 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean)
 			position: 'absolute',
 		},
 		sWrap: {
-			height: 80,
+			height: 50,
 			width: deviceWidth - 40,
-			marginTop: 10
+			marginTop: 0,
+			padding: 5
 		},
 		sIT: {
-			height: 20
+			height: 40,
+			marginHorizontal: 5
 		},
 		sImg: {
 			width: 20,
 			height: 20
 		},
 		sTxt: {
-			marginLeft: 5,
-			marginRight: 10
+			marginLeft: 5
 		}
 	})
 }
