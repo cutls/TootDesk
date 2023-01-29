@@ -116,7 +116,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: account, acctName: accountTxt, activated: true, key: `hashtag ${account} some`, timelineData: { target: item.name } } })
         }}>
             <Text>#{item.name}</Text>
-            <Text>{i18n.t('過去%a日に%b人が%c回利用', { a: history.length, b: n, c: m })}</Text>
+            <Text>{i18n.t('過去%{a}日に%{b}人が%{c}回利用', { a: history.length, b: n, c: m })}</Text>
             <View style={{ height: 5 }} />
             <View style={commonStyle.separator} />
         </TouchableOpacity>
