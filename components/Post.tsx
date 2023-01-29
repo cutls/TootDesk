@@ -17,54 +17,7 @@ import i18n from '../utils/i18n'
 import { suggest } from '../utils/tootAction'
 import PostPoll from './PostPoll'
 import { commonStyle } from '../utils/styles'
-
-const initSuggest = {
-	"acct": "Cutls@fedibird.com",
-	"avatar": "https://2m.cutls.com/avatars/original/missing.png",
-	"avatar_static": "https://2m.cutls.com/avatars/original/missing.png",
-	"bot": false,
-	"created_at": "2019-08-18T00:00:00.000Z",
-	"discoverable": false,
-	"display_name": "",
-	"emojis": [],
-	"fields": [],
-	"followers_count": 4,
-	"following_count": 3,
-	"group": false,
-	"header": "https://2m.cutls.com/headers/original/missing.png",
-	"header_static": "https://2m.cutls.com/headers/original/missing.png",
-	"id": "107147305794268079",
-	"last_status_at": "2021-10-23",
-	"locked": true,
-	"note": "<p><span class=\"h-card\"><a href=\"https://1m.cutls.com/@Cutls\" class=\"u-url mention\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">@<span>Cutls</span></a></span></p>",
-	"statuses_count": 13,
-	"url": "https://fedibird.com/@Cutls",
-	"username": "Cutls",
-}
-const initSuggest2 = {
-	"acct": "Cutls@kirhisma.com",
-	"avatar": "https://2m.cutls.com/avatars/original/missing.png",
-	"avatar_static": "https://2m.cutls.com/avatars/original/missing.png",
-	"bot": false,
-	"created_at": "2019-08-18T00:00:00.000Z",
-	"discoverable": false,
-	"display_name": "",
-	"emojis": [],
-	"fields": [],
-	"followers_count": 4,
-	"following_count": 3,
-	"group": false,
-	"header": "https://2m.cutls.com/headers/original/missing.png",
-	"header_static": "https://2m.cutls.com/headers/original/missing.png",
-	"id": "107147305794268072",
-	"last_status_at": "2021-10-23",
-	"locked": true,
-	"note": "<p><span class=\"h-card\"><a href=\"https://1m.cutls.com/@Cutls\" class=\"u-url mention\" rel=\"nofollow noopener noreferrer\" target=\"_blank\">@<span>Cutls</span></a></span></p>",
-	"statuses_count": 13,
-	"url": "https://fedibird.com/@Cutls",
-	"username": "Cutls",
-}
-
+const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 interface FromRootToPost {
 	show: boolean
 	acct: string
@@ -229,7 +182,7 @@ export default (props: FromRootToPost) => {
 		return cl
 	}
 	const closeToot = async (force?: boolean) => {
-		if (txtAreaRef.current?.isFocused()) return txtAreaRef.current?.blur()
+		if (txtAreaRef.current?.isFocused() && !force) return txtAreaRef.current?.blur()
 		if (!force && (text || uploaded.length)) {
 			const alertPromise = await Alert.promise(i18n.t('変更を破棄'), i18n.t('未保存の変更があります'), [i18n.t('破棄して閉じる'), i18n.t('破棄せず閉じる'), i18n.t('キャンセル')] as string[])
 			if (alertPromise === 2) return
