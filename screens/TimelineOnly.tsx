@@ -35,7 +35,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	})
 	const txtAction = (id: string, insertText: string, type: 'reply' | 'edit') => {
 		const action = i18n.t(type === 'reply' ? '返信' : '編集')
-		Alert.alert(action, i18n.t(`%tするためには、まずこのタイムラインをピン留めしてください`, { t: action }))
+		Alert.alert(action, i18n.t(`%{t}するためには、まずこのタイムラインをピン留めしてください`, { t: action }))
 	}
 	const addTl = async () => {
 		const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account

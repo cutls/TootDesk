@@ -38,7 +38,7 @@ export const statusPost = async (action: ITootAction, id: string, acctId: string
             const data = await api.postV1UnBookmark(acct.domain, acct.at, id)
         }
         if (changeStatus) changeStatus({ is: positive, ct })
-        if (showAlert) Alert.alert('操作完了', i18n.t(`操作"%t"が完了しました`, { t: actionToLocale(action) }))
+        if (showAlert) Alert.alert('操作完了', i18n.t(`操作"%{t}"が完了しました`, { t: actionToLocale(action) }))
     } catch (e) {
         Alert.alert(i18n.t('エラー'), `${e}`)
         console.error(e)

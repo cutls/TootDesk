@@ -184,7 +184,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			async (buttonIndex) => {
 				if (buttonIndex === 3) return navigation.navigate('ListManager', { acctId, targetAcct: account.id })
 				if (buttonIndex === 4) return true
-				const a = await Alert.promise(i18n.t('確認'), i18n.t('%tします。よろしいですか？', { t: options[buttonIndex] }), Alert.UNSAVE)
+				const a = await Alert.promise(i18n.t('確認'), i18n.t('%{t}します。よろしいですか？', { t: options[buttonIndex] }), Alert.UNSAVE)
 				if (a === 1) {
 					try {
 						const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account

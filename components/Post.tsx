@@ -64,7 +64,7 @@ export default (props: FromRootToPost) => {
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 50 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0)
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 105 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0)
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -276,7 +276,7 @@ export default (props: FromRootToPost) => {
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
 						</View>
-						<InputAccessoryView nativeID="textAreaSuggest" style={{ height: suggested.length ? 40 : 0, paddingTop: 10 }}>
+						<InputAccessoryView nativeID="textAreaSuggest" style={{ height: suggested.length ? 40 : 0, paddingTop: 10, backgroundColor: isDark ? 'black' : 'white' }}>
 							<FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} keyboardShouldPersistTaps="handled" />
 						</InputAccessoryView>
 						{txtActionId ? <Text>{i18n.t('返信/編集モード')}</Text> : null}
