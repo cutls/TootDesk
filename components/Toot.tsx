@@ -217,6 +217,8 @@ export default (props: FromTimelineToToot) => {
 		}
 	}
 	if (tlId >= 0 && toot.filtered?.length) {
+		const isHidden = toot.filtered.filter((f) => f.filter.filter_action === 'hide').length
+		if (isHidden > 0) return null
 		return <TouchableOpacity style={styles.container} onPress={() => actionSheet(toot.id)}>
 			<Text>{i18n.t('フィルターされました')}{toot.filtered?.map((t) => t.filter.title).join(',')}</Text>
 		</TouchableOpacity>
