@@ -189,6 +189,7 @@ export default (props: FromRootToTimeline) => {
         for (const timeline of useTls) {
             const i = targetTimelineId[ii]
             const acct = (await storage.getCertainItem('accounts', 'id', timeline.acct)) as S.Account
+            if (!acct) return
             const isNoAuth = timeline.type === 'noAuth'
             const domain = isNoAuth ? timeline.timelineData.target : acct.domain
             console.log('get stream of ', domain)

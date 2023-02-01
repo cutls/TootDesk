@@ -79,7 +79,7 @@ export default (params: PropBottomFromRoot) => {
             <TouchableOpacity style={styles.config} onPress={() => toot(true)}>
                 <Ionicons name="create" size={30} color={isDark ? 'white' : 'black'} />
             </TouchableOpacity>
-            <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} txtActionId={txtActionId} />
+            {!!acct && <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} txtActionId={txtActionId} />}
         </View>
     )
 }
