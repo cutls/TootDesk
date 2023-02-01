@@ -6,6 +6,7 @@ export interface IConfig {
     actionBtnSize: number
     showReactedCount: boolean
     showVia: boolean
+    showLang: boolean
     showGif: boolean
     autoFoldLetters: number
     autoFoldLines: number
@@ -18,6 +19,7 @@ export const configInit: IConfig = {
     actionBtnSize: 27,
     showReactedCount: true,
     showVia: false,
+    showLang: false,
     showGif: true,
     autoFoldLetters: 1000,
     autoFoldLines: 20

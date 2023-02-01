@@ -38,7 +38,7 @@ export default (props: FromTimelineRootToTimeline) => {
 	const renderItem = (e: any) => {
 		const item = e.item as M.Toot
 		const deletable = (item.reblog ? `@${item.reblog.account.acct}@${domain}` : `@${item.account.acct}@${domain}`) === acct
-		if (timeline.config?.languageHide && timeline.config?.languageHide.includes(item.language || '')) return null
+		if (timeline.config?.languageHide && timeline.config?.languageHide.includes(item.language || 'unset')) return null
 		return (
 			<Toot
 				navigation={navigation}

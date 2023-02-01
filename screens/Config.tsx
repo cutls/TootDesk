@@ -125,6 +125,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <SwitchComponent configKey="useRelativeTime" />
                 <Text style={styles.title}>{i18n.t('viaを表示する')}</Text>
                 <SwitchComponent configKey="showVia" />
+                <Text style={styles.title}>{i18n.t('言語を表示する')}</Text>
+                <SwitchComponent configKey="showLang" />
                 <Text style={styles.title}>{i18n.t('アイコンのアニメーション表示')}</Text>
                 <SwitchComponent configKey="showGif" />
                 <Text style={styles.title}>{i18n.t('画像の高さ設定')}</Text>

@@ -116,6 +116,7 @@
     "絶対時間を表示する": "Show absolute time",
     "相対時間を表示する": "Show relative time",
     "viaを表示する": "Show via",
+    "言語を表示する": "Show language of post",
     "アイコンのアニメーション表示": "Show animated icon/emoji",
     "画像の高さ設定": "Image height of TL",
     "リアクション数を表示": "Show reaction count",
@@ -183,5 +184,6 @@
     "言語フィルター": "Language filter",
     "票": " votes",
     "人": " people",
-    "プレビューはありません": "No available preview"
+    "プレビューはありません": "No available preview",
+    "未定義": "unset"
 }

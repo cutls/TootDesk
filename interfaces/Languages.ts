@@ -1,8 +1,9 @@
 // https://github.com/mastodon/mastodon/blob/f847f67410c75036edb2c4b45d0db048af0481c9/config/application.rb#L70-L151
-export const langsArray = ["ja", "en", "af", "ar", "ast", "be", "bg", "bn", "br", "ca", "ckb", "co", "cs", "cy", "da", "de", "el", "eo", "es", "es-AR", "es-MX", "et", "eu", "fa", "fi", "fr", "fy", "ga", "gd", "gl", "he", "hi", "hr", "hu", "hy", "id", "io", "is", "it", "ka", "kab", "kk", "kn", "ko", "ku", "lt", "lv", "mk", "ml", "mr", "ms", "nl", "nn", "no", "oc", "pl", "pt-BR", "pt-PT", "ro", "ru", "sa", "sc", "si", "sk", "sl", "sq", "sr", "sr-Latn", "sv", "ta", "te", "th", "tr", "uk", "ur", "vi", "zgh", "zh-CN", "zh-HK", "zh-TW"] as const
+export const langsArray = ["none", "ja", "en", "af", "ar", "ast", "be", "bg", "bn", "br", "ca", "ckb", "co", "cs", "cy", "da", "de", "el", "eo", "es", "es-AR", "es-MX", "et", "eu", "fa", "fi", "fr", "fy", "ga", "gd", "gl", "he", "hi", "hr", "hu", "hy", "id", "io", "is", "it", "ka", "kab", "kk", "kn", "ko", "ku", "lt", "lv", "mk", "ml", "mr", "ms", "nl", "nn", "no", "oc", "pl", "pt-BR", "pt-PT", "ro", "ru", "sa", "sc", "si", "sk", "sl", "sq", "sr", "sr-Latn", "sv", "ta", "te", "th", "tr", "uk", "ur", "vi", "zgh", "zh-CN", "zh-HK", "zh-TW"] as const
 export type ILangs = keyof typeof langsArray
 
 export const localeObject: { [key: string]: string[] } = {
+    none: ['null', '未定義'],
     aa: ['Afar', 'Afaraf'],
     ab: ['Abkhaz', 'аҧсуа бызшәа'],
     ae: ['Avestan', 'avesta'],

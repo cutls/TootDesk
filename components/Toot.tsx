@@ -238,8 +238,9 @@ export default (props: FromTimelineToToot) => {
 					<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 					{config.useRelativeTime && isJa && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
 					<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
-						<MaterialIcons name={visiIcon} />
-						{toot.edited_at && <MaterialIcons name="create" />}
+						<MaterialIcons name={visiIcon} color={isDark ? 'white' : 'black'} />
+						{toot.edited_at && <MaterialIcons name="create" color={isDark ? 'white' : 'black'} />}
+						{config.showLang && <Text style={{ color: '#9a9da1', fontSize: 12, marginLeft: 5 }}>{toot.language || '-'}</Text>}
 					</View>
 				</TouchableOpacity>
 				<View style={{ width: '100%', marginLeft: 10 }}>
