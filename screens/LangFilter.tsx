@@ -67,7 +67,7 @@ export default function LangFilter({ navigation, route }: StackScreenProps<Param
                 <View style={{ height: deviceHeight - 130 }}>
                     <FlatList data={langsArray} keyExtractor={(item) => item.toString()} renderItem={({ item }: { item: string }) =>
                         <View style={[commonStyle.horizonal, { justifyContent: 'space-between', marginVertical: 5, alignItems: 'center', paddingHorizontal: 10 }]}>
-                            <Text>{localeObject[item][0]}({i18n.t(localeObject[item][1]) || item})</Text>
+                            <Text>{localeObject[item][0]}({(localeObject[item][1] === '未定義' ? i18n.t(localeObject[item][1]) : localeObject[item][1]) || item})</Text>
                             <Switch
                                 onValueChange={(tf) => {
                                     if (!tf) {
