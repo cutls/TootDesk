@@ -5,6 +5,7 @@ import { Text } from './Themed'
 import twemoji from 'twemoji'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 import { SetConfigContext } from '../utils/context/config'
+import { stripTags } from '../utils/stringUtil'
 const renderers = {
     img: defaultHTMLElementModels.img.extend({
         contentModel: HTMLContentModel.mixed,
@@ -23,7 +24,12 @@ export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean,
     let emojified = twemojified
     for (let emoji of emojis) {
         const reg = new RegExp(`:${emoji.shortcode}:`, 'g')
-        emojified = emojified.replace(reg, `<img src="${showGif ? emoji.url : emoji.static_url}" style="width: ${miniEmoji ? '0.7' : '1.2'}rem; height: ${miniEmoji ? '0.7' : '1.2'}rem">`)
+        const emojiHtmlRaw = `<img src="${showGif ? emoji.url : emoji.static_url}" style="width: ${miniEmoji ? '0.7' : '1.2'}rem; height: ${miniEmoji ? '0.7' : '1.2'}rem;">`
+        const isOnlyEmojiReg = new RegExp(`^\s?:${emoji.shortcode}:\s?$`, 'g')
+        // なぜか絵文字だけのpostだった場合に、その絵文字が中央に寄ってしまうので、ゼロ幅スペースをいれて誤魔化す
+        const isOnlyEmoji = !!stripTags(content).match(isOnlyEmojiReg)
+        const emojiHtml = `${isOnlyEmoji ? '​' : ''}${emojiHtmlRaw}${isOnlyEmoji ? '' : ''}`
+        emojified = emojified.replace(reg, emojiHtml)
     }
 
     return emojified

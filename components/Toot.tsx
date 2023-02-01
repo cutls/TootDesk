@@ -32,7 +32,7 @@ import { mb2xCount, stripTags } from '../utils/stringUtil'
 import i18n from '../utils/i18n'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
-		contentModel: HTMLContentModel.mixed,
+		contentModel: HTMLContentModel.mixed
 	}),
 }
 interface FromTimelineToToot {
@@ -163,7 +163,7 @@ export default (props: FromTimelineToToot) => {
 	const TootContent = React.memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
 		return <HTML
 			source={{ html: emojify(content, emojis, false, config.showGif) }}
-			tagsStyles={{ p: { marginTop: 0, marginBottom: 5, color: txtColor }, a: { color: '#8c8dff' } }}
+			tagsStyles={{ p: { marginTop: 0, marginBottom: 5, color: txtColor, justifyContent: 'flex-start' }, a: { color: '#8c8dff' } }}
 			customHTMLElementModels={renderers}
 			classesStyles={{ invisible: { fontSize: 0.01 } }}
 			renderersProps={{
