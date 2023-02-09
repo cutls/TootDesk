@@ -192,7 +192,8 @@ export default (props: FromRootToTimeline) => {
             if (!acct) return
             const isNoAuth = timeline.type === 'noAuth'
             const domain = isNoAuth ? timeline.timelineData.target : acct.domain
-            console.log('get stream of ', domain)
+            const useDomain = acct.streaming || `wss://${domain}`
+            console.log('get stream of ', domain, `(${useDomain})`)
             const useThisStreamOn = []
             let j = 0
             for (const tl of useTls) {
@@ -201,7 +202,7 @@ export default (props: FromRootToTimeline) => {
             }
             if (ws[domain] && (ws[domain]?.readyState || 9) <= 1) return loadTimeline(targetTimelineId[i], undefined, updateStr)
             const param = isNoAuth ? `stream=public:local` : `access_token=${acct.at}`
-            const wss = new WebSocket(`wss://${domain}/api/v1/streaming/?${param}`)
+            const wss = new WebSocket(`${useDomain}/api/v1/streaming/?${param}`)
             ws[domain] = wss
             setWs(ws)
             const waitOpen = () => new Promise((resolve) => {
@@ -213,14 +214,20 @@ export default (props: FromRootToTimeline) => {
                         await loadTimeline(targetTimelineId[k], wss, updateStr)
                     }
                 }
+
+                wss.onerror = async (e) => {
+                    for (let k = 0; k < useTls.length; k++) {
+                        await loadTimeline(targetTimelineId[k], wss, updateStr)
+                    }
+                    resolve(null)
+                    console.log(e)
+                }
             })
-            await waitOpen()
             wss.onmessage = async (e) => {
                 const { event } = JSON.parse(e.data)
                 console.log('stream received', event)
                 if (event === 'update' || event === 'conversation') {
                     if (appState.current.match(/inactive|background/)) return
-                    //markers show中はダメ
                     const { stream, payload } = JSON.parse(e.data)
                     const obj: M.Toot = JSON.parse(payload)
                     const tlKeys = streamTypeToTlNumber(stream, useTls, targetTimelineId)
@@ -260,10 +267,8 @@ export default (props: FromRootToTimeline) => {
                 setWs(ws)
                 //if (!killStreaming) await loadTimeline()
             }
-            wss.onerror = async (e) => {
-                console.log(e)
-            }
             ii++
+            await waitOpen()
         }
     }
     useEffect(() => {

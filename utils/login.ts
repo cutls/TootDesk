@@ -12,6 +12,10 @@ import uuid from './uuid'
 export const loginFirst = async (BASE_URL: string, via: string) => {
     const clientName = via
     const red = Linking.createURL('account')
+    if (BASE_URL === 'mstdn.jp') {
+        const a = await Alert.promise('mstdn.jp互換性', 'mstdn.jpは運営の方針にTootDeskが対応できないためストリーミングを利用できません。接続を続行しますか？', Alert.UNSAVE)
+        if (a === 0) return
+    }
     const start: string = `https://${BASE_URL}/api/v1/apps`
     try {
         const appAxios = await axios.post(start, {
