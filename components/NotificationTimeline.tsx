@@ -103,7 +103,6 @@ export default (props: FromRootToTimeline) => {
         setAcct(acct)
         let min_id: string = ''
         try {
-
             const data: M.Notification[] = await api.getV1Notifications(acct.domain, acct.at)
             setToots(data)
             setLoading(null)

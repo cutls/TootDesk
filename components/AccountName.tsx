@@ -20,7 +20,7 @@ interface FromTootToAcctName {
 }
 export const emojify = (content: string, emojis: M.Emoji[], miniEmoji?: boolean, showGif=true) => {
     //const twemojified = twemoji.parse(content, { }).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
-    const twemojified = content
+    const twemojified = content || ''
     let emojified = twemojified
     for (let emoji of emojis) {
         const reg = new RegExp(`:${emoji.shortcode}:`, 'g')
