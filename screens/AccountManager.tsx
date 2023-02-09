@@ -138,21 +138,26 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		setDomain('')
 	}
 	const delAcct = async (key: string) => {
+		try {
 		const a = await Alert.promise(i18n.t('アカウントを削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
 		let target: any = null
 		if (a === 1) {
 			const cl = []
 			for (const acct of accounts) {
 				if (acct.at !== key) cl.push(acct)
-				if (acct.at !== key) target = acct
+				if (acct.at === key) target = acct
 			}
 			const timelines: TimelineProps[] = await storage.getItem('timelines')
-			const newTl = timelines.map((item) => item.acct !== target.id)
+			if (!target) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
+			const newTl = timelines.filter((item) => item.acct !== target.id)
 			if (!newTl.length) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
 			setAccounts(cl)
 			await storage.setItem('accounts', cl)
 			await storage.setItem('timelines', newTl)
 		}
+	} catch (e) {
+		console.error(e)
+	}
 	}
 	const pushNotf = async (acct: S.Account) => {
 		async function registerForPushNotificationsAsync() {
