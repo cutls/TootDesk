@@ -165,7 +165,8 @@ export default (props: FromRootToTimeline) => {
             tootUpdator(tlId, newData)
             return true
         } else if (updateLoad) {
-            const clone = tootGet(tlId)
+            const tooMany = data.length >= 20
+            const clone = tooMany ? [] : tootGet(tlId)
             const newData = data.concat(clone)
             tootUpdator(tlId, newData)
         } else {
