@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme } from 'react-native'
+import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme, ActivityIndicator } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import * as WebBrowser from 'expo-web-browser'
-import { loginFirst, getAt } from '../utils/login'
+import { loginFirst, getAt, refresh } from '../utils/login'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
 import * as Alert from '../utils/alert'
@@ -16,6 +16,7 @@ import * as Notifications from 'expo-notifications'
 import * as Updates from 'expo-updates'
 import TimelineProps from '../interfaces/TimelineProps'
 import i18n from '../utils/i18n'
+import { LoadingContext } from '../utils/context/loading'
 const platform = Platform.OS === 'ios' ? 'iOS' : 'Android'
 
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'AccountManager'>) {
@@ -29,6 +30,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	}
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
+	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+	const bgColorAI = { backgroundColor: bgColorValAI }
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
@@ -54,12 +57,14 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [via, setVia] = useState(`TootDesk(${platform})`)
 	const [ready, setReady] = useState(false)
 	const [codeInput, setCodeInput] = useState('')
+	const [rootLoading, setRootLoading] = useState<null | string>(null)
 	let code: string
 	let state: string
 	useEffect(() => {
 		if (route.params) {
 			code = route.params.code
 			state = route.params.state
+			if (!code) return
 			const finalize = async (code: string) => {
 				try {
 					const newAcct = await getAt(code)
@@ -75,7 +80,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			}
 			finalize(code)
 		}
-	}, [route])
+	}, [route, myNotify])
 	const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 	const init = async () => {
 		try {
@@ -139,28 +144,28 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	}
 	const delAcct = async (key: string) => {
 		try {
-		const a = await Alert.promise(i18n.t('アカウントを削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
-		let target: any = null
-		if (a === 1) {
-			const cl = []
-			for (const acct of accounts) {
-				if (acct.at !== key) cl.push(acct)
-				if (acct.at === key) target = acct
+			const a = await Alert.promise(i18n.t('アカウントを削除します'), i18n.t('この操作は取り消せません。'), Alert.DELETE)
+			let target: any = null
+			if (a === 1) {
+				const cl = []
+				for (const acct of accounts) {
+					if (acct.at !== key) cl.push(acct)
+					if (acct.at === key) target = acct
+				}
+				const timelines: TimelineProps[] = await storage.getItem('timelines')
+				if (!target) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
+				const newTl = timelines.filter((item) => item.acct !== target.id)
+				if (!newTl.length) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
+				setAccounts(cl)
+				await storage.setItem('accounts', cl)
+				await storage.setItem('timelines', newTl)
 			}
-			const timelines: TimelineProps[] = await storage.getItem('timelines')
-			if (!target) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
-			const newTl = timelines.filter((item) => item.acct !== target.id)
-			if (!newTl.length) return Alert.alert('Error', i18n.t('アカウントを削除できません。このアカウントに関係するカラムしか存在しないため、削除するとタイムラインも全て無くなってしまうためです。'))
-			setAccounts(cl)
-			await storage.setItem('accounts', cl)
-			await storage.setItem('timelines', newTl)
+		} catch (e) {
+			console.error(e)
 		}
-	} catch (e) {
-		console.error(e)
-	}
 	}
 	const pushNotf = async (acct: S.Account) => {
-		async function registerForPushNotificationsAsync() {
+		async function registerForPushNotificationsAsync(pushDomain: string) {
 			let token
 			try {
 				if (!token) {
@@ -179,19 +184,15 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				} else {
 					alert('Must use physical device for Push Notifications')
 				}
-				const data = await axios.post(`https://${myNotify}/subscribe`, {
-					at: acct.at,
-					domain: acct.domain,
-					token,
-					platform: 'expo'
-				})
-				console.log(data.data, {
+				const data = await axios.post(`https://${pushDomain}/subscribe`, {
 					at: acct.at,
 					domain: acct.domain,
 					token,
 					platform: 'expo'
 				})
 				Alert.alert(i18n.t('購読完了'), i18n.t('プッシュ通知の購読が完了しました。'))
+				acct.pushNotification = pushDomain
+				await storage.updateCertainItem('accounts', 'id', acct.id, acct)
 				init()
 			} catch (e) {
 				Alert.alert('エラー', `${e}`)
@@ -199,11 +200,15 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				init()
 			}
 		}
-		const a = await Alert.promise(i18n.t('プッシュ通知の利用'), i18n.t(`このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、"%{t}"で復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。`, { t: myNotify }), [{ text: i18n.t('キャンセル'), style: 'cancel' }, { text: i18n.t('承認'), style: 'destructive' }])
-		if (a === 1) {
-			registerForPushNotificationsAsync()
+		if (acct.pushNotification) {
+			registerForPushNotificationsAsync(acct.pushNotification)
 		} else {
-			init()
+			const a = await Alert.promise(i18n.t('プッシュ通知の利用'), i18n.t(`このアプリケーションではプッシュ通知を利用できます。Mastodonからのデータは暗号化されますが、"%{t}"で復号して各種通知サービスより送信します。このサーバに一時的にアクセストークンを送信しますが、これは保存されません。`, { t: myNotify }), [{ text: i18n.t('キャンセル'), style: 'cancel' }, { text: i18n.t('承認'), style: 'destructive' }])
+			if (a === 1) {
+				registerForPushNotificationsAsync(myNotify)
+			} else {
+				init()
+			}
 		}
 	}
 	const renderRightActions = (
@@ -225,11 +230,11 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				</Animated.View>
 			</View>
 		);
-	};
+	}
 	const renderItem = (e: any) => {
 		const item = e.item as S.Account
 		if (!item) return null
-		return (<TouchableOpacity>
+		return (<TouchableOpacity onPress={async () => { setRootLoading('Refreshing'); await refresh(item.id);setRootLoading(null); pushNotf(item) }}>
 			<Swipeable renderRightActions={(a, b) => renderRightActions(a, b, item.at)}>
 				<View style={styles.menu}>
 					<Text>{item.name}</Text>
@@ -261,45 +266,53 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 		}
 	}
 	return (
-		<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
-			<View style={styles.container}>
-				<View>
-					<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
-				</View>
-				<View>
-					<Text>{i18n.t('アカウントを追加')}</Text>
-					{!attemptingLogin ? (
-						<View>
-							<View style={styles.horizonal}>
-								<TextInput placeholder={`${i18n.t('ドメイン')}(mastodon.social)*`} onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
-								<Button title={i18n.t('ログイン')} onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
-							</View>
-							{list.length ? (<View style={styles.horizonal}>
-								<Text>Powered by </Text>
-								<TouchableOpacity onPress={() => Linking.openURL('https://www.fediversesearch.com/?locale=ja')}>
-									<Text style={commonStyle.link}>fediversesearch</Text>
-								</TouchableOpacity>
-							</View>) : null}
-							<FlatList data={list} renderItem={renderList} keyExtractor={(e) => e} /></View>
-					) : (
-						<View style={styles.horizonal}>
-							<TextInput placeholder={`${i18n.t('コード')}(mastodon.social)*`} onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
-							<Button title={i18n.t('ログイン')} onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
-						</View>
-					)}
-					<View style={{ height: 10 }} />
-					{detailConfig ? <View>
-						<Text>{i18n.t('TootDesk対応通知サーバのドメインを入力してください')}({i18n.t('初期値')}: push.0px.io)</Text>
-						<TextInput placeholder={i18n.t('サーバ')} onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
-						<Text>{i18n.t('認証時のアプリ名(via, 初期値: "TootDesk(%{t})")', { t: platform })}</Text>
-						<TextInput placeholder="via*" onChangeText={(text) => setVia(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={via} />
+		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
+			<View style={{ width: deviceWidth, backgroundColor: isDark ? 'black' : 'white' }}>
+				<View style={styles.container}>
+					<View>
+						<FlatList data={accounts} keyExtractor={(item) => item.id} renderItem={renderItem} />
 					</View>
-						: <TouchableOpacity onPress={() => setDetailConfig(true)}>
-							<Text style={{ textDecorationLine: 'underline' }}>{i18n.t('通知サーバ, viaを設定する')}</Text>
-						</TouchableOpacity>}
+					<View>
+						<Text>{i18n.t('アカウントを追加')}</Text>
+						{!attemptingLogin ? (
+							<View>
+								<View style={styles.horizonal}>
+									<TextInput placeholder={`${i18n.t('ドメイン')}(mastodon.social)*`} onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
+									<Button title={i18n.t('ログイン')} onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+								</View>
+								{list.length ? (<View style={styles.horizonal}>
+									<Text>Powered by </Text>
+									<TouchableOpacity onPress={() => Linking.openURL('https://www.fediversesearch.com/?locale=ja')}>
+										<Text style={commonStyle.link}>fediversesearch</Text>
+									</TouchableOpacity>
+								</View>) : null}
+								<FlatList data={list} renderItem={renderList} keyExtractor={(e) => e} /></View>
+						) : (
+							<View style={styles.horizonal}>
+								<TextInput placeholder={`${i18n.t('コード')}(mastodon.social)*`} onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
+								<Button title={i18n.t('ログイン')} onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+							</View>
+						)}
+						<View style={{ height: 10 }} />
+						{detailConfig ? <View>
+							<Text>{i18n.t('TootDesk対応通知サーバのドメインを入力してください')}({i18n.t('初期値')}: push.0px.io)</Text>
+							<TextInput placeholder={i18n.t('サーバ')} onChangeText={(text) => setMyNotify(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={myNotify} />
+							<Text>{i18n.t('認証時のアプリ名(via, 初期値: "TootDesk(%{t})")', { t: platform })}</Text>
+							<TextInput placeholder="via*" onChangeText={(text) => setVia(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={via} />
+						</View>
+							: <TouchableOpacity onPress={() => setDetailConfig(true)}>
+								<Text style={{ textDecorationLine: 'underline' }}>{i18n.t('通知サーバ, viaを設定する')}</Text>
+							</TouchableOpacity>}
+					</View>
 				</View>
 			</View>
-		</View>
+			<Modal visible={!!rootLoading} transparent={true}>
+				<View style={[styles.rootLoading, bgColorAI]}>
+					<ActivityIndicator size="large" />
+					<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
+				</View>
+			</Modal>
+		</LoadingContext.Provider>
 	)
 }
 let android = false
@@ -350,6 +363,14 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
 			borderBottomWidth: 1,
 			paddingVertical: 10,
 			height: 50
-		}
+		},
+		rootLoading: {
+			width: 200,
+			height: 100,
+			top: (deviceHeight / 2) - 50,
+			left: (deviceWidth / 2) - 100,
+			justifyContent: 'center',
+			borderRadius: 10,
+		},
 	})
 }

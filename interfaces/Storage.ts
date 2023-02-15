@@ -12,6 +12,7 @@ export interface Account {
     defaultVis?: IVisTxt
     translationEnabled?: boolean
     streaming?: string
+    pushNotification?: string // url
 }
 export interface Emoji {
     domain: string

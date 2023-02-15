@@ -73,7 +73,8 @@ export const getAt = async (code: string) => {
             defaultVis: vis || 'public',
             maxLetters: maxLetters || 500,
             maxMedia: maxMedia || 4,
-            streaming
+            streaming,
+            pushNotification: undefined
         }
         await storage.pushItem('accounts', acct)
         try {
@@ -98,7 +99,6 @@ export const refresh = async (acctId: string) => {
     const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
     const { domain, at } = acct
     const userData = await api.getV1AccountsVerifyCredentials(domain, at)
-    console.log('delete', domain)
     await storage.deleteCertainItem('emojis', 'domain', domain)
     const instanceData = await api.getV1Instance(domain)
     const configInstance = instanceData.configuration
