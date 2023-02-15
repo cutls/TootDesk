@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pr
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
 import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import * as M from '../interfaces/MastodonApiReturns'
 import * as R from '../interfaces/MastodonApiRequests'
 import * as storage from '../utils/storage'
@@ -17,6 +18,7 @@ import i18n from '../utils/i18n'
 import { suggest } from '../utils/tootAction'
 import PostPoll from './PostPoll'
 import { commonStyle } from '../utils/styles'
+import moment from 'moment-timezone'
 const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec))
 interface FromRootToPost {
 	show: boolean
@@ -46,6 +48,8 @@ export default (props: FromRootToPost) => {
 	const [loading, setLoading] = useState(false)
 	const [showCW, setShowCW] = useState(false)
 	const [showPoll, setShowPoll] = useState(false)
+	const [date, setDate] = useState(moment().add(5, 'minutes').toDate())
+	const [showScheduled, setShowScheduled] = useState(false)
 	const txtAreaRef = useRef<TextInput>() as RefObject<TextInput>
 	const [poll, setPoll] = useState<R.Status['poll'] | null>(null)
 	const [CWText, setCWText] = useState('')
@@ -64,7 +68,8 @@ export default (props: FromRootToPost) => {
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 105 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0)
+	const additional = (showPoll ? 220 : 0) + (showScheduled ? 60 : 0)
+	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 105 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0) + additional
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
@@ -103,7 +108,7 @@ export default (props: FromRootToPost) => {
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) setShowPoll(!showPoll)
-				if (buttonIndex === 1) Alert.alert('coming soon')
+				if (buttonIndex === 1) setShowScheduled(!showScheduled)
 			}
 		)
 	const actionSheet = () =>
@@ -197,6 +202,8 @@ export default (props: FromRootToPost) => {
 		setUploaded([])
 		setVis(defaultVis)
 		setShowPoll(false)
+		setDate(moment().add(5, 'minutes').toDate())
+		setShowScheduled(false)
 	}
 	const post = async () => {
 		const m = txtActionId.match(/^([^:]+):([^:]+)$/)
@@ -213,6 +220,7 @@ export default (props: FromRootToPost) => {
 			if (m && m[1] === 'reply') param.in_reply_to_id = m[2]
 			if (!acctObj) return
 			if (showPoll) param.poll = poll || undefined
+			if (showScheduled) param.scheduled_at = date.toISOString()
 			if (m && m[1] === 'edit') {
 				await api.putV1Statuses(acctObj.domain, acctObj.at, m[2], param)
 			} else {
@@ -304,8 +312,20 @@ export default (props: FromRootToPost) => {
 								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()} ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
 							</TouchableOpacity>
 						</View>
-						{showPoll &&
-							<PostPoll setPoll={setPoll} setShowPoll={setShowPoll} />}
+						{showPoll && <PostPoll setPoll={setPoll} setShowPoll={setShowPoll} />}
+						{showScheduled && <View style={[commonStyle.horizonal, { justifyContent: 'flex-end', alignItems: 'center' }]}>
+							<Text style={{ marginRight: 10 }}>{i18n.t('時間指定投稿')}</Text>
+							<DateTimePicker
+								testID="dateTimePicker"
+								value={date}
+								mode={'datetime' as any}
+								is24Hour={true}
+								onChange={(event, selectedDate) => {
+									const currentDate = selectedDate
+									if (currentDate) setDate(currentDate)
+								}}
+							/>
+						</View>}
 					</Pressable>
 				</View>
 			</Pressable>
