@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions, Pressable } from 'react-native'
 import { Text, View, Button, TouchableOpacity, TextInput } from '../Themed'
 import * as storage from '../../utils/storage'
 import * as Alert from '../../utils/alert'
@@ -250,59 +250,59 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     return (
         <View style={styles.wrap}>
             <Modal visible={internalShow} animationType={tablet ? 'fade' : 'slide'} transparent={true}>
-                <View style={tablet ? styles.center : styles.bottom}>
-                    <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                        <View style={commonStyle.horizonal}>
-                            <TouchableOpacity onPress={() => configOption()}>
-                                <MaterialIcons ref={(c: any) => setAnchor(findNodeHandle(c))} name="more-vert" size={30} color={isDark ? 'white' : 'black'} />
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity onPress={() => dismiss()}>
-                            <MaterialIcons name="close" size={30} color={isDark ? 'white' : 'black'} />
-                        </TouchableOpacity>
-                    </View>
-                    {mode === 'select' ? <View style={styles.flatlist}>
-                        <FlatList data={timelines} renderItem={renderItem}
-                            keyExtractor={(item, index) => `${item.key}`} />
-                        {editMode ?
-                            <Button title={i18n.t('完了')} icon="done" onPress={() => save()} />
-                            :
-                            <Button title={i18n.t('追加')} icon="add" onPress={() => setMode('add')} />}
-                    </View> :
-                        <View>
-                            <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
-                                <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
-                                <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
-                            </TouchableOpacity>
-                            <View style={{ height: 15 }} />
-                            <Text>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
-                            <View style={{ height: 5 }} />
-                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title={i18n.t('ホーム')} onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
-                                <Button title={i18n.t('ローカル')} onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
-                            </View>
-                            <View style={{ height: 10 }} />
-                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title={i18n.t('連合')} onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
-                                <Button title={i18n.t('統合')} onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
-                            </View>
-                            <View style={{ height: 10 }} />
-                            <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                <Button title={i18n.t('ブックマーク')} onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
-                                <Button title={i18n.t('お気に入り')} onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
-                            </View>
-                            <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
-                                <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('リスト')}</Text>
-                            </TouchableOpacity>
-                            <View style={{ marginVertical: 5 }} />
-                            <Text>{i18n.t('認証のないローカルタイムライン')}</Text>
+
+                <Pressable onPress={() => dismiss()} style={styles.pressable}>
+                    <View style={tablet ? styles.center : styles.bottom}>
+                        <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                             <View style={commonStyle.horizonal}>
-                                <TextInput placeholder={`${i18n.t('ドメイン')}*`} onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
-                                <Button title={i18n.t('追加')} onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                                <TouchableOpacity onPress={() => configOption()}>
+                                    <MaterialIcons ref={(c: any) => setAnchor(findNodeHandle(c))} name="more-vert" size={30} color={isDark ? 'white' : 'black'} />
+                                </TouchableOpacity>
                             </View>
                         </View>
-                    }
-                </View>
+                        {mode === 'select' ? <View style={styles.flatlist}>
+                            <FlatList data={timelines} renderItem={renderItem}
+                                keyExtractor={(item, index) => `${item.key}`} />
+                            {editMode ?
+                                <Button title={i18n.t('完了')} icon="done" onPress={() => save()} />
+                                :
+                                <Button title={i18n.t('追加')} icon="add" onPress={() => setMode('add')} />}
+                        </View> :
+                            <View>
+                                <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
+                                    <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
+                                    <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
+                                </TouchableOpacity>
+                                <View style={{ height: 15 }} />
+                                <Text>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
+                                <View style={{ height: 5 }} />
+                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                    <Button title={i18n.t('ホーム')} onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
+                                    <Button title={i18n.t('ローカル')} onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
+                                </View>
+                                <View style={{ height: 10 }} />
+                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                    <Button title={i18n.t('連合')} onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
+                                    <Button title={i18n.t('統合')} onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
+                                </View>
+                                <View style={{ height: 10 }} />
+                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                    <Button title={i18n.t('ブックマーク')} onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
+                                    <Button title={i18n.t('お気に入り')} onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
+                                </View>
+                                <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
+                                    <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('リスト')}</Text>
+                                </TouchableOpacity>
+                                <View style={{ marginVertical: 5 }} />
+                                <Text>{i18n.t('認証のないローカルタイムライン')}</Text>
+                                <View style={commonStyle.horizonal}>
+                                    <TextInput placeholder={`${i18n.t('ドメイン')}*`} onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
+                                    <Button title={i18n.t('追加')} onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                                </View>
+                            </View>
+                        }
+                    </View>
+                </Pressable>
             </Modal>
         </View>
     )
@@ -378,5 +378,12 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean,
             padding: 10,
             borderRadius: 10,
         },
+        pressable: {
+			height: deviceHeight,
+			width: deviceWidth,
+			top: 0,
+			left: 0,
+			position: 'absolute',
+		},
     })
 }
