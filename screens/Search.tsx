@@ -95,10 +95,13 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             setLoading(true)
             setMode('result')
             const acct: S.Account = await storage.getCertainItem('accounts', 'id', account)
-            const data = await api.getV2Search(acct.domain, acct.at, { q })
+            const data = await api.getV2Search(acct.domain, acct.at, { q, resolve: true })
             if (data.statuses) setToots(data.statuses)
+            if (data.statuses && data.statuses.length) setSelectedIndex(1)
             if (data.accounts) setUsers(data.accounts)
+            if (data.accounts && data.accounts.length) setSelectedIndex(2)
             if (data.hashtags) setTags(data.hashtags)
+            if (data.hashtags && data.hashtags.length) setSelectedIndex(0)
 
         } catch (e: any) {
             Alert.alert('Error', e.toString())
