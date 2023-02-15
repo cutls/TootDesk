@@ -313,7 +313,8 @@ function createStyle(deviceWidth: number) {
 		container: {
 			marginVertical: 5,
 			paddingHorizontal: 5,
-			width: deviceWidth - 65,
+			paddingRight: 65,
+			width: deviceWidth,
 			borderBottomColor: '#eee',
 			borderBottomWidth: 1
 		},
@@ -333,6 +334,7 @@ function createStyle(deviceWidth: number) {
 			alignContent: 'center',
 			justifyContent: 'center',
 			alignItems: 'center',
+			paddingRight: 65
 		},
 		actionIcon: {
 			marginHorizontal: 20,
