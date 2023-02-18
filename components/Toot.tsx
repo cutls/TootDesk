@@ -289,8 +289,11 @@ export default (props: FromTimelineToToot) => {
 						<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
 						{!!toot.emoji_reactions && <EmojiReaction toot={toot} acctId={acctId} />}
 						<View style={styles.actionsContainer}>
-							<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
-							{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
+							<View style={styles.actionSet}>
+								<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
+								{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
+							</View>
+							<View style={styles.actionSet}>
 							<FontAwesome
 								name="retweet"
 								size={config.actionBtnSize}
@@ -299,6 +302,8 @@ export default (props: FromTimelineToToot) => {
 								onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
 							/>
 							{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
+							</View>
+							<View style={styles.actionSet}>
 							<MaterialIcons
 								name="star"
 								size={config.actionBtnSize}
@@ -307,14 +312,17 @@ export default (props: FromTimelineToToot) => {
 								onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
 							/>
 							{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
+							</View>
+							<View style={styles.actionSet}>
 							{!!toot.emoji_reactions && <MaterialIcons
 								name="add"
 								size={config.actionBtnSize}
 								style={styles.actionIcon}
 								color={toot.emoji_reactioned ? '#b8d1e3' : '#9a9da1'}
-								onPress={() => !toot.emoji_reactioned ? setIsEmojiOpen(true) : doReaction(false, '',acctId, toot.id)}
+								onPress={() => !toot.emoji_reactioned ? setIsEmojiOpen(true) : doReaction(false, '', acctId, toot.id)}
 							/>}
 							{!!toot.emoji_reactions && config.showReactedCount && <Text style={styles.actionCounter}>{toot.emoji_reactions_count}</Text>}
+							</View>
 							<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 						</View>
 					</View>
@@ -349,13 +357,21 @@ function createStyle(deviceWidth: number) {
 			alignContent: 'center',
 			justifyContent: 'center',
 			alignItems: 'center',
-			paddingRight: 65
+			paddingRight: 100,
+			paddingLeft: 60
+		},
+		actionSet: {
+			display: 'flex',
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginHorizontal: 20,
 		},
 		actionIcon: {
-			marginHorizontal: 20,
+			marginRight: 5
 		},
 		actionCounter: {
 			color: '#9a9da1',
+			paddingTop: 5
 		},
 		cwBtn: {
 			display: 'flex',

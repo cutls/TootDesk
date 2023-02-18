@@ -1,7 +1,7 @@
 import * as Linking from 'expo-linking'
 import { Platform } from 'react-native'
 import * as WebBrowser from 'expo-web-browser'
-import { makeRedirectUri } from 'expo-auth-session'
+import * as Notifications from 'expo-notifications'
 import * as storage from './storage'
 import * as S from '../interfaces/Storage'
 import axios from 'axios'
@@ -99,6 +99,15 @@ export const getAt = async (code: string) => {
 export const refresh = async (acctId: string) => {
     const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
     const { domain, at } = acct
+    if (acct.pushNotification) {
+        const token = (await Notifications.getExpoPushTokenAsync()).data
+        await axios.post(`https://${acct.pushNotification}/subscribe`, {
+            at: acct.at,
+            domain: acct.domain,
+            token,
+            platform: 'expo'
+        })
+    }
     const userData = await api.getV1AccountsVerifyCredentials(domain, at)
     acct.idInServer = userData.id
     await storage.deleteCertainItem('emojis', 'domain', domain)
