@@ -79,3 +79,14 @@ export const statusPostAcct = async (action: 'authorize' | 'reject', acctId: str
         console.error(e)
     }
 }
+
+export const doReaction = async (isPositive: boolean, name: string, acctId: string, tootId: string) => {
+    try {
+        const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
+        if (!isPositive) return await api.postV1Unreaction(acct.domain, acct.at, tootId)
+        return await api.putV1Reaction(acct.domain, acct.at, tootId, name)
+    } catch (e: any) {
+        Alert.alert('Error', e.toString())
+    }
+
+}

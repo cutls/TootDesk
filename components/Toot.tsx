@@ -1,15 +1,14 @@
-import React, { useContext, useMemo, useState } from 'react'
-import TimelineProps from '../interfaces/TimelineProps'
-import { StyleSheet, Platform, Image, Dimensions, ActionSheetIOS, useWindowDimensions, findNodeHandle, useColorScheme } from 'react-native'
-import { Text, View, TextInput, Button } from './Themed'
-import { MaterialIcons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons'
-import * as api from '../utils/api'
+import React, { useContext, useState } from 'react'
+import { StyleSheet, Image, ActionSheetIOS, findNodeHandle, useColorScheme } from 'react-native'
+import { Text, View } from './Themed'
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
 import * as WebBrowser from 'expo-web-browser'
 import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { AccountName, emojify } from './AccountName'
 import Card from './Card'
 import * as Localization from 'expo-localization'
+import EmojiModal from '../components/modal/EmojiEnter'
 const locale = Localization.getLocales()
 const langCode = locale[0].languageCode
 const isJa = langCode === 'ja'
@@ -21,7 +20,7 @@ import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-r
 import { BlurView } from 'expo-blur'
 import * as S from '../interfaces/Storage'
 import * as storage from '../utils/storage'
-import { statusPost } from '../utils/changeStatus'
+import { doReaction, statusPost } from '../utils/changeStatus'
 import Poll from './Poll'
 import { LoadingContext } from '../utils/context/loading'
 import { commonStyle } from '../utils/styles'
@@ -30,6 +29,7 @@ import { SetConfigContext } from '../utils/context/config'
 import { resolveAccount, resolveStatus, translate } from '../utils/tootAction'
 import { mb2xCount, stripTags } from '../utils/stringUtil'
 import i18n from '../utils/i18n'
+import EmojiReaction from './EmojiReaction'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed
@@ -55,6 +55,7 @@ export default (props: FromTimelineToToot) => {
 	const [isPined, setIsPined] = useState(toot.pinned)
 	const [isBookmarked, setIsBookmarked] = useState(toot.bookmarked)
 	const [isCwShow, setIsCwShow] = useState(false)
+	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [translatedToot, setTranslatedToot] = useState('')
 	const { setLoading } = useContext(LoadingContext)
 	const { setImageModal } = useContext(ImageModalContext)
@@ -216,6 +217,7 @@ export default (props: FromTimelineToToot) => {
 			await WebBrowser.openBrowserAsync(href)
 		}
 	}
+
 	if (tlId >= 0 && toot.filtered?.length) {
 		const isHidden = toot.filtered.filter((f) => f.filter.filter_action === 'hide').length
 		if (isHidden > 0) return null
@@ -230,82 +232,95 @@ export default (props: FromTimelineToToot) => {
 	const tooLong = tootLength > config.autoFoldLetters || tootLines > config.autoFoldLines
 	const autoFold = !toot.spoiler_text && tooLong
 	const afSpoiler = autoFold ? `(${tootLength} B|${tootLines}行): ${plainContent.slice(0, 12)}…` : null
+	const addReaction = (shortCode: string) => doReaction(true, shortCode, acctId, toot.id)
 	return (
-		<View style={styles.container}>
-			{topComponent}
-			<View style={styles.horizonal}>
-				<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false, url: toot.account.url })}>
-					<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
-					{config.useRelativeTime && isJa && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
-					<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
-						<MaterialIcons name={visiIcon} color={isDark ? 'white' : 'black'} />
-						{toot.edited_at && <MaterialIcons name="create" color={isDark ? 'white' : 'black'} />}
-						{config.showLang && <Text style={{ color: '#9a9da1', fontSize: 12, marginLeft: 5 }}>{toot.language || '-'}</Text>}
-					</View>
-				</TouchableOpacity>
-				<View style={{ width: '100%', marginLeft: 10 }}>
-					<View style={[styles.horizonal, styles.sameHeight]}>
-						<AccountName account={toot.account} width={width} />
-						{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
-					</View>
-					<View style={[styles.horizonal, styles.sameHeight, { justifyContent: 'space-between' }]}>
-						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
-							@{toot.account.acct}
-						</Text>
-						<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
-							{config.showVia && !!appData && appData.name}
-							{config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}
-							{config.useRelativeTime && !isJa && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}
-						</Text>
-					</View>
-					{(!!toot.spoiler_text || autoFold) && <View style={commonStyle.horizonal}>
-						<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text || afSpoiler}</Text>
-						<TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
-							<Text>{isCwShow ? i18n.t('隠す') : (autoFold ? i18n.t('全文') : i18n.t('見る'))}</Text>
-						</TouchableOpacity>
-					</View>}
-					{(!toot.spoiler_text && !autoFold) || isCwShow ? <TootContent
-						content={toot.content}
-						emojis={toot.emojis}
-					/> : null}
-					{toot.language && toot.language !== 'ja' &&
-						<>
-							<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={{ marginVertical: 10 }}>
-								<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('翻訳')}({toot.language})</Text>
+		<>
+			{isEmojiOpen ? <EmojiModal setSelectCustomEmoji={setIsEmojiOpen} callback={addReaction} acct={acctId} /> : null}
+			<View style={styles.container}>
+				{topComponent}
+				<View style={styles.horizonal}>
+					<TouchableOpacity style={styles.center} onPress={() => navigation.navigate('AccountDetails', { acctId, id: toot.account.id, notification: false, url: toot.account.url })}>
+						<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
+						{config.useRelativeTime && isJa && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
+						<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
+							<MaterialIcons name={visiIcon} color={isDark ? 'white' : 'black'} />
+							{toot.edited_at && <MaterialIcons name="create" color={isDark ? 'white' : 'black'} />}
+							{config.showLang && <Text style={{ color: '#9a9da1', fontSize: 12, marginLeft: 5 }}>{toot.language || '-'}</Text>}
+						</View>
+					</TouchableOpacity>
+					<View style={{ width: '100%', marginLeft: 10 }}>
+						<View style={[styles.horizonal, styles.sameHeight]}>
+							<AccountName account={toot.account} width={width} />
+							{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
+						</View>
+						<View style={[styles.horizonal, styles.sameHeight, { justifyContent: 'space-between' }]}>
+							<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
+								@{toot.account.acct}
+							</Text>
+							<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
+								{config.showVia && !!appData && appData.name}
+								{config.useAbsoluteTime && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').format(i18n.t("'YY年M月D日 HH:mm:ss"))}
+								{config.useRelativeTime && !isJa && moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}
+							</Text>
+						</View>
+						{(!!toot.spoiler_text || autoFold) && <View style={commonStyle.horizonal}>
+							<Text style={{ marginTop: 15, marginRight: 5 }}>{toot.spoiler_text || afSpoiler}</Text>
+							<TouchableOpacity onPress={() => setIsCwShow(!isCwShow)} style={styles.cwBtn}>
+								<Text>{isCwShow ? i18n.t('隠す') : (autoFold ? i18n.t('全文') : i18n.t('見る'))}</Text>
 							</TouchableOpacity>
-							<TootContent
-								content={translatedToot}
-								emojis={toot.emojis}
-								source="translate"
+						</View>}
+						{(!toot.spoiler_text && !autoFold) || isCwShow ? <TootContent
+							content={toot.content}
+							emojis={toot.emojis}
+						/> : null}
+						{toot.language && toot.language !== 'ja' &&
+							<>
+								<TouchableOpacity onPress={async () => setTranslatedToot(await translate(acctId, toot.id))} style={{ marginVertical: 10 }}>
+									<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('翻訳')}({toot.language})</Text>
+								</TouchableOpacity>
+								<TootContent
+									content={translatedToot}
+									emojis={toot.emojis}
+									source="translate"
+								/>
+							</>}
+						{toot.card ? <Card card={toot.card} width={width} /> : null}
+						{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
+						<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
+						{!!toot.emoji_reactions && <EmojiReaction toot={toot} acctId={acctId} />}
+						<View style={styles.actionsContainer}>
+							<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
+							{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
+							<FontAwesome
+								name="retweet"
+								size={config.actionBtnSize}
+								style={styles.actionIcon}
+								color={boosted.is ? '#03a9f4' : '#9a9da1'}
+								onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
 							/>
-						</>}
-					{toot.card ? <Card card={toot.card} width={width} /> : null}
-					{toot.poll && <Poll poll={toot.poll} acctId={acctId} />}
-					<View style={styles.horizonal}>{toot.media_attachments ? showMedia(toot.media_attachments, toot.sensitive) : null}</View>
-					<View style={styles.actionsContainer}>
-						<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
-						{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
-						<FontAwesome
-							name="retweet"
-							size={config.actionBtnSize}
-							style={styles.actionIcon}
-							color={boosted.is ? '#03a9f4' : '#9a9da1'}
-							onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
-						/>
-						{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
-						<MaterialIcons
-							name="star"
-							size={config.actionBtnSize}
-							style={styles.actionIcon}
-							color={faved.is ? '#fbc02d' : '#9a9da1'}
-							onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
-						/>
-						{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
-						<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
+							{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
+							<MaterialIcons
+								name="star"
+								size={config.actionBtnSize}
+								style={styles.actionIcon}
+								color={faved.is ? '#fbc02d' : '#9a9da1'}
+								onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
+							/>
+							{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
+							{!!toot.emoji_reactions && <MaterialIcons
+								name="add"
+								size={config.actionBtnSize}
+								style={styles.actionIcon}
+								color={toot.emoji_reactioned ? '#b8d1e3' : '#9a9da1'}
+								onPress={() => !toot.emoji_reactioned ? setIsEmojiOpen(true) : doReaction(false, '',acctId, toot.id)}
+							/>}
+							{!!toot.emoji_reactions && config.showReactedCount && <Text style={styles.actionCounter}>{toot.emoji_reactions_count}</Text>}
+							<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
+						</View>
 					</View>
 				</View>
 			</View>
-		</View>
+		</>
 	)
 }
 function createStyle(deviceWidth: number) {

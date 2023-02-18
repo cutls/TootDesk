@@ -1,7 +1,7 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import * as React from 'react'
 import { Text, View, TouchableOpacity } from '../Themed'
-import { StyleSheet, Image, FlatList, Dimensions, Platform, useColorScheme, Modal, useWindowDimensions } from 'react-native'
+import { StyleSheet, Image, FlatList, Platform, useColorScheme, Modal, useWindowDimensions } from 'react-native'
 import * as Alert from '../../utils/alert'
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
@@ -13,10 +13,10 @@ import i18n from '../../utils/i18n'
 let ios = true
 if (Platform.OS === 'android') ios = false
 export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct }: any) {
-	const { width: deviceWidth } = useWindowDimensions()
+    const { width: deviceWidth } = useWindowDimensions()
     const g = Math.floor(deviceWidth / 50)
     const [loaded, setLoaded] = React.useState(false)
-    const [photos, setPhotos] = React.useState([] as any[])
+    const [photos, setPhotos] = React.useState<M.CustomEmoji[][]>([])
     const [modalVisible, setModalVisible] = React.useState(true)
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -40,7 +40,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
             console.error(e)
         }
     }
-    if (!loaded) load()
+    React.useEffect(() => { load() })
     const dismiss = () => {
         setModalVisible(false)
         setTimeout(() => setSelectCustomEmoji(false), 200)
@@ -86,7 +86,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
             <FlatList
                 data={photos}
                 renderItem={({ item, index: i }) => renderImage(item, i)}
-                keyExtractor={(item, i) => `${i}`}
+                keyExtractor={(item, i) => `${item[0].shortcode}`}
                 style={[commonStyle.horizonal]}
             />
         </Modal>

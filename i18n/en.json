@@ -7,6 +7,7 @@
     "失敗しました。一つ左のボタンからブラウザを開いて、長押しして保存してください。": "Failed: open on a browser and long press to save",
     "通知": "Notifications",
     "カスタム絵文字": "Custom emojis",
+    "絵文字が多いため、リストは描画されません": "List is unavailable: too many emojis",
     "カラム数エラー": "Invalid: number of columns",
     "カラムは1つ以上必要です": "Please leave at least one column",
     "カラムを削除します": "Delete this column",

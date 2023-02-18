@@ -13,6 +13,7 @@ export interface Account {
     translationEnabled?: boolean
     streaming?: string
     pushNotification?: string // url
+    idInServer?: string
 }
 export interface Emoji {
     domain: string

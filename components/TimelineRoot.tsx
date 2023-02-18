@@ -253,6 +253,27 @@ export default (props: FromRootToTimeline) => {
                         const cloneX = deepClone<M.Toot[]>(newTl)
                         tootUpdator(targetTimelineId[i], cloneX)
                     }
+                } else if (event === 'emoji_reaction') {
+                    const { payload: payloadString } = JSON.parse(e.data)
+                    const payload = JSON.parse(payloadString)
+                    const isMe = payload.account_ids === acct.idInServer || '-1'
+                    payload.me = isMe
+                    for (let i = 0; i < useTls.length; i++) {
+                        const newTl = tootGet(targetTimelineId[i]).map((item) => {
+                            if (item.id !== payload.status_id) return item
+                            let current = item.emoji_reactions || []
+                            const newReactionIndex = current.findIndex((d) => d.name === payload.name)
+                            if (newReactionIndex === -1) {
+                                current.push(payload)
+                            } else {
+                                current = current.map((d) => d.name === payload.name ? payload : d)
+                            }
+                            item.emoji_reactions = current
+                            return item
+                        })
+                        const cloneX = deepClone<M.Toot[]>(newTl)
+                        tootUpdator(targetTimelineId[i], cloneX)
+                    }
                 } else if (event === 'status.update') {
                     const { payload, stream } = JSON.parse(e.data)
                     const obj: M.Toot = JSON.parse(payload)

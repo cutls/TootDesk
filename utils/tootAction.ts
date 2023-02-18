@@ -38,7 +38,7 @@ export const resolveAccount = async (acctId: string, url: Account['url']) => {
         return null
     }
 }
-export const suggest = async (startPosition: number, inputText: string, acctId: string): Promise<[M.CustomEmoji[] | M.Account[] | M.Search['hashtags'], string]> => {
+export const suggest = async (startPosition: number | undefined, inputText: string, acctId: string): Promise<[M.CustomEmoji[] | M.Account[] | M.Search['hashtags'], string]> => {
     const first1 = inputText.slice(0, startPosition)
     const firstArr = first1.split(' ')
     const first = firstArr[firstArr.length - 1]
@@ -49,6 +49,7 @@ export const suggest = async (startPosition: number, inputText: string, acctId: 
     const tagM = first.match(tagRegExp)
     const acctM = first.match(acctRegExp)
     const unixTime = moment().unix()
+    console.log(first, emojiM)
     if (emojiM) {
         try {
             const { domain, at } = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account

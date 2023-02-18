@@ -154,3 +154,5 @@ export const deleteV1List = async (domain: string, at: string, listId:string) =>
 export const postV1ListUser = async (domain: string, at: string, listId: string,userId: string) => { return await postApi(`https://${domain}/api/v1/lists/${listId}/accounts`, at, { account_ids: [userId] }) as {} }
 export const postV1Poll = async (domain: string, at: string, pollId: string, optionId: number[]) => { return await postApi(`https://${domain}/api/v1/polls/${pollId}/votes`, at, { choices: optionId }) as M.Poll }
 export const postV1Translate = async (domain: string, at: string, tootId: string) => { return await postApi(`https://${domain}/api/v1/statuses/${tootId}/translate`, at, {}) as M.Translate }
+export const putV1Reaction = async (domain: string, at: string, tootId: string, reaction: string) => { return await putApi(`https://${domain}/api/v1/statuses/${tootId}/emoji_reactions/${reaction}`, at, {}) as M.Toot }
+export const postV1Unreaction = async (domain: string, at: string, tootId: string) => { return await postApi(`https://${domain}/api/v1/statuses/${tootId}/emoji_unreaction`, at, {}) as M.Toot }

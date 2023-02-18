@@ -84,6 +84,9 @@ export interface Toot {
     poll?: Poll | null
     pinned?: boolean
     edited_at?: string
+    emoji_reactioned?: boolean
+    emoji_reactions_count?: number
+    emoji_reactions?: EmojiReaction[]
     customPinned?: boolean
     TootDeskStream?: string
     filtered?: {
@@ -92,6 +95,15 @@ export interface Toot {
         status_matches?: string[]
     }[]
     [x: string]: any
+}
+export interface EmojiReaction {
+    account_ids: string[]
+    count: number
+    domain: string | null
+    me: boolean
+    name: string
+    static_url: string
+    url: string
 }
 export interface Attachment {
     id: string

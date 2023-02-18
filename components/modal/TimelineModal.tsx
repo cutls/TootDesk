@@ -211,6 +211,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                     timelines[tlId].config = config
                     setTimelines(deepClone<TimelineProps[]>(timelines))
                 }
+                alert(tlId)
+                setNowSelecting(tlId, true)
                 save()
             })
     }
