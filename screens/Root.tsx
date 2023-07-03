@@ -84,11 +84,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 
 
 	const [newNotif, setNewNotif] = useState(false)
-	const [imageModal, setImageModal] = useState({
-		url: [''],
-		i: 0,
-		show: false,
-	})
 	const goToAccountManager = () => {
 		navigation.replace('AccountManager')
 	}
@@ -134,53 +129,48 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	return (
 		<SetConfigContext.Provider value={{ config, setConfig }}>
 			<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
-				<ImageModalContext.Provider value={{ imageModal, setImageModal }}>
-					<ChangeTlContext.Provider value={{ changeTl, tl: nowSelecting }}>
-						<View style={{ backgroundColor: isDark ? 'black' : 'white' }}>
-							<SafeAreaView style={styles.container}>
-								<View>
-									<View style={styles.psudo}>
-										{!!timelines.length && <TimelineRoot
-											navigation={navigation}
-											loading={loading}
-											setNewNotif={setNewNotif}
-											setLoading={setLoading}
-											timelines={timelines}
-											txtAction={txtAction}
-										/>}
-									</View>
+				<ChangeTlContext.Provider value={{ changeTl, tl: nowSelecting }}>
+					<View style={{ backgroundColor: isDark ? 'black' : 'white' }}>
+						<SafeAreaView style={styles.container}>
+							<View>
+								<View style={styles.psudo}>
+									{!!timelines.length && <TimelineRoot
+										navigation={navigation}
+										loading={loading}
+										setNewNotif={setNewNotif}
+										setLoading={setLoading}
+										timelines={timelines}
+										txtAction={txtAction}
+									/>}
 								</View>
-								<View style={styles.stickToBottom}>
-									<View style={styles.bottom}>
-										{!!timelines.length && <Bottom
-											goToAccountManager={goToAccountManager}
-											timelines={timelines}
-											nowSelecting={nowSelecting}
-											setNewNotif={setNewNotif}
-											newNotif={newNotif}
-											txtAction={txtAction}
-											insertText={insertText}
-											txtActionId={txtActionId}
-											setTxtActionId={setTxtActionId}
-											setInsertText={setInsertText}
-											navigation={navigation}
-										/>
-										}
-									</View>
+							</View>
+							<View style={styles.stickToBottom}>
+								<View style={styles.bottom}>
+									{!!timelines.length && <Bottom
+										goToAccountManager={goToAccountManager}
+										timelines={timelines}
+										nowSelecting={nowSelecting}
+										setNewNotif={setNewNotif}
+										newNotif={newNotif}
+										txtAction={txtAction}
+										insertText={insertText}
+										txtActionId={txtActionId}
+										setTxtActionId={setTxtActionId}
+										setInsertText={setInsertText}
+										navigation={navigation}
+									/>
+									}
 								</View>
-								<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">
-									<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
-								</Modal>
-							</SafeAreaView>
-							<Modal visible={!!rootLoading} transparent={true}>
-								<View style={[styles.rootLoading, bgColorAI]}>
-									<ActivityIndicator size="large" />
-									<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
-								</View>
-							</Modal>
-						</View>
-					</ChangeTlContext.Provider>
-				</ImageModalContext.Provider>
+							</View>
+						</SafeAreaView>
+						<Modal visible={!!rootLoading} transparent={true}>
+							<View style={[styles.rootLoading, bgColorAI]}>
+								<ActivityIndicator size="large" />
+								<Text style={commonStyle.rootLoadingText}>{rootLoading}</Text>
+							</View>
+						</Modal>
+					</View>
+				</ChangeTlContext.Provider>
 			</LoadingContext.Provider >
 		</SetConfigContext.Provider>
 	)

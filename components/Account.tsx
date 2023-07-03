@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet, Platform, Image, Dimensions } from 'react-native'
+import { Image } from 'expo-image'
+import { StyleSheet, Platform, Dimensions } from 'react-native'
 import { Text, View, TextInput, Button } from './Themed'
 import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'

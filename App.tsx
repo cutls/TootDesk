@@ -14,6 +14,7 @@ import ListManager from './screens/ListManager'
 import Search from './screens/Search'
 import Config from './screens/Config'
 import LangFilter from './screens/LangFilter'
+import ImageViewer from './screens/ImageViewer'
 import i18n from './utils/i18n'
 const Stack = createStackNavigator()
 const LinkingConfiguration = {
@@ -60,6 +61,7 @@ export default function App() {
 				<Stack.Screen name="Search" component={Search} options={{ presentation: 'modal', title: i18n.t('検索') }} />
 				<Stack.Screen name="Config" component={Config} options={{ presentation: 'modal', title: i18n.t('設定') }} />
 				<Stack.Screen name="LangFilter" component={LangFilter} options={{ presentation: 'modal', title: i18n.t('言語フィルター') }} />
+				<Stack.Screen name="ImageViewer" component={ImageViewer} options={{ presentation: 'modal', headerShown: false }} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)

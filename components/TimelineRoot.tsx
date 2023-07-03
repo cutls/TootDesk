@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import TimelineProps, { TLType } from '../interfaces/TimelineProps'
 import { StyleSheet, AppState, AppStateStatus, useWindowDimensions } from 'react-native'
 import { Text, View } from './Themed'
@@ -26,10 +26,10 @@ interface FromRootToTimeline {
     navigation: StackNavigationProp<ParamList, any>
 }
 export default (props: FromRootToTimeline) => {
-    const { tl: targetTimelineId, changeTl } = React.useContext(ChangeTlContext)
+    const { tl: targetTimelineId, changeTl } = useContext(ChangeTlContext)
     const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
     const styles = createStyle(deviceWidth)
-    const appState = React.useRef(AppState.currentState)
+    const appState = useRef(AppState.currentState)
     const [appStateVisible, setAppStateVisible] = useState(appState.current)
     const [targetTimelines, setTargetTimelines] = useState<TimelineProps[]>([])
     const targetTimelinesRef = useRef<TimelineProps[]>()
@@ -55,7 +55,7 @@ export default (props: FromRootToTimeline) => {
     const [onScroll, setOnScroll] = useState(false)
     const tlPerScreen = config.tlPerScreen
 
-    const onRefresh = React.useCallback(async (tlId: number) => {
+    const onRefresh = useCallback(async (tlId: number) => {
         setRefreshing(true)
         if (!targetTimelinesRef.current?.length) return setRefreshing(false)
         console.log('closing refersh')

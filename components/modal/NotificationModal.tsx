@@ -5,12 +5,13 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { commonStyle } from '../../utils/styles'
 import NotificationTimeline from '../NotificationTimeline'
 import i18n from '../../utils/i18n'
+import { useState } from 'react'
 
 
 let ios = true
 if (Platform.OS === 'android') ios = false
 export default function NotificationModal({ setShowNotif, acctId, txtAction, navigation }: any) {
-    const [modalVisible, setModalVisible] = React.useState(true)
+    const [modalVisible, setModalVisible] = useState(true)
 	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
     const modalWidth = deviceWidth > 700 ? 700 : deviceWidth
     const theme = useColorScheme()

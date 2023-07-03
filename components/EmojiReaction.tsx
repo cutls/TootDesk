@@ -1,5 +1,6 @@
 import React, { useContext } from 'react'
-import { StyleSheet, Image, useColorScheme } from 'react-native'
+import { StyleSheet, useColorScheme } from 'react-native'
+import { Image } from 'expo-image'
 import { Text, View, TouchableOpacity } from './Themed'
 import * as M from '../interfaces/MastodonApiReturns'
 import { SetConfigContext } from '../utils/context/config'

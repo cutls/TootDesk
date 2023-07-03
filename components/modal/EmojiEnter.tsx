@@ -1,7 +1,8 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import * as React from 'react'
 import { Text, View, TouchableOpacity, TextInput, Button } from '../Themed'
-import { StyleSheet, Image, FlatList, Platform, useColorScheme, Modal, useWindowDimensions, InputAccessoryView } from 'react-native'
+import { StyleSheet, FlatList, Platform, useColorScheme, Modal, useWindowDimensions, InputAccessoryView } from 'react-native'
+import { Image } from 'expo-image'
 import * as Alert from '../../utils/alert'
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
@@ -11,7 +12,7 @@ import * as S from '../../interfaces/Storage'
 import * as M from '../../interfaces/MastodonApiReturns'
 import i18n from '../../utils/i18n'
 import { suggest } from '../../utils/tootAction'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 let ios = true
 if (Platform.OS === 'android') ios = false
 const isEmoji = (item: any): item is M.CustomEmoji => item.shortcode
@@ -23,7 +24,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
     const [tooManyEmoji, setTooManyEmoji] = useState(false)
     const [photos, setPhotos] = useState<M.CustomEmoji[]>([])
     const [suggested, setSuggested] = useState<M.CustomEmoji[] | M.Account[] | M.Search['hashtags']>([])
-    const [modalVisible, setModalVisible] = React.useState(true)
+    const [modalVisible, setModalVisible] = useState(true)
     const [text, setText] = useState('')
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -39,7 +40,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
             console.error(e)
         }
     }
-    React.useEffect(() => { load() }, [])
+    useEffect(() => { load() }, [])
     const dismiss = () => {
         setModalVisible(false)
         setTimeout(() => setSelectCustomEmoji(false), 200)
@@ -54,7 +55,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
         if (isEmoji(item)) return <TouchableOpacity style={[commonStyle.horizonal, styles.sIT]} onPress={() => completeSuggest(item.shortcode)}><Image source={{ uri: item.url }} style={styles.sImg} /><Text style={styles.sTxt}>:{item.shortcode}:</Text></TouchableOpacity>
         return null
     }
-    React.useEffect(() => {
+    useEffect(() => {
         const main = async () => {
             const sendText = text.match(/^:/) ? text : `:${text}`
             const data = await suggest(sendText.length, sendText, acct || '')

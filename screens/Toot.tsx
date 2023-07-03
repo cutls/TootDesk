@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { StatusBar, Modal, FlatList, useWindowDimensions, useColorScheme, ActionSheetIOS, ActivityIndicator, StyleSheet } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
@@ -49,7 +49,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const isDark = theme === 'dark'
 	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
 	const bgColorAI = { backgroundColor: bgColorValAI }
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
 			headerTitleStyle: { color: isDark ? 'white' : 'black' },
@@ -67,7 +67,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	}, [navigation, openUrl, WebBrowser, isDark])
 	const [config, setConfig] = useState<IConfig>(configInit)
 	const [ready, setReady] = useState(false)
-	const [inited, setInited] = useState(false)
 	const [tooting, setTooting] = useState(false)
 	const [deletable, setDeletable] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(0)
@@ -79,16 +78,10 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	const [acctId, setAcctId] = useState('')
 	const [text, setText] = useState('')
 	const [txtActionId, setTxtActionId] = useState('')
-	const [imageModal, setImageModal] = useState({
-		url: [''],
-		i: 0,
-		show: false,
-	})
 	let at: string | undefined
 	let notfId: string | undefined
 	const init = async (acctIdGet: string, id: string) => {
 		try {
-			setInited(true)
 			if (acctIdGet === 'noAuth') return
 			const { domain, at, acct } = (await storage.getCertainItem('accounts', 'id', acctIdGet)) as S.Account
 			const tootData = await api.getV1Toot(domain, at, id)
@@ -114,7 +107,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	}
 	const solve = async (domain: string, at: string, notfId: string) => {
 		try {
-			setInited(true)
 			const acct = (await storage.getItem('accounts')) as S.Account[]
 			const my = await api.getV1AccountsVerifyCredentials(domain, at)
 			let acctId
@@ -153,22 +145,26 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	useEffect(() => {
 		if (toot && useOtherAccount) operateAsOtherAccount()
 	}, [useOtherAccount, toot])
-	if (!route.params) return null
-	if (route.params.notification) {
-		let domain = route.params.domain
-		at = route.params.at
-		notfId = route.params.notfId
-		if (!domain || !at || !notfId) return null
-		if (!inited) solve(domain, at, notfId)
-	} else {
-		const acctIdGet = route.params.acctId
-		const id = route.params.id
-		if (!acctIdGet || !id) return null
-		if (!inited) init(acctIdGet, id)
-	}
+	useEffect(() => {
+		if (!route.params) return
+		if (route.params.notification) {
+			let domain = route.params.domain
+			at = route.params.at
+			notfId = route.params.notfId
+			if (!domain || !at || !notfId) return
+			solve(domain, at, notfId)
+		} else {
+			const acctIdGet = route.params.acctId
+			const id = route.params.id
+			if (!acctIdGet || !id) return
+			init(acctIdGet, id)
+		}
+	}, [])
+	
 	if (!ready) {
 		return (
 			<View style={[commonStyle.container, commonStyle.blockCenter]}>
+				{!rootLoading && <ActivityIndicator style={{ marginBottom: 10 }} size="large" />}
 				<Text>Loading...</Text>
 				<Modal visible={!!rootLoading} transparent={true}>
 					<View style={[styles.rootLoading, bgColorAI]}>
@@ -240,11 +236,7 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 	return (
 		<LoadingContext.Provider value={{ loading: rootLoading, setLoading: setRootLoading }}>
 			<SetConfigContext.Provider value={{ config, setConfig }}>
-				<ImageModalContext.Provider value={{ imageModal, setImageModal }}>
 					<View style={commonStyle.container}>
-						<Modal visible={imageModal.show} animationType="fade" presentationStyle="fullScreen">
-							<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
-						</Modal>
 						{ancestors.length ? (
 							<FlatList
 								data={ancestors}
@@ -304,7 +296,6 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 						)}
 						<Post show={tooting} acct={acctId} tooting={setTooting} insertText={text} txtActionId={txtActionId} />
 					</View>
-				</ImageModalContext.Provider>
 			</SetConfigContext.Provider>
 		</LoadingContext.Provider>
 	)

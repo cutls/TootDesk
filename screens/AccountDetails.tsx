@@ -1,5 +1,6 @@
-import React, { useContext, useState } from 'react'
-import { StyleSheet, Dimensions, Modal, Image, Text as DefaultText, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme, ActivityIndicator } from 'react-native'
+import React, { useContext, useEffect, useLayoutEffect, useState } from 'react'
+import { Image } from 'expo-image'
+import { StyleSheet, Dimensions, Modal, Text as DefaultText, ActionSheetIOS, ScrollView, useWindowDimensions, findNodeHandle, useColorScheme, ActivityIndicator } from 'react-native'
 import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
@@ -32,7 +33,7 @@ const renderers = {
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
 	const [openUrl, setOpenUrl] = useState<string | null>(null)
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
 				<TouchableOpacity onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Root'))} style={{ marginLeft: 10 }}>
@@ -49,7 +50,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
 	const styles = createStyle(deviceWidth, deviceHeight)
 	const [ready, setReady] = useState(false)
-	const [inited, setInited] = useState(false)
 	const [isMine, setIsMine] = useState(false)
 	const [tooting, setTooting] = useState(false)
 	const [deletable, setDeletable] = useState(false)
@@ -60,7 +60,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	const [uTl, setUtl] = useState([] as M.Toot[])
 	const [acctId, setAcctId] = useState('')
 	const [txtActionId, setTxtActionId] = useState('' as string)
-	const [imageModal, setImageModal] = useState({ url: [''], i: 0, show: false })
 	const [anchor, setAnchor] = useState<null | number>(0)
 	const { config } = useContext(SetConfigContext)
 	const theme = useColorScheme()
@@ -72,7 +71,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	let notfId: string | undefined
 	const init = async (acctIdGet: string, id: string) => {
 		const url = route.params?.url
-		setInited(true)
 		if (acctIdGet === 'noAuth' && url) {
 			const accts = (await storage.getItem('accounts')) as S.Account[]
 			const acctsTxt = accts.map((a) => a.acct)
@@ -120,7 +118,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	}
 	const solve = async (domain: string, at: string, notfId: string) => {
 		try {
-			setInited(true)
 			const acct = (await storage.getItem('accounts')) as S.Account[]
 			const my = await api.getV1AccountsVerifyCredentials(domain, at)
 			let acctId
@@ -136,23 +133,25 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 			Alert.alert('Error', e.toString())
 		}
 	}
-	if (!route.params) return null
-
-	if (route.params.notification) {
-		let domain = route.params.domain
-		at = route.params.at
-		notfId = route.params.notfId
-		if (!domain || !at || !notfId) return null
-		if (!inited) solve(domain, at, notfId)
-	} else {
-		const acctIdGet = route.params.acctId
-		const id = route.params.id
-		if (!acctIdGet || !id) return null
-		if (!inited) init(acctIdGet, id)
-	}
+	useEffect(() => {
+		if (!route.params) return
+		if (route.params.notification) {
+			let domain = route.params.domain
+			at = route.params.at
+			notfId = route.params.notfId
+			if (!domain || !at || !notfId) return
+			solve(domain, at, notfId)
+		} else {
+			const acctIdGet = route.params.acctId
+			const id = route.params.id
+			if (!acctIdGet || !id) return
+			init(acctIdGet, id)
+		}
+	}, [])
 	if (!ready) {
 		return (
 			<View style={[commonStyle.container, commonStyle.blockCenter]}>
+				{!rootLoading && <ActivityIndicator style={{ marginBottom: 10 }} size="large" />}
 				<Text>Loading...</Text>
 				<Modal visible={!!rootLoading} transparent={true}>
 					<View style={[styles.rootLoading, bgColorAI]}>
@@ -249,9 +248,6 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 				<AccountName account={account} fontSize={20} showWithoutEllipsis={false} width={deviceWidth} />
 				<Text>{account.acct}</Text>
 			</View>
-			<Modal visible={imageModal.show} animationType="slide" presentationStyle="formSheet">
-				<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url, i, show })} />
-			</Modal>
 			<ScrollView style={[{ backgroundColor: isDark ? 'black' : 'white', padding: 10 }]} stickyHeaderIndices={[4]}>
 				<View>
 					{!isMine && <TouchableOpacity style={styles.followed} onPress={() => accountAction()}>
@@ -291,7 +287,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 					style={{ marginVertical: 15 }}
 					values={[`${account.statuses_count}${i18n.t('トゥート')}`, `${account.following_count}${i18n.t('フォロー')}`, `${account.followers_count}${i18n.t('フォロワー')}`]}
 					selectedIndex={selectedIndex}
-					onChange={(event) => {
+					onChange={(event: any) => {
 						setSelectedIndex(event.nativeEvent.selectedSegmentIndex)
 					}}
 				/>

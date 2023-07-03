@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { StyleSheet, Dimensions, FlatList, RefreshControl, useWindowDimensions } from 'react-native'
 import { Text, TouchableOpacity, View } from './Themed'
 import Toot from './Toot'
@@ -31,7 +31,7 @@ export default (props: FromRootToTimeline) => {
     const [acct, setAcct] = useState<S.Account | null>(null)
     const [loading, setLoading] = useState('Initializing' as string | null)
     const [refreshing, setRefreshing] = useState(false)
-    const onRefresh = React.useCallback(async () => {
+    const onRefresh = useCallback(async () => {
         setRefreshing(true)
         await loadTimeline()
         setRefreshing(false)
@@ -110,7 +110,7 @@ export default (props: FromRootToTimeline) => {
             Alert.alert('Error', e.toString())
         }
     }
-    const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>
+    const flatlistRef = useRef<FlatList>() as RefObject<FlatList<any>>
     if (loading) {
         if (loading === 'Initializing') {
             loadTimeline()

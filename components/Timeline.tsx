@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import TimelineProps from '../interfaces/TimelineProps'
 import { StyleSheet, Dimensions, FlatList, RefreshControl, useWindowDimensions } from 'react-native'
 import { Text, TouchableOpacity, View } from './Themed'
@@ -51,7 +51,7 @@ export default (props: FromTimelineRootToTimeline) => {
 			/>
 		)
 	}
-	const flatlistRef = React.useRef<FlatList>() as RefObject<FlatList<any>>
+	const flatlistRef = useRef<FlatList>() as RefObject<FlatList<any>>
 	const init = async () => {
 		const { acct } = timeline
 		const account = (await storage.getCertainItem('accounts', 'id', acct)) as S.Account

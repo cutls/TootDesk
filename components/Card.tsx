@@ -1,7 +1,7 @@
 import * as M from '../interfaces/MastodonApiReturns'
 import React, { useState } from 'react'
 import * as WebBrowser from 'expo-web-browser'
-import { Dimensions, Image, useWindowDimensions } from 'react-native'
+import { Image } from 'expo-image'
 import { Text, TouchableOpacity } from './Themed'
 interface FromTootToCard {
 	card: M.Card

@@ -1,5 +1,6 @@
 import React, { RefObject, useEffect, useRef, useState } from 'react'
-import { StyleSheet, TextInput, Image, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, InputAccessoryView } from 'react-native'
+import { StyleSheet, TextInput, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, InputAccessoryView } from 'react-native'
+import { Image } from 'expo-image'
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
 import { MaterialIcons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
@@ -68,7 +69,7 @@ export default (props: FromRootToPost) => {
 	const [inputHeight, setInputHeight] = useState(0)
 	const [textLength, setTextLength] = useState(0)
 	useEffect(() => setTextLength(text ? text.length : 0), [text])
-	const additional = (showPoll ? 220 : 0) + (showScheduled ? 60 : 0)
+	const additional = (showPoll ? 220 : 0) + (showScheduled ? 60 : 0)+ (showCW ? 50 : 0)
 	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 105 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0) + additional
 	const postAvoid = keyboardHeight + postArea
 	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
@@ -82,10 +83,10 @@ export default (props: FromRootToPost) => {
 		if (vis === 'direct') return 'mail'
 		return 'public'
 	}
-	const [anchorVis, setAnchorVis] = React.useState<null | number>(0)
-	const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
-	const [anchorMore, setAnchorMore] = React.useState<null | number>(0)
-	const [suggestLoading, setSuggestLoading] = React.useState(false)
+	const [anchorVis, setAnchorVis] = useState<null | number>(0)
+	const [anchorAcct, setAnchorAcct] = useState<null | number>(0)
+	const [anchorMore, setAnchorMore] = useState<null | number>(0)
+	const [suggestLoading, setSuggestLoading] = useState(false)
 	useEffect(() => { setText(insertText) }, [insertText])
 	const selectVis = () =>
 		ActionSheetIOS.showActionSheetWithOptions(
@@ -276,7 +277,7 @@ export default (props: FromRootToPost) => {
 						/>
 						{showCW ? <TextInput numberOfLines={1} style={[styles.cwArea]} placeholder={i18n.t('警告文')} value={CWText} onChangeText={(text) => setCWText(text)} /> : null}
 						<View style={styles.horizonal}>
-							<TouchableOpacity onPress={() => actionSheet()} style={{ maxWidth: (width / 2 - 20) }}>
+							<TouchableOpacity onPress={() => actionSheet()} style={{ width: (width / 2 - 20) }}>
 								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} numberOfLines={1} >{accountTxt}</Text>
 							</TouchableOpacity>
 							<Button title={i18n.t('トゥート')} icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />

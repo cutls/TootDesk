@@ -71,7 +71,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     useEffect(() => { loadTrends(account, 0) }, [account])
     useEffect(() => { loadTrends(account, 2) }, [directoryLocal, directoryOrder])
-    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
+    const [anchorAcct, setAnchorAcct] = useState<null | number>(0)
     const selectAcct = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
         const accountListTxt = accts.map((item) => `@${item?.name}@${item?.domain}`)

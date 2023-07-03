@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { StyleSheet, StatusBar, Dimensions, Platform, Modal, Animated, FlatList, Linking, useWindowDimensions, useColorScheme, ActivityIndicator } from 'react-native'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import * as WebBrowser from 'expo-web-browser'
@@ -32,7 +32,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const isDark = theme === 'dark'
 	const bgColorValAI = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'
 	const bgColorAI = { backgroundColor: bgColorValAI }
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
 			headerTitleStyle: { color: isDark ? 'white' : 'black' },
@@ -58,6 +58,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const [ready, setReady] = useState(false)
 	const [codeInput, setCodeInput] = useState('')
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
+	const [list, setList] = useState([] as string[])
 	let code: string
 	let state: string
 	useEffect(() => {
@@ -249,7 +250,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			<Text>{e.item}</Text>
 		</TouchableOpacity>
 	}
-	const [list, setList] = React.useState([] as string[])
 	const search = async (domain: string) => {
 		setDomain(domain)
 		if (domain.length > 3) {

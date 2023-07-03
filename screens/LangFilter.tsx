@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { StyleSheet, StatusBar, Platform, FlatList, useWindowDimensions, useColorScheme, Switch } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
@@ -25,7 +25,7 @@ export default function LangFilter({ navigation, route }: StackScreenProps<Param
         } catch (e) { }
     }
     useEffect(() => { init() }, [])
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         navigation.setOptions({
             headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
             headerTitleStyle: { color: isDark ? 'white' : 'black' },

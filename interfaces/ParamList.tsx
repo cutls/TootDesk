@@ -10,6 +10,7 @@ export type ParamList = {
 	Search: undefined
 	Config: undefined | { code?: string }
 	LangFilter: { tlId: number }
+	ImageViewer: { url: string[], i: number }
 }
 export type IState<T> = React.Dispatch<React.SetStateAction<T>>
 export type Loading = 'Initializing' | 'Change Timeline' | 'Loading...'

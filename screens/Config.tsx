@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { StyleSheet, StatusBar, Platform, useWindowDimensions, useColorScheme, Switch } from 'react-native'
 import Slider from '@react-native-community/slider'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
@@ -12,6 +12,7 @@ import { commonStyle } from '../utils/styles'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useKeyboard } from '../utils/keyboard'
 import i18n from '../utils/i18n'
+import SwitchComponent from '../components/SwitchComponent'
 type IConfigType = keyof IConfig
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Config'>) {
     const [config, setConfig] = useState(configInit)
@@ -43,7 +44,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         } catch (e) { }
     }
     useEffect(() => { init() }, [])
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         navigation.setOptions({
             headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
             headerTitleStyle: { color: isDark ? 'white' : 'black' },
@@ -60,17 +61,19 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const deviceHeight = StatusBar.currentHeight ? height : height - 20
     const styles = createStyle(deviceWidth, deviceHeight)
     interface ISwitchComponent {
+        text: string
         configKey: IConfigType
     }
-    const SwitchComponent = ({ configKey }: ISwitchComponent) => {
-        return <View style={styles.switchWrap}><Switch
-            onValueChange={(tf) => {
+    const SwitchComponentWrap = ({ configKey, text }: ISwitchComponent) => {
+        return <View style={styles.switchWrap}><SwitchComponent
+            setValueFunc={(tf) => {
                 const newConfig = deepClone<any>(config)
                 newConfig[configKey] = tf
                 setConfig(newConfig)
                 save(newConfig)
             }}
-            style={[styles.switch]}
+            text={text}
+            noMargin={true}
             value={!!config[configKey]}
         /></View>
     }
@@ -119,20 +122,14 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <Text style={styles.title}>{i18n.t('スクリーンあたりのカラム数')}</Text>
                 <Text>1({i18n.t('スマホ向け')})〜6({i18n.t('タブレット向け')})</Text>
                 <TextInput style={styles.form} value={tlPerScreen.toString()} onChangeText={(t) => saveTlPerScreen(t)} keyboardType="number-pad" />
-                <Text style={styles.title}>{i18n.t('絶対時間を表示する')}</Text>
-                <SwitchComponent configKey="useAbsoluteTime" />
-                <Text style={styles.title}>{i18n.t('相対時間を表示する')}</Text>
-                <SwitchComponent configKey="useRelativeTime" />
-                <Text style={styles.title}>{i18n.t('viaを表示する')}</Text>
-                <SwitchComponent configKey="showVia" />
-                <Text style={styles.title}>{i18n.t('言語を表示する')}</Text>
-                <SwitchComponent configKey="showLang" />
-                <Text style={styles.title}>{i18n.t('アイコンのアニメーション表示')}</Text>
-                <SwitchComponent configKey="showGif" />
+                <SwitchComponentWrap configKey="useAbsoluteTime" text={i18n.t('絶対時間を表示する')} />
+                <SwitchComponentWrap configKey="useRelativeTime" text={i18n.t('相対時間を表示する')} />
+                <SwitchComponentWrap configKey="showVia" text={i18n.t('viaを表示する')} />
+                <SwitchComponentWrap configKey="showLang" text={i18n.t('言語を表示する')} />
+                <SwitchComponentWrap configKey="showGif" text={i18n.t('アイコンのアニメーション表示')} />
                 <Text style={styles.title}>{i18n.t('画像の高さ設定')}</Text>
                 <TextInput style={styles.form} value={imageHeight.toString()} onChangeText={(t) => saveImageHeight(t)} keyboardType="number-pad" />
-                <Text style={styles.title}>{i18n.t('リアクション数を表示')}</Text>
-                <SwitchComponent configKey="showReactedCount" />
+                <SwitchComponentWrap configKey="showReactedCount" text={i18n.t('リアクション数を表示')} />
                 <Text style={styles.title}>{i18n.t('長文自動折り畳み')}</Text>
                 <View style={styles.horizonal}>
                     <TextInput style={[styles.form, { width: 100 }]} value={letters.toString()} onChangeText={(t) => saveAutoFold(t, 'letters')} keyboardType="number-pad" />

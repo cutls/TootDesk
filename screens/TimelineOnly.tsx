@@ -28,11 +28,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 	const timeline = route.params.timeline
 	const [flatList, setFlatList] = useState<IFlatList>(undefined)
 	const [newNotif, setNewNotif] = useState(false)
-	const [imageModal, setImageModal] = useState({
-		url: [''],
-		i: 0,
-		show: false,
-	})
 	const txtAction = (id: string, insertText: string, type: 'reply' | 'edit') => {
 		const action = i18n.t(type === 'reply' ? '返信' : '編集')
 		Alert.alert(action, i18n.t(`%{t}するためには、まずこのタイムラインをピン留めしてください`, { t: action }))
@@ -70,9 +65,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
 					<MaterialIcons name="keyboard-arrow-up" size={27} />
 				</TouchableOpacity>
-				<Modal visible={imageModal.show} animationType="slide" presentationStyle="fullScreen">
-					<ImageModal url={imageModal.url} i={imageModal.i} imgModalTrigger={(url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })} />
-				</Modal>
 			</View>
 		</TopBtnContext.Provider>
 	)

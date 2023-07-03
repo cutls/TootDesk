@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { StyleSheet, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInput, RefreshControl, findNodeHandle, useWindowDimensions } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
 import { Button, TouchableOpacity, View, Text } from '../components/Themed'
@@ -18,7 +18,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const isDark = theme === 'dark'
     const { height, width } = useWindowDimensions()
 	const deviceWidth = width
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		navigation.setOptions({
 			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
 			headerTitleStyle: { color: isDark ? 'white' : 'black' },
@@ -39,6 +39,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const [selectingList, setSelectingList] = useState<string>('')
     const [list, setList] = useState<M.List[]>([])
     const [user, setUser] = useState<M.Account[]>([])
+    const [anchorAcct, setAnchorAcct] = useState<null | number>(0)
     const theFontGrayPlus = isDark ? '#c7c7c7' : '#4f4f4f'
     const init = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
@@ -77,7 +78,6 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     }
     useEffect(() => { loadListList(account) }, [account])
 
-    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
     const selectAcct = async () => {
         const accts: S.Account[] = await storage.getItem('accounts')
         const accountListTxt = accts.map((item) => `@${item?.name}@${item?.domain}`)
@@ -96,7 +96,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         )
     }
 
-    const [anchorAction, setAnchorAction] = React.useState<null | number>(0)
+    const [anchorAction, setAnchorAction] = useState<null | number>(0)
     const listAction = async (item: M.List) => {
         const actions = [i18n.t('カラム追加'), i18n.t('リスト情報'), i18n.t('リストの削除')]
         if (targetAcct) actions.push(i18n.t('このリストに追加/から削除'))

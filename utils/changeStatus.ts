@@ -4,10 +4,13 @@ import * as api from './api'
 import * as storage from './storage'
 import * as Alert from './alert'
 import i18n from './i18n'
+import { useContext } from 'react'
+import { LoadingContext } from './context/loading'
 type ITootAction = 'boost' | 'fav' | 'unboost' | 'unfav' | 'delete' | 'pin' | 'unpin' | 'bookmark' | 'unbookmark'
 
-export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>, showAlert?: boolean) => {
+export const statusPost = async (action: ITootAction, id: string, acctId: string, changeStatus?: IState<any>, showAlert?: boolean, setLoading?: IState<string | null>) => {
     try {
+        if(typeof setLoading !== 'undefined') setLoading(`${actionToLocale(action)}...`)
         const acct = (await storage.getCertainItem('accounts', 'id', acctId)) as S.Account
         let positive = true
         let ct = 0
@@ -42,6 +45,8 @@ export const statusPost = async (action: ITootAction, id: string, acctId: string
     } catch (e) {
         Alert.alert(i18n.t('エラー'), `${e}`)
         console.error(e)
+    } finally {
+        if(typeof setLoading !== 'undefined') setLoading(null)
     }
 }
 const actionToLocale = (action: ITootAction) => {

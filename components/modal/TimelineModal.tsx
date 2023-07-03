@@ -18,6 +18,7 @@ import { SetConfigContext } from '../../utils/context/config'
 import deepClone from '../../utils/deepClone'
 import { useKeyboard } from '../../utils/keyboard'
 import i18n from '../../utils/i18n'
+import { useContext, useEffect, useState } from 'react'
 
 let ios = true
 if (Platform.OS != 'ios') ios = false
@@ -28,6 +29,11 @@ interface BottomToTLModalProps {
     goToAccountManager: () => void
     navigation: StackNavigationProp<ParamList, any>
 }
+interface ITlBtnProps {
+    icon: React.ComponentProps<typeof MaterialIcons>['name']
+    name: string
+    type: TLType
+}
 
 export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalProps) => {
     const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
@@ -37,21 +43,21 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     const styles = createStyle(deviceWidth, deviceHeight, isDark, keyboardHeight)
     const tablet = deviceWidth > deviceHeight ? deviceHeight > 500 : deviceWidth > 500
     const useWidth = tablet ? 550 : deviceWidth
-    const { changeTl: setNowSelecting } = React.useContext(ChangeTlContext)
-    const { config } = React.useContext(SetConfigContext)
-    const [inited, setInited] = React.useState(false)
-    const [animation, setAnimation] = React.useState(new Animated.Value(0))
-    const [internalShow, setInternalShow] = React.useState(true)
-    const [editMode, setEditMode] = React.useState(false)
-    const [mode, setMode] = React.useState('select')
-    const [timelines, setTimelines] = React.useState<TimelineProps[]>([])
-    const [accountListTxt, setAccountListTxt] = React.useState<string[]>([])
-    const [accountList, setAccountList] = React.useState<string[]>([])
-    const [accountTxt, setAccountTxt] = React.useState<string>('')
-    const [account, setAccount] = React.useState<string>('')
-    const [local, setLocal] = React.useState<string>('')
-    const [listSelect, setListSelect] = React.useState(false)
-    const [anchor, setAnchor] = React.useState<null | number>(0)
+    const { changeTl: setNowSelecting } = useContext(ChangeTlContext)
+    const { config } = useContext(SetConfigContext)
+    const [animation, setAnimation] = useState(new Animated.Value(0))
+    const [internalShow, setInternalShow] = useState(true)
+    const [editMode, setEditMode] = useState(false)
+    const [mode, setMode] = useState('select')
+    const [timelines, setTimelines] = useState<TimelineProps[]>([])
+    const [accountListTxt, setAccountListTxt] = useState<string[]>([])
+    const [accountList, setAccountList] = useState<string[]>([])
+    const [accountTxt, setAccountTxt] = useState<string>('')
+    const [account, setAccount] = useState<string>('')
+    const [local, setLocal] = useState<string>('')
+    const [listSelect, setListSelect] = useState(false)
+    const [anchor, setAnchor] = useState<null | number>(0)
+    const [anchorAcct, setAnchorAcct] = useState<null | number>(0)
     const tlPerScreen = config.tlPerScreen
     const init = async () => {
         const tls = await storage.getItem('timelines')
@@ -67,11 +73,9 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         setAccountTxt(itemTxt[0])
         setAccountList(item)
         setAccountListTxt(itemTxt)
-        setInited(true)
     }
-    if (!inited) init()
+    useEffect(() => { init() }, [])
 
-    const [anchorAcct, setAnchorAcct] = React.useState<null | number>(0)
     const actionSheet = () =>
         ActionSheetIOS.showActionSheetWithOptions(
             {
@@ -249,6 +253,12 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                 <View style={commonStyle.separator} />
             </TouchableOpacity>)
     }
+    const TLBtn = (props: ITlBtnProps) => {
+        return <TouchableOpacity style={[commonStyle.horizonal, styles.tlSelBtn]} onPress={() => useTl(props.type)} onLongPress={() => glanceTl(props.type)}>
+            <MaterialIcons name={props.icon} size={30} color="#858383" />
+            <Text style={styles.tlSelTxt}>{props.name}</Text>
+        </TouchableOpacity>
+    }
     return (
         <View style={styles.wrap}>
             <Modal visible={internalShow} animationType={tablet ? 'fade' : 'slide'} transparent={true}>
@@ -279,18 +289,16 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                 <Text>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
                                 <View style={{ height: 5 }} />
                                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                    <Button title={i18n.t('ホーム')} onPress={() => useTl('home')} style={styles.tlBtn} onLongPress={() => glanceTl('home')} />
-                                    <Button title={i18n.t('ローカル')} onPress={() => useTl('local')} style={styles.tlBtn} onLongPress={() => glanceTl('local')} />
+                                    <TLBtn name={i18n.t('ホーム')} icon="home" type="home" />
+                                    <TLBtn name={i18n.t('ローカル')} icon="people" type="local" />
                                 </View>
-                                <View style={{ height: 10 }} />
                                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                    <Button title={i18n.t('連合')} onPress={() => useTl('public')} style={styles.tlBtn} onLongPress={() => glanceTl('public')} />
-                                    <Button title={i18n.t('統合')} onPress={() => useTl('mix')} style={styles.tlBtn} onLongPress={() => glanceTl('mix')} />
+                                    <TLBtn name={i18n.t('連合')} icon="language" type="public" />
+                                    <TLBtn name={i18n.t('統合')} icon="merge-type" type="mix" />
                                 </View>
-                                <View style={{ height: 10 }} />
                                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                    <Button title={i18n.t('ブックマーク')} onPress={() => useTl('bookmark')} style={styles.tlBtn} onLongPress={() => glanceTl('bookmark')} />
-                                    <Button title={i18n.t('お気に入り')} onPress={() => useTl('fav')} style={styles.tlBtn} onLongPress={() => glanceTl('fav')} />
+                                    <TLBtn name={i18n.t('ブックマーク')} icon="bookmark" type="bookmark" />
+                                    <TLBtn name={i18n.t('お気に入り')} icon="star" type="fav" />
                                 </View>
                                 <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
                                     <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('リスト')}</Text>
@@ -365,6 +373,20 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean,
         flatlist: {
             height: useHeight - 250
         },
+        tlSelBtn: {
+            width: (useWidth - 40) / 2,
+            alignItems: 'center',
+            padding: 5,
+            borderWidth: 1,
+            borderColor: isDark ? '#eee' : '#d6d6d6',
+            margin: 3,
+            borderRadius: 2
+        },
+        tlSelTxt: {
+            fontSize: 15,
+            marginLeft: 5,
+
+        },
         tlBtn: {
             width: (useWidth - 40) / 2
         },
@@ -381,11 +403,11 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean,
             borderRadius: 10,
         },
         pressable: {
-			height: deviceHeight,
-			width: deviceWidth,
-			top: 0,
-			left: 0,
-			position: 'absolute',
-		},
+            height: deviceHeight,
+            width: deviceWidth,
+            top: 0,
+            left: 0,
+            position: 'absolute',
+        },
     })
 }

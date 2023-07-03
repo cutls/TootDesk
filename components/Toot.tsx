@@ -1,5 +1,6 @@
-import React, { useContext, useState } from 'react'
-import { StyleSheet, Image, ActionSheetIOS, findNodeHandle, useColorScheme } from 'react-native'
+import React, { memo, useContext, useState } from 'react'
+import { StyleSheet, ActionSheetIOS, findNodeHandle, useColorScheme } from 'react-native'
+import { Image } from 'expo-image'
 import { Text, View } from './Themed'
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
 import * as WebBrowser from 'expo-web-browser'
@@ -45,7 +46,7 @@ interface FromTimelineToToot {
 	tlId: number
 }
 const hasApp = (item: any): item is M.App => item && item.name
-export default (props: FromTimelineToToot) => {
+export default memo((props: FromTimelineToToot) => {
 	const { toot: rawToot, txtAction, navigation, acctId, deletable, width, tlId } = props
 	const styles = createStyle(width)
 	const toot = rawToot.reblog ? rawToot.reblog : rawToot
@@ -58,12 +59,11 @@ export default (props: FromTimelineToToot) => {
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [translatedToot, setTranslatedToot] = useState('')
 	const { setLoading } = useContext(LoadingContext)
-	const { setImageModal } = useContext(ImageModalContext)
 	const { config } = useContext(SetConfigContext)
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
-	const imgModalTrigger = (url: string[], i: number, show: boolean) => setImageModal({ url: url, i: i, show: show })
+	const imgModalTrigger = (url: string[], i: number, show: boolean) => navigation.push('ImageViewer', { url, i })
 	const showMedia = (media: M.Attachment[], isSensitive: boolean) => {
 		const ret = [] as JSX.Element[]
 		const mediaUrl = [] as string[]
@@ -81,14 +81,9 @@ export default (props: FromTimelineToToot) => {
 						<Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('プレビューはありません')}</Text>
 					</TouchableOpacity >
 					:
-					isSensitive ?
-						<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
-							<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
-							<BlurView intensity={40} style={{ position: 'absolute', width: (width - 80) / media.length, height: config.imageHeight }} />
-						</TouchableOpacity >
-						: <TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`}>
-							<Image source={{ uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
-						</TouchableOpacity>
+					<TouchableOpacity onPress={() => imgModalTrigger(mediaUrl, cloneI, true)} key={`${mid.id} ${tlId}`} >
+						<Image placeholder={mid.blurhash} source={isSensitive ? null : { uri: mid.preview_url }} style={{ width: (width - 80) / media.length, height: config.imageHeight, borderWidth: 1 }} />
+					</TouchableOpacity >
 			)
 			i++
 		}
@@ -129,7 +124,7 @@ export default (props: FromTimelineToToot) => {
 			visiIcon = 'mail'
 			break
 	}
-	const [anchor, setAnchor] = React.useState<undefined | number>(undefined)
+	const [anchor, setAnchor] = useState<undefined | number>(undefined)
 	const actionSheet = (id: string) => {
 		if (acctId === 'noAuth') return navigation.navigate('Toot', { acctId, id: toot.id, notification: false, url: toot.url })
 		const isMine = deletable
@@ -153,15 +148,15 @@ export default (props: FromTimelineToToot) => {
 			},
 			(buttonIndex) => {
 				if (buttonIndex === 0) return navigation.navigate('Toot', { acctId, id: toot.id, notification: false })
-				if (buttonIndex === 1) return statusPost(isBookmarked ? 'unbookmark' : 'bookmark', id, acctId, () => setIsBookmarked(!isBookmarked), true)
-				if (isMine && buttonIndex === 2) return statusPost('delete', id, acctId)
-				if (isMine && buttonIndex === 3) return statusPost(isPined ? 'unpin' : 'pin', id, acctId, () => setIsPined(!isPined), true)
+				if (buttonIndex === 1) return statusPost(isBookmarked ? 'unbookmark' : 'bookmark', id, acctId, () => setIsBookmarked(!isBookmarked), true, setLoading)
+				if (isMine && buttonIndex === 2) return statusPost('delete', id, acctId, undefined, false, setLoading)
+				if (isMine && buttonIndex === 3) return statusPost(isPined ? 'unpin' : 'pin', id, acctId, () => setIsPined(!isPined), true, setLoading)
 				if (isMine && buttonIndex === 4) return txtAction(id, acctId, 'edit')
 				if (buttonIndex === options.length - 2) return navigation.navigate('Toot', { acctId: 'noAuth', id: toot.id, notification: false, url: toot.url })
 			}
 		)
 	}
-	const TootContent = React.memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
+	const TootContent = memo(({ content, emojis, source }: { content: string, emojis: M.Emoji[], source?: 'translate' }) => {
 		return <HTML
 			source={{ html: emojify(content, emojis, false, config.showGif) }}
 			tagsStyles={{ p: { marginTop: 0, marginBottom: 5, color: txtColor, justifyContent: 'flex-start' }, a: { color: '#8c8dff' } }}
@@ -294,34 +289,34 @@ export default (props: FromTimelineToToot) => {
 								{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-							<FontAwesome
-								name="retweet"
-								size={config.actionBtnSize}
-								style={styles.actionIcon}
-								color={boosted.is ? '#03a9f4' : '#9a9da1'}
-								onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted)}
-							/>
-							{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
+								<FontAwesome
+									name="retweet"
+									size={config.actionBtnSize}
+									style={styles.actionIcon}
+									color={boosted.is ? '#03a9f4' : '#9a9da1'}
+									onPress={() => statusPost(boosted.is ? 'unboost' : 'boost', rawToot.id, acctId, setBoosted, false, setLoading)}
+								/>
+								{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-							<MaterialIcons
-								name="star"
-								size={config.actionBtnSize}
-								style={styles.actionIcon}
-								color={faved.is ? '#fbc02d' : '#9a9da1'}
-								onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved)}
-							/>
-							{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
+								<MaterialIcons
+									name="star"
+									size={config.actionBtnSize}
+									style={styles.actionIcon}
+									color={faved.is ? '#fbc02d' : '#9a9da1'}
+									onPress={() => statusPost(faved.is ? 'unfav' : 'fav', toot.id, acctId, setFaved, false, setLoading)}
+								/>
+								{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-							{!!toot.emoji_reactions && <MaterialIcons
-								name="add"
-								size={config.actionBtnSize}
-								style={styles.actionIcon}
-								color={toot.emoji_reactioned ? '#b8d1e3' : '#9a9da1'}
-								onPress={() => !toot.emoji_reactioned ? setIsEmojiOpen(true) : doReaction(false, '', acctId, toot.id)}
-							/>}
-							{!!toot.emoji_reactions && config.showReactedCount && <Text style={styles.actionCounter}>{toot.emoji_reactions_count}</Text>}
+								{!!toot.emoji_reactions && <MaterialIcons
+									name="add"
+									size={config.actionBtnSize}
+									style={styles.actionIcon}
+									color={toot.emoji_reactioned ? '#b8d1e3' : '#9a9da1'}
+									onPress={() => !toot.emoji_reactioned ? setIsEmojiOpen(true) : doReaction(false, '', acctId, toot.id)}
+								/>}
+								{!!toot.emoji_reactions && config.showReactedCount && <Text style={styles.actionCounter}>{toot.emoji_reactions_count}</Text>}
 							</View>
 							<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 						</View>
@@ -330,7 +325,7 @@ export default (props: FromTimelineToToot) => {
 			</View>
 		</>
 	)
-}
+})
 function createStyle(deviceWidth: number) {
 	return StyleSheet.create({
 		container: {

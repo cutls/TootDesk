@@ -26,7 +26,7 @@ export default (props: FromPostToPoll) => {
     const [multiplePoll, setMultiplePoll] = useState(false)
     const [hiddenPoll, setHiddenPoll] = useState(false)
     const [endPoll, setEndPoll] = useState(300)
-    const [anchorEndPoll, setAnchorEndPoll] = React.useState<null | number>(0)
+    const [anchorEndPoll, setAnchorEndPoll] = useState<null | number>(0)
     useEffect(() => setPoll({
         options: [poll1, poll2, poll3, poll4].filter((i) => !!i),
         expires_in: endPoll,
