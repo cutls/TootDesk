@@ -20,7 +20,6 @@
     "@react-native-segmented-control/segmented-control": "2.4.1",
     "@react-navigation/native": "~6.0.11",
     "@react-navigation/stack": "~6.2.2",
-    "@shopify/flash-list": "1.4.0",
     "axios": "^0.21.1",
     "base-64": "^1.0.0",
     "base64-arraybuffer": "^0.2.0",
