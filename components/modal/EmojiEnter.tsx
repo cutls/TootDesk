@@ -13,16 +13,17 @@ import * as M from '../../interfaces/MastodonApiReturns'
 import i18n from '../../utils/i18n'
 import { suggest } from '../../utils/tootAction'
 import { useEffect, useState } from 'react'
+import PagerView from 'react-native-pager-view'
 let ios = true
 if (Platform.OS === 'android') ios = false
 const isEmoji = (item: any): item is M.CustomEmoji => item.shortcode
 
 export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct }: any) {
-    const { width: deviceWidth } = useWindowDimensions()
+    const { width: deviceWidth, height: deviceHeight } = useWindowDimensions()
     const styles = createStyle(deviceWidth)
     const g = 8
     const [tooManyEmoji, setTooManyEmoji] = useState(false)
-    const [photos, setPhotos] = useState<M.CustomEmoji[]>([])
+    const [photos, setPhotos] = useState<M.CustomEmoji[][]>([])
     const [suggested, setSuggested] = useState<M.CustomEmoji[] | M.Account[] | M.Search['hashtags']>([])
     const [modalVisible, setModalVisible] = useState(true)
     const [text, setText] = useState('')
@@ -32,9 +33,17 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
     const load = async () => {
         try {
             const { domain, at } = (await storage.getCertainItem('accounts', 'id', acct)) as S.Account
-            const data = await api.getV1CutsomEmojis(domain, at)
-            if (data.length < 100) setPhotos(data)
-            if (data.length > 100) setTooManyEmoji(true)
+            const dataRaw = await api.getV1CutsomEmojis(domain, at)
+            let tank = []
+            const data = []
+            for (let i = 0; i < dataRaw.length; i++) {
+                if (i % 100 === 0) {
+                    if (tank.length > 0) data.push(tank)
+                    tank = []
+                }
+                tank.push(dataRaw[i])
+            }
+            setPhotos(data)
         } catch (e: any) {
             Alert.alert('Error', e.toString())
             console.error(e)
@@ -74,14 +83,15 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
     const renderImage = (item: M.CustomEmoji, i: number) => {
         return (
             <TouchableOpacity
-                key={`${i}}`}
+                key={item.shortcode}
                 onPress={() => {
                     setText(item.shortcode)
                 }}>
                 <Image
                     style={{ width: deviceWidth / g, height: deviceWidth / g }}
+                    placeholder="L1Ps-W-;fQ-;_3fQfQfQfQfQfQfQ"
                     source={{
-                        uri: item.url,
+                        uri: item.static_url,
                     }}
                 />
             </TouchableOpacity>
@@ -94,21 +104,22 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
                     <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
-            <View style={[commonStyle.horizonal, { justifyContent: 'space-between', alignItems: 'center'}]}>
+            <View style={[commonStyle.horizonal, { justifyContent: 'space-between', alignItems: 'center' }]}>
                 <TextInput onChangeText={(r) => setText(r)} value={text} style={styles.input} />
                 <Button title={i18n.t('完了')} onPress={() => { callback(text); dismiss(); }} style={{ width: 80 }} />
             </View>
-            <FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} keyboardShouldPersistTaps="handled" /> 
-            {tooManyEmoji && <Text style={{textAlign: 'center'}}>{i18n.t('絵文字が多いため、リストは描画されません')}</Text>}
-            <FlatList
-                data={photos}
-                removeClippedSubviews={true}
-                windowSize={5}
-                numColumns={g}
-                renderItem={({ item, index: i }) => renderImage(item, i)}
-                keyExtractor={(item, i) => `${item.shortcode}`}
-                style={[commonStyle.horizonal]}
-            />
+            {suggested.length > 0 && <FlatList data={suggested as any} horizontal={true} renderItem={({ item }: any) => renderSuggest(item)} keyExtractor={(s) => s.id || s.shortcode} style={styles.sWrap} keyboardShouldPersistTaps="handled" />}
+            <PagerView style={{height: deviceHeight - 200}}>
+                {photos.map((emojis) => <FlatList
+                    key={emojis[0].shortcode}
+                    data={emojis}
+                    removeClippedSubviews={true}
+                    windowSize={5}
+                    numColumns={g}
+                    renderItem={({ item, index: i }) => renderImage(item, i)}
+                    keyExtractor={(item, i) => `${item.shortcode}`}
+                />)}
+            </PagerView>
         </Modal>
     )
 }

@@ -55,7 +55,7 @@ export default (props: FromRootToImageModal) => {
 		}
 	}
 	const changeI = (i: number) => {
-		if (i >= url.length || i < 0) return false
+		if (i >= url.length || i < 0) return
 		setI(i)
 		ref.current?.setPage(i)
 	}
