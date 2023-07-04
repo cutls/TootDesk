@@ -15,6 +15,7 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import Toot from '../components/Toot'
 import Card from '../components/Card'
 import i18n from '../utils/i18n'
+import * as WebBrowser from 'expo-web-browser'
 export default function App({ navigation, route }: StackScreenProps<ParamList, 'Search'>) {
     const theme = useColorScheme()
     const isDark = theme === 'dark'
@@ -118,7 +119,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         return <TouchableOpacity style={{ marginTop: 5 }} onPress={() => {
             navigation.navigate('TimelineOnly', { timeline: { type: 'hashtag', acct: account, acctName: accountTxt, activated: true, key: `hashtag ${account} some`, timelineData: { target: item.name } } })
         }}>
-            <Text>#{item.name}</Text>
+            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>#{item.name}</Text>
             <Text>{i18n.t('過去%{a}日に%{b}人が%{c}回利用', { a: history.length, b: n, c: m })}</Text>
             <View style={{ height: 5 }} />
             <View style={commonStyle.separator} />
@@ -137,14 +138,18 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                     width={deviceWidth}
                     tlId={-1}
                 />
-                <View style={commonStyle.separator} />
             </>
         )
     }
     const renderCard = ({ item }: { item: M.Card }) => {
         return (
             <>
-                <Card card={item} width={deviceWidth} />
+                <View style={{ padding: 5}}>
+                    <TouchableOpacity onPress={() => WebBrowser.openBrowserAsync(item.url)} style={{ marginBottom: 5 }}>
+                        <Text numberOfLines={1} style={[commonStyle.linkColor, isDark ? commonStyle.linkDark : commonStyle.link]}>{item.url}</Text>
+                    </TouchableOpacity>
+                    <Card card={item} width={deviceWidth} />
+                </View>
                 <View style={{ height: 10 }} />
                 <View style={commonStyle.separator} />
                 <View style={{ height: 10 }} />
@@ -154,10 +159,9 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const renderUser = ({ item }: { item: M.Account }) => {
         return (
             <View>
-                <View style={commonStyle.horizonal}>
+                <View style={{ padding: 5 }}>
                     <Account acctId={account} account={item} key={`userInList ${item.id}`} goToAccount={(id: string) => navigation.navigate('AccountDetails', { acctId: account, id: item.id, notification: false })} width={deviceWidth} />
                 </View>
-                <View style={{ height: 5 }} />
                 <View style={commonStyle.separator} />
             </View>
         )

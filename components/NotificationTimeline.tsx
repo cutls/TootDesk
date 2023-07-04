@@ -18,15 +18,15 @@ import i18n from '../utils/i18n'
 
 interface FromRootToTimeline {
     acctId: string
-    txtAction: (id: string, insertText: string, type:'reply' | 'edit') => void
+    txtAction: (id: string, insertText: string, type: 'reply' | 'edit') => void
     dismiss?: () => void
     navigation: StackNavigationProp<ParamList, any>
     width: number
 }
 export default (props: FromRootToTimeline) => {
-	const { height: deviceHeight } = useWindowDimensions()
+    const { height: deviceHeight } = useWindowDimensions()
     const deviceWidth = props.width
-	const styles = createStyle(deviceWidth, deviceHeight)
+    const styles = createStyle(deviceWidth, deviceHeight)
     const [toots, setToots] = useState([] as M.Notification[])
     const [acct, setAcct] = useState<S.Account | null>(null)
     const [loading, setLoading] = useState('Initializing' as string | null)
@@ -76,8 +76,7 @@ export default (props: FromRootToTimeline) => {
                     txtAction={txtAction}
                     width={deviceWidth}
                     tlId={-1}
-                 />
-                <View style={commonStyle.separator} />
+                />
             </View>
         )
         const gta = (id: string) => {
@@ -91,7 +90,9 @@ export default (props: FromRootToTimeline) => {
                     <AccountName account={item.account} miniEmoji={true} width={deviceWidth} />
                     <Text>{i18n.t('さんが')}{label}</Text>
                 </TouchableOpacity>
-                <Account width={deviceWidth} account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
+                <View style={{ padding: 5 }}>
+                    <Account width={deviceWidth} account={item.account} key={`notification ${item.id}`} acctId={acctId} isFR={item.type === 'follow_request'} goToAccount={(id: string) => gta(id)} />
+                </View>
                 <View style={commonStyle.separator} />
             </View>
         )
@@ -136,7 +137,9 @@ function createStyle(deviceWidth: number, deviceHeight: number) {
             backgroundColor: 'transparent',
             marginBottom: 20,
         },
-        icon: {},
+        icon: {
+            marginHorizontal: 3
+        },
         notice: {
             alignItems: 'center'
         }

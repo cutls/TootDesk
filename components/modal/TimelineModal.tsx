@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions, Pressable } from 'react-native'
+import { Dimensions, Platform, StyleSheet, Animated, useColorScheme, Modal, FlatList, ActionSheetIOS, ListRenderItem, findNodeHandle, useWindowDimensions, Pressable, ScrollView } from 'react-native'
 import { Text, View, Button, TouchableOpacity, TextInput } from '../Themed'
 import * as storage from '../../utils/storage'
 import * as Alert from '../../utils/alert'
@@ -254,7 +254,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
             </TouchableOpacity>)
     }
     const TLBtn = (props: ITlBtnProps) => {
-        return <TouchableOpacity style={[commonStyle.horizonal, styles.tlSelBtn]} onPress={() => useTl(props.type)} onLongPress={() => glanceTl(props.type)}>
+        return <TouchableOpacity style={[styles.tlSelBtn]} onPress={() => useTl(props.type)} onLongPress={() => glanceTl(props.type)}>
             <Octicons name={props.icon} size={30} color="#858383" />
             <Text style={styles.tlSelTxt}>{props.name}</Text>
         </TouchableOpacity>
@@ -283,23 +283,20 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                             <View>
                                 <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
                                     <Octicons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="person" />
+                                    <Octicons style={{ paddingTop: 3, marginRight: 3 }} name="arrow-switch" />
                                     <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
                                 </TouchableOpacity>
                                 <View style={{ height: 15 }} />
-                                <Text>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
+                                <Text style={{ textAlign: 'center' }}>{i18n.t('長押しすると、カラムに追加せずに見ることができます')}</Text>
                                 <View style={{ height: 5 }} />
-                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
+                                <ScrollView style={[commonStyle.horizonal]} horizontal={true}>
                                     <TLBtn name={i18n.t('ホーム')} icon="home" type="home" />
                                     <TLBtn name={i18n.t('ローカル')} icon="people" type="local" />
-                                </View>
-                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                                     <TLBtn name={i18n.t('連合')} icon="globe" type="public" />
                                     <TLBtn name={i18n.t('統合')} icon="git-merge" type="mix" />
-                                </View>
-                                <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                                     <TLBtn name={i18n.t('ブックマーク')} icon="bookmark" type="bookmark" />
                                     <TLBtn name={i18n.t('お気に入り')} icon="star" type="fav" />
-                                </View>
+                                </ScrollView>
                                 <TouchableOpacity onPress={() => selectList()} style={{ marginVertical: 10 }}>
                                     <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{i18n.t('リスト')}</Text>
                                 </TouchableOpacity>
@@ -374,21 +371,20 @@ function createStyle(deviceWidth: number, deviceHeight: number, isDark: boolean,
             height: useHeight - 250
         },
         tlSelBtn: {
-            width: (useWidth - 40) / 2,
+            width: (useWidth - 60) / 4,
+            height: (useWidth - 60) / 4,
             alignItems: 'center',
+            justifyContent: 'center',
             padding: 5,
             borderWidth: 1,
             borderColor: isDark ? '#eee' : '#d6d6d6',
             margin: 3,
-            borderRadius: 2
+            borderRadius: (useWidth - 60) / 8
         },
         tlSelTxt: {
-            fontSize: 15,
-            marginLeft: 5,
-
-        },
-        tlBtn: {
-            width: (useWidth - 40) / 2
+            fontSize: 12,
+            marginTop: 2,
+            textAlign: 'center'
         },
         editMenu: {
             justifyContent: 'center',

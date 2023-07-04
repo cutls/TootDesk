@@ -45,15 +45,19 @@ export const commonStyle = StyleSheet.create({
 	switchText: {
 		top: ios ? 7 : 2
 	},
+	linkColor: {
+		color: '#8c8dff'
+	},
 	link: {
 		textDecorationStyle: 'solid',
 		textDecorationColor: 'black',
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
+		color: '#8c8dff'
 	},
 	linkDark: {
 		textDecorationStyle: 'solid',
 		textDecorationColor: 'white',
-		textDecorationLine: 'underline'
+		textDecorationLine: 'underline',
 	},
 	rootLoadingText: {
 		color: 'white',
