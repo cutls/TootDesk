@@ -36,7 +36,7 @@ const Colors = {
 function useColorScheme(): NonNullable<ColorSchemeName> {
 	return _useColorScheme() as NonNullable<ColorSchemeName>
 }
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 
 export function useThemeColor(props: { light?: string; dark?: string }, colorName: keyof typeof Colors.light & keyof typeof Colors.dark) {
 	const theme = useColorScheme()
@@ -89,7 +89,7 @@ export function TouchableOpacity(props: TouchableOpacityProps) {
 interface ButtonExtendProps extends ButtonProps {
 	style?: StyleProp<ViewStyle>
 	activeOpacity?: number
-	icon?: React.ComponentProps<typeof MaterialIcons>['name']
+	icon?: React.ComponentProps<typeof Octicons>['name']
 	acm?: boolean
 	textColor?: string
 	loading?: boolean
@@ -120,7 +120,7 @@ export function Button(props: ButtonExtendProps) {
 	if (borderLess) base.borderWidth = 0
 	return (
 		<TouchableOpacity style={[{ backgroundColor: useColor }, base, style]} activeOpacity={loading ? 1.0 : 0.7} {...otherProps}>
-			{icon && !loading && !acm ? <MaterialIcons name={icon} style={{ color: useTextColor, fontSize: 21, marginRight: hasText ? 8 : 5 }} /> : null}
+			{icon && !loading && !acm ? <Octicons name={icon} style={{ color: useTextColor, fontSize: 21, marginRight: hasText ? 8 : 5 }} /> : null}
 			{loading ? <ActivityIndicator animating={true} color={useTextColor} size="small" style={{ marginRight: 8, scaleX: 1.5, scaleY: 1.5 }} /> : null}
 			<Text style={{ color: useTextColor, fontSize: 16 }}>{title}</Text>
 		</TouchableOpacity>

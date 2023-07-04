@@ -10,7 +10,7 @@ import * as api from '../utils/api'
 import * as Alert from '../utils/alert'
 import { RefObject } from 'react'
 import { commonStyle } from '../utils/styles'
-import { FontAwesome, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { AccountName } from './AccountName'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { ParamList } from '../interfaces/ParamList'
@@ -43,12 +43,12 @@ export default (props: FromRootToTimeline) => {
     }
     const renderItem = (e: any) => {
         const item = e.item as M.Notification
-        let icon = <MaterialIcons name="help" size={27} style={styles.icon} color="#9a9da1" />
-        if (item.type === 'favourite') icon = <MaterialIcons name="star" size={27} style={styles.icon} color="#fbc02d" />
-        if (item.type === 'reblog') icon = <FontAwesome size={27} name="retweet" style={styles.icon} color="#03a9f4" />
-        if (item.type === 'mention') icon = <MaterialCommunityIcons size={27} name="reply" style={styles.icon} color="#1f961b" />
-        if (item.type === 'status') icon = <MaterialIcons size={27} name="person" style={styles.icon} color="#1b3896" />
-        if (item.type === 'poll') icon = <MaterialIcons size={27} name="poll" style={styles.icon} color="#651470" />
+        let icon = <Octicons name="question" size={27} style={styles.icon} color="#9a9da1" />
+        if (item.type === 'favourite') icon = <Octicons name="star" size={27} style={styles.icon} color="#fbc02d" />
+        if (item.type === 'reblog') icon = <Octicons size={27} name="sync" style={styles.icon} color="#03a9f4" />
+        if (item.type === 'mention') icon = <Octicons size={27} name="reply" style={styles.icon} color="#1f961b" />
+        if (item.type === 'status') icon = <Octicons size={27} name="person" style={styles.icon} color="#1b3896" />
+        if (item.type === 'poll') icon = <Octicons size={27} name="checklist" style={styles.icon} color="#651470" />
         let label = i18n.t('アクション')
         if (item.type === 'favourite') label = i18n.t('お気に入り登録')
         if (item.type === 'reblog') label = i18n.t('ブースト')
@@ -59,7 +59,7 @@ export default (props: FromRootToTimeline) => {
         if (item.type === 'follow_request') label = i18n.t('フォローリクエスト')
         if (item.type === 'admin.sign_up') label = i18n.t('サインアップ')
 
-        if (item.type === 'follow' || item.type === 'follow_request' || item.type === 'admin.sign_up') icon = <MaterialIcons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
+        if (item.type === 'follow' || item.type === 'follow_request' || item.type === 'admin.sign_up') icon = <Octicons name="person-add" size={27} style={styles.icon} color="#03a9f4" />
         if (item.status) return (
             <View>
                 <TouchableOpacity style={[commonStyle.horizonal, styles.notice]} onPress={() => openAcct(item.account.id)}>

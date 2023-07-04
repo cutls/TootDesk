@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { StyleSheet, StatusBar, Platform, FlatList, useWindowDimensions, useColorScheme, Switch } from 'react-native'
 import { Text, View, Button, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
-import { Ionicons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import * as Alert from '../utils/alert'
@@ -25,17 +25,6 @@ export default function LangFilter({ navigation, route }: StackScreenProps<Param
         } catch (e) { }
     }
     useEffect(() => { init() }, [])
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
-            headerTitleStyle: { color: isDark ? 'white' : 'black' },
-            headerLeft: () => (
-                <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
-                    <Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
-                </TouchableOpacity>
-            ),
-        });
-    }, [navigation, isDark])
 
     const { height, width } = useWindowDimensions()
     const deviceWidth = width

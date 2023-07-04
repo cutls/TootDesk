@@ -3,7 +3,7 @@ import { StyleSheet, StatusBar, Platform, useWindowDimensions, useColorScheme, S
 import Slider from '@react-native-community/slider'
 import { Text, View, TextInput, Button, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
-import { FontAwesome, Ionicons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import { configInit, IConfig } from '../interfaces/Config'
@@ -50,7 +50,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
             headerTitleStyle: { color: isDark ? 'white' : 'black' },
             headerLeft: () => (
                 <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
-                    <Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
+                    <Octicons name="arrow-left" size={30} color={isDark ? 'white' : 'black'} />
                 </TouchableOpacity>
             ),
         });
@@ -140,8 +140,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <Text style={styles.title}>{i18n.t('アクションボタンの大きさ')}</Text>
                 <View style={[commonStyle.horizonal, { alignItems: 'center' }]}>
                     <Text style={{ width: 20, height: 39, paddingTop: 12 }}>{actionBtnSize}</Text>
-                    <FontAwesome
-                        name="retweet"
+                    <Octicons
+                        name="sync"
                         size={actionBtnSize}
                         color={"#9a9da1"}
                     />

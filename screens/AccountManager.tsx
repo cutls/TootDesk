@@ -6,7 +6,7 @@ import { loginFirst, getAt, refresh } from '../utils/login'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
 import * as Alert from '../utils/alert'
-import { Ionicons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import { Swipeable } from 'react-native-gesture-handler'
@@ -38,7 +38,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 			headerTitleStyle: { color: isDark ? 'white' : 'black' },
 			headerLeft: () => (
 				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} onLongPress={allReset} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
+					<Octicons name="arrow-left" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			),
 		});
@@ -278,7 +278,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 							<View>
 								<View style={styles.horizonal}>
 									<TextInput placeholder={`${i18n.t('ドメイン')}(mastodon.social)*`} onChangeText={(text) => search(text)} style={[{ borderColor: domain ? 'black' : '#bf1313' }, styles.form]} value={domain} />
-									<Button title={i18n.t('ログイン')} onPress={async () => await loginDo(domain)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+									<Button title={i18n.t('ログイン')} onPress={async () => await loginDo(domain)} icon="sign-in" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 								</View>
 								{list.length ? (<View style={styles.horizonal}>
 									<Text>Powered by </Text>
@@ -290,7 +290,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 						) : (
 							<View style={styles.horizonal}>
 								<TextInput placeholder={`${i18n.t('コード')}(mastodon.social)*`} onChangeText={(text) => setCodeInput(text)} style={[{ borderColor: codeInput ? 'black' : '#bf1313' }, styles.form]} value={codeInput} />
-								<Button title={i18n.t('ログイン')} onPress={async () => await codeDo(codeInput)} icon="add" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
+								<Button title={i18n.t('ログイン')} onPress={async () => await codeDo(codeInput)} icon="sign-in" style={{ width: '29%', marginLeft: '1%' }} loading={loading} />
 							</View>
 						)}
 						<View style={{ height: 10 }} />

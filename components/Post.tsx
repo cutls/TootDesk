@@ -2,7 +2,7 @@ import React, { RefObject, useEffect, useRef, useState } from 'react'
 import { StyleSheet, TextInput, ActionSheetIOS, useColorScheme, Modal, Pressable, useWindowDimensions, findNodeHandle, InputAccessoryView } from 'react-native'
 import { Image } from 'expo-image'
 import { TouchableOpacity, View, Button, Text } from '../components/Themed'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import EmojiModal from '../components/modal/SelectCustomEmoji'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as M from '../interfaces/MastodonApiReturns'
@@ -72,16 +72,16 @@ export default (props: FromRootToPost) => {
 	const additional = (showPoll ? 220 : 0) + (showScheduled ? 60 : 0)+ (showCW ? 50 : 0)
 	const postArea = (inputHeight > 70 ? inputHeight - 70 : 0) + (isIPhoneX(width, height) ? 230 : 220) + (tablet ? 105 : 0) - (txtAreaRef.current?.isFocused() ? 20 : 0) + additional
 	const postAvoid = keyboardHeight + postArea
-	type IVisIcon = 'public' | 'lock-open' | 'lock' | 'mail'
+	type IVisIcon = 'globe' | 'unlock' | 'lock' | 'mail'
 	type IVisTxt = 'public' | 'unlisted' | 'private' | 'direct'
 	const visList = ['public', 'unlisted', 'private', 'direct'] as IVisTxt[]
 	const visTxt = [i18n.t('公開'), i18n.t('未収載'), i18n.t('非公開'), i18n.t('ダイレクト'), i18n.t('キャンセル')]
 	const getVisicon = (vis: IVisTxt): IVisIcon => {
-		if (vis === 'public') return 'public'
-		if (vis === 'unlisted') return 'lock-open'
+		if (vis === 'public') return 'globe'
+		if (vis === 'unlisted') return 'unlock'
 		if (vis === 'private') return 'lock'
 		if (vis === 'direct') return 'mail'
-		return 'public'
+		return 'globe'
 	}
 	const [anchorVis, setAnchorVis] = useState<null | number>(0)
 	const [anchorAcct, setAnchorAcct] = useState<null | number>(0)
@@ -280,7 +280,7 @@ export default (props: FromRootToPost) => {
 							<TouchableOpacity onPress={() => actionSheet()} style={{ width: (width / 2 - 20) }}>
 								<Text ref={(c: any) => setAnchorAcct(findNodeHandle(c))} numberOfLines={1} >{accountTxt}</Text>
 							</TouchableOpacity>
-							<Button title={i18n.t('トゥート')} icon="create" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
+							<Button title={i18n.t('トゥート')} icon="paintbrush" onPress={() => !loading && post()} style={{ width: (width / 2) - 20 }} loading={loading || uploading} />
 						</View>
 						<View style={{ height: uploaded.length ? 50 : 0 }}>
 							<FlatList data={uploaded} horizontal={true} keyExtractor={(item) => item.id} renderItem={({ item, index }) => uploadedImage(item)} />
@@ -291,26 +291,26 @@ export default (props: FromRootToPost) => {
 						{txtActionId ? <Text>{i18n.t('返信/編集モード')}</Text> : null}
 						<View style={[styles.action]}>
 							<TouchableOpacity onPress={() => setNsfw(!nsfw)}>
-								<MaterialIcons name={nsfw ? `visibility` : `visibility-off`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
+								<Octicons name={nsfw ? `eye` : `eye-closed`} size={20} style={[styles.icon, { color: nsfw ? `#f0b000` : isDark ? 'white' : `black` }]} />
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => setShowCW(!showCW)}>
 								<Text style={[styles.icon, { fontSize: 18 }]}>CW</Text>
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => selectVis()}>
-								<MaterialIcons name={getVisicon(vis)} size={20} style={styles.icon} ref={(c: any) => setAnchorVis(findNodeHandle(c))} />
+								<Octicons name={getVisicon(vis)} size={20} style={styles.icon} ref={(c: any) => setAnchorVis(findNodeHandle(c))} />
 							</TouchableOpacity>
 							{account && <TouchableOpacity onPress={() =>
 								maxMedia < uploaded.length ?
 									Alert.alert('Error', i18n.t('メディアは最大%{t}枚までです', { t: maxMedia })) :
 									upload.pickImage(setUploading, upCb, account)
 							}>
-								<MaterialIcons name="attach-file" size={20} style={styles.icon} />
+								<Octicons name="file-symlink-file" size={20} style={styles.icon} />
 							</TouchableOpacity>}
 							<TouchableOpacity onPress={() => setIsEmojiOpen(true)}>
-								<MaterialIcons name="insert-emoticon" size={20} style={styles.icon} />
+								<Octicons name="smiley" size={20} style={styles.icon} />
 							</TouchableOpacity>
 							<TouchableOpacity onPress={() => true}>
-								<MaterialIcons name="more-vert" size={20} style={styles.icon} onPress={() => moreOption()} ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
+								<Octicons name="three-bars" size={20} style={styles.icon} onPress={() => moreOption()} ref={(c: any) => setAnchorMore(findNodeHandle(c))} />
 							</TouchableOpacity>
 						</View>
 						{showPoll && <PostPoll setPoll={setPoll} setShowPoll={setShowPoll} />}

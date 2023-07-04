@@ -213,6 +213,7 @@ export default (props: FromRootToTimeline) => {
                     if (!isNoAuth) wss.send(JSON.stringify({ type: 'subscribe', stream: 'user' }))
                     for (let k = 0; k < useTls.length; k++) {
                         await loadTimeline(targetTimelineId[k], wss, updateStr)
+                        if(__DEV__) wss.close()
                     }
                 }
 

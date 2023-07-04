@@ -2,7 +2,7 @@ import React, { RefObject, useRef, useState } from 'react'
 import { ActivityIndicator, Dimensions, Modal, StyleSheet, useColorScheme, Platform, useWindowDimensions } from 'react-native'
 import { TouchableOpacity, View } from '../components/Themed'
 import { WebView } from 'react-native-webview'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as WebBrowser from 'expo-web-browser'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import PagerView from 'react-native-pager-view'
@@ -62,10 +62,10 @@ export default function ImageViewer({ navigation, route }: StackScreenProps<Para
 		<View style={[styles.container, bgColor]}>
 			<View style={[styles.top, bgColor]}>
 				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(url[i])} style={styles.upper}>
-					<MaterialIcons name="open-in-browser" size={30} style={styles.icon} color={isDark ? 'white' : 'black'} />
+					<Octicons name="link-external" size={30} style={styles.icon} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={async () => download(url[i])} style={styles.upper}>
-					<MaterialIcons name="file-download" size={30} style={styles.icon} />
+					<Octicons name="download" size={30} style={styles.icon} />
 				</TouchableOpacity>
 			</View>
 			<PagerView style={[bgColor, { flex: 1 }]} initialPage={initI} ref={ref} onPageSelected={(e) => changeI(e.nativeEvent.position)}>
@@ -76,10 +76,10 @@ export default function ImageViewer({ navigation, route }: StackScreenProps<Para
 
 			<View style={styles.bottom}>
 				<TouchableOpacity onPress={() => changeI(i > 0 ? i - 1 : 0)} activeOpacity={i > 0 ? 0.5 : 1} style={styles.fullCenterContainer}>
-					<MaterialIcons name="arrow-left" size={30} style={styles.icon} color={i > 0 ? (isDark ? 'white' : 'black') : 'gray'} />
+					<Octicons name="arrow-left" size={30} style={styles.icon} color={i > 0 ? (isDark ? 'white' : 'black') : 'gray'} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={() => changeI(i < url.length - 1 ? i + 1 : i)} activeOpacity={i < url.length - 1 ? 0.5 : 1} style={styles.fullCenterContainer}>
-					<MaterialIcons name="arrow-right" size={30} style={styles.icon} color={i < url.length - 1 ? (isDark ? 'white' : 'black') : 'gray'} />
+					<Octicons name="arrow-right" size={30} style={styles.icon} color={i < url.length - 1 ? (isDark ? 'white' : 'black') : 'gray'} />
 				</TouchableOpacity>
 			</View>
 			<Modal visible={loading} transparent={true}>

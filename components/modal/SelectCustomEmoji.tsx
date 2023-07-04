@@ -2,10 +2,9 @@ import { StackScreenProps } from '@react-navigation/stack'
 import * as React from 'react'
 import { Text, View, TouchableOpacity } from '../Themed'
 import { Image } from 'expo-image'
-import { FlashList } from '@shopify/flash-list'
 import { StyleSheet, Platform, useColorScheme, Modal, useWindowDimensions, FlatList } from 'react-native'
 import * as Alert from '../../utils/alert'
-import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
 import { commonStyle } from '../../utils/styles'
 import * as storage from '../../utils/storage'
@@ -83,7 +82,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
             <View style={[styles.top, commonStyle.horizonal]}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{i18n.t('カスタム絵文字')}</Text>
                 <TouchableOpacity onPress={() => dismiss()}>
-                    <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
+                    <Octicons name="x" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
             <FlatList

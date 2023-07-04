@@ -2,7 +2,7 @@ import React, { memo, useContext, useState } from 'react'
 import { StyleSheet, ActionSheetIOS, findNodeHandle, useColorScheme } from 'react-native'
 import { Image } from 'expo-image'
 import { Text, View } from './Themed'
-import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as WebBrowser from 'expo-web-browser'
 import * as M from '../interfaces/MastodonApiReturns'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -92,7 +92,7 @@ export default memo((props: FromTimelineToToot) => {
 	if (rawToot.reblog) {
 		topComponent = (
 			<TouchableOpacity style={[styles.horizonal, styles.sameHeight]} onPress={() => navigation.navigate('AccountDetails', { acctId, id: rawToot.account.id, url: rawToot.account.url, notification: false })}>
-				<FontAwesome name="retweet" size={27} style={{ color: '#2b90d9' }} />
+				<Octicons name="sync" size={27} style={{ color: '#2b90d9' }} />
 				<Image source={{ uri: config.showGif ? rawToot.account.avatar : rawToot.account.avatar_static }} style={{ width: 22, height: 22, marginHorizontal: 3, borderRadius: 5 }} />
 				<AccountName account={rawToot.account} width={width} />
 			</TouchableOpacity>
@@ -101,19 +101,19 @@ export default memo((props: FromTimelineToToot) => {
 	if (rawToot.customPinned) {
 		topComponent = (
 			<View style={styles.horizonal}>
-				<MaterialIcons name="push-pin" size={20} color={isDark ? 'white' : 'black'} />
+				<Octicons name="pin" size={20} color={isDark ? 'white' : 'black'} />
 				<Text>{i18n.t('ピン留めされた投稿')}</Text>
 			</View>
 		)
 	}
-	let visiIcon = 'help' as 'help' | 'public' | 'lock-open' | 'lock' | 'mail'
+	let visiIcon: React.ComponentProps<typeof Octicons>['name'] = 'question'
 	let btable = true
 	switch (toot.visibility) {
 		case 'public':
-			visiIcon = 'public'
+			visiIcon = 'globe'
 			break
 		case 'unlisted':
-			visiIcon = 'lock-open'
+			visiIcon = 'unlock'
 			break
 		case 'private':
 			btable = false
@@ -238,15 +238,15 @@ export default memo((props: FromTimelineToToot) => {
 						<Image source={{ uri: config.showGif ? toot.account.avatar : toot.account.avatar_static }} style={{ width: 50, height: 50, borderRadius: 5 }} />
 						{config.useRelativeTime && isJa && <Text style={{ color: '#9a9da1', fontSize: 12 }}>{moment(toot.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z').fromNow()}</Text>}
 						<View style={[commonStyle.horizonal, { marginTop: 5 }]}>
-							<MaterialIcons name={visiIcon} color={isDark ? 'white' : 'black'} />
-							{toot.edited_at && <MaterialIcons name="create" color={isDark ? 'white' : 'black'} />}
+							<Octicons name={visiIcon} color={isDark ? 'white' : 'black'} />
+							{toot.edited_at && <Octicons name="pencil" color={isDark ? 'white' : 'black'} />}
 							{config.showLang && <Text style={{ color: '#9a9da1', fontSize: 12, marginLeft: 5 }}>{toot.language || '-'}</Text>}
 						</View>
 					</TouchableOpacity>
 					<View style={{ width: '100%', marginLeft: 10 }}>
 						<View style={[styles.horizonal, styles.sameHeight]}>
 							<AccountName account={toot.account} width={width} />
-							{toot.account.locked ? <MaterialIcons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
+							{toot.account.locked ? <Octicons name="lock" style={{ color: '#a80000', marginLeft: 5 }} /> : null}
 						</View>
 						<View style={[styles.horizonal, styles.sameHeight, { justifyContent: 'space-between' }]}>
 							<Text numberOfLines={1} style={{ color: '#9a9da1', fontSize: 12 }}>
@@ -285,12 +285,12 @@ export default memo((props: FromTimelineToToot) => {
 						{!!toot.emoji_reactions && <EmojiReaction toot={toot} acctId={acctId} />}
 						<View style={styles.actionsContainer}>
 							<View style={styles.actionSet}>
-								<MaterialIcons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
+								<Octicons name="reply" size={config.actionBtnSize} style={styles.actionIcon} color="#9a9da1" onPress={() => txtAction(toot.id, toot.account.acct, 'reply')} />
 								{config.showReactedCount && <Text style={styles.actionCounter}>{toot.replies_count}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-								<FontAwesome
-									name="retweet"
+								<Octicons
+									name="sync"
 									size={config.actionBtnSize}
 									style={styles.actionIcon}
 									color={boosted.is ? '#03a9f4' : '#9a9da1'}
@@ -299,7 +299,7 @@ export default memo((props: FromTimelineToToot) => {
 								{config.showReactedCount && <Text style={styles.actionCounter}>{boosted.ct}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-								<MaterialIcons
+								<Octicons
 									name="star"
 									size={config.actionBtnSize}
 									style={styles.actionIcon}
@@ -309,8 +309,8 @@ export default memo((props: FromTimelineToToot) => {
 								{config.showReactedCount && <Text style={styles.actionCounter}>{faved.ct}</Text>}
 							</View>
 							<View style={styles.actionSet}>
-								{!!toot.emoji_reactions && <MaterialIcons
-									name="add"
+								{!!toot.emoji_reactions && <Octicons
+									name="plus"
 									size={config.actionBtnSize}
 									style={styles.actionIcon}
 									color={toot.emoji_reactioned ? '#b8d1e3' : '#9a9da1'}
@@ -318,7 +318,7 @@ export default memo((props: FromTimelineToToot) => {
 								/>}
 								{!!toot.emoji_reactions && config.showReactedCount && <Text style={styles.actionCounter}>{toot.emoji_reactions_count}</Text>}
 							</View>
-							<MaterialIcons name="more-vert" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
+							<Octicons name="three-bars" size={config.actionBtnSize} style={styles.actionIcon} ref={(c: any) => setAnchor(findNodeHandle(c) || undefined)} onPress={() => actionSheet(toot.id)} color="#9a9da1" />
 						</View>
 					</View>
 				</View>

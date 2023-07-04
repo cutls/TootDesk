@@ -10,7 +10,7 @@ import { ParamList } from '../interfaces/ParamList'
 import { IFlatList, TopBtnContext } from '../utils/context/topBtn'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { isIPhoneX } from '../utils/statusBar'
 
 interface FromTimelineRootToTimeline {
@@ -103,7 +103,7 @@ export default (props: FromTimelineRootToTimeline) => {
 				}}
 			/>
 			<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
-				<MaterialIcons name="keyboard-arrow-up" size={27} />
+				<Octicons name="chevron-up" size={27} />
 			</TouchableOpacity>
 		</View>
 		</TopBtnContext.Provider>

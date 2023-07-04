@@ -3,7 +3,7 @@ import { StyleSheet, Platform, ActionSheetIOS, useColorScheme, FlatList, TextInp
 import { Button, TouchableOpacity, View, Text } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as Alert from '../utils/alert'
 import * as storage from '../utils/storage'
@@ -165,7 +165,8 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     return (
         <View style={{ padding: 5, flex: 1 }}>
             <TouchableOpacity onPress={() => selectAcct()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
-                <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
+                <Octicons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="person" />
+                <Octicons style={{ paddingTop: 3, marginRight: 3 }} name="arrow-switch" />
                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
             </TouchableOpacity>
             <View style={commonStyle.horizonal}>

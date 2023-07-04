@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, TouchableOpacity, useWindowDimensions, useColorScheme, ViewStyle } from 'react-native'
 import { Text, View } from './Themed'
-import { Ionicons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { ParamList, IState } from '../interfaces/ParamList'
 import { StackNavigationProp } from '@react-navigation/stack'
 import TimelineProps from '../interfaces/TimelineProps'
@@ -65,7 +65,7 @@ export default (params: PropBottomFromRoot) => {
             {showTL ? <TimelineModal setModal={setShowTL} goToAccountManager={goToAccountManager} navigation={navigation} /> : null}
             {showNotif ? <NotifitionModal navigation={navigation} setShowNotif={setShowNotif} acctId={acct.id} txtAction={txtAction} /> : null}
             <TouchableOpacity style={styles.config} onPress={() => showTrgNotif()}>
-                <Ionicons name="notifications" size={30} color={newNotif ? 'red' : isDark ? 'white' : 'black'} />
+                <Octicons name="bell" size={30} color={newNotif ? 'red' : isDark ? 'white' : 'black'} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.tlChanger} onPress={() => timelines.length > 1 ? setNowSelecting(nowSelecting[0] === 0 ? tlPerScreen : 0) : true}>
                 <Text style={styles.tlChangerText}>{nowSelecting[0] === 0 ? 1 : 1 + tlPerScreen}</Text>
@@ -77,7 +77,7 @@ export default (params: PropBottomFromRoot) => {
                 </View>)}
             </TouchableOpacity>
             <TouchableOpacity style={styles.config} onPress={() => toot(true)}>
-                <Ionicons name="create" size={30} color={isDark ? 'white' : 'black'} />
+                <Octicons name="paintbrush" size={30} color={isDark ? 'white' : 'black'} />
             </TouchableOpacity>
             {!!acct && <Post show={tooting} acct={acct.acct} tooting={toot} insertText={insertText} txtActionId={txtActionId} />}
         </View>
@@ -91,7 +91,7 @@ function createStyle(deviceWidth: number, isDark: boolean) {
             padding: 5
         },
         config: {
-            top: 10,
+            top: 13,
             marginRight: 10
         },
         centerMenu: {

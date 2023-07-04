@@ -9,7 +9,7 @@ import * as S from '../../interfaces/Storage'
 import * as api from '../../utils/api'
 import * as R from '../../interfaces/MastodonApiRequests'
 import TimelineProps, { TLType, TimelineConfig } from '../../interfaces/TimelineProps'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { ChangeTlContext } from '../../utils/context/changeTl'
 import timelineLabel from '../../utils/timelineLabel'
 import { IState, ParamList } from '../../interfaces/ParamList'
@@ -30,7 +30,7 @@ interface BottomToTLModalProps {
     navigation: StackNavigationProp<ParamList, any>
 }
 interface ITlBtnProps {
-    icon: React.ComponentProps<typeof MaterialIcons>['name']
+    icon: React.ComponentProps<typeof Octicons>['name']
     name: string
     type: TLType
 }
@@ -225,7 +225,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
         return (
             <TouchableOpacity onPress={() => editMode || index % tlPerScreen !== 0 ? true : select(index)} style={[commonStyle.horizonal, { width: useWidth }]}>
                 <View style={[styles.menu, commonStyle.horizonal]}>
-                    {index % tlPerScreen !== 0 && <MaterialIcons name="chevron-right" size={25} style={{ marginTop: 5 }} />}
+                    {index % tlPerScreen !== 0 && <Octicons name="chevron-right" size={25} style={{ marginTop: 5 }} />}
                     <View>
                         <Text numberOfLines={1}>{tlLabel}</Text>
                         <Text>{item.type === 'noAuth' ? item.timelineData.target : item.acctName}</Text>
@@ -234,19 +234,19 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                 {editMode ?
                     <View style={[commonStyle.horizonal, { paddingTop: 10 }]}>
                         <TouchableOpacity onPress={() => moveTl('up', item.key)} style={styles.editMenu}>
-                            <MaterialIcons size={20} name="arrow-upward" color={isDark ? 'white' : 'black'} />
+                            <Octicons size={20} name="arrow-up" color={isDark ? 'white' : 'black'} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => moveTl('down', item.key)} style={styles.editMenu}>
-                            <MaterialIcons size={20} name="arrow-downward" color={isDark ? 'white' : 'black'} />
+                            <Octicons size={20} name="arrow-down" color={isDark ? 'white' : 'black'} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => delTl(item.key)} style={styles.editMenu}>
-                            <MaterialIcons size={20} name="delete" color="red" />
+                            <Octicons size={20} name="trash" color="red" />
                         </TouchableOpacity>
                     </View>
                     :
                     <View style={[commonStyle.horizonal, { paddingTop: 10, marginLeft: 60 }]}>
                         <TouchableOpacity onPress={() => actionTl(item.key)} style={[styles.editMenu]}>
-                            <MaterialIcons size={20} name="settings" color={isDark ? 'white' : 'black'} />
+                            <Octicons size={20} name="tools" color={isDark ? 'white' : 'black'} />
                         </TouchableOpacity>
                     </View>
                 }
@@ -255,7 +255,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
     }
     const TLBtn = (props: ITlBtnProps) => {
         return <TouchableOpacity style={[commonStyle.horizonal, styles.tlSelBtn]} onPress={() => useTl(props.type)} onLongPress={() => glanceTl(props.type)}>
-            <MaterialIcons name={props.icon} size={30} color="#858383" />
+            <Octicons name={props.icon} size={30} color="#858383" />
             <Text style={styles.tlSelTxt}>{props.name}</Text>
         </TouchableOpacity>
     }
@@ -268,7 +268,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                         <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                             <View style={commonStyle.horizonal}>
                                 <TouchableOpacity onPress={() => configOption()}>
-                                    <MaterialIcons ref={(c: any) => setAnchor(findNodeHandle(c))} name="more-vert" size={30} color={isDark ? 'white' : 'black'} />
+                                    <Octicons ref={(c: any) => setAnchor(findNodeHandle(c))} name="three-bars" size={30} color={isDark ? 'white' : 'black'} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -276,13 +276,13 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                             <FlatList data={timelines} renderItem={renderItem}
                                 keyExtractor={(item, index) => `${item.key}`} />
                             {editMode ?
-                                <Button title={i18n.t('完了')} icon="done" onPress={() => save()} />
+                                <Button title={i18n.t('完了')} icon="check" onPress={() => save()} />
                                 :
-                                <Button title={i18n.t('追加')} icon="add" onPress={() => setMode('add')} />}
+                                <Button title={i18n.t('追加')} icon="plus" onPress={() => setMode('add')} />}
                         </View> :
                             <View>
                                 <TouchableOpacity onPress={() => actionSheet()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
-                                    <MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
+                                    <Octicons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="person" />
                                     <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
                                 </TouchableOpacity>
                                 <View style={{ height: 15 }} />
@@ -293,8 +293,8 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                     <TLBtn name={i18n.t('ローカル')} icon="people" type="local" />
                                 </View>
                                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
-                                    <TLBtn name={i18n.t('連合')} icon="language" type="public" />
-                                    <TLBtn name={i18n.t('統合')} icon="merge-type" type="mix" />
+                                    <TLBtn name={i18n.t('連合')} icon="globe" type="public" />
+                                    <TLBtn name={i18n.t('統合')} icon="git-merge" type="mix" />
                                 </View>
                                 <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
                                     <TLBtn name={i18n.t('ブックマーク')} icon="bookmark" type="bookmark" />
@@ -307,7 +307,7 @@ export default ({ setModal, goToAccountManager, navigation }: BottomToTLModalPro
                                 <Text>{i18n.t('認証のないローカルタイムライン')}</Text>
                                 <View style={commonStyle.horizonal}>
                                     <TextInput placeholder={`${i18n.t('ドメイン')}*`} onChangeText={(text) => setLocal(text)} style={[styles.form]} value={local} />
-                                    <Button title={i18n.t('追加')} onPress={() => addNoAuth()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                                    <Button title={i18n.t('追加')} onPress={() => addNoAuth()} icon="plus" style={{ width: '29%', marginLeft: '1%' }} />
                                 </View>
                             </View>
                         }

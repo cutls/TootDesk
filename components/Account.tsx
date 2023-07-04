@@ -30,7 +30,7 @@ export default (props: FromTimelineToToot) => {
             </TouchableOpacity>
             {
         isFR && statusPost ? <View style={commonStyle.horizonal}><Button onPress={() => statusPost('authorize', acctId, account.id)} title={i18n.t('承認')} icon="check" style={styles.btn} />
-            <Button onPress={() => statusPost('reject', acctId, account.id)} title={i18n.t('拒否')} icon="close" style={styles.btn} /></View> : null
+            <Button onPress={() => statusPost('reject', acctId, account.id)} title={i18n.t('拒否')} icon="circle-slash" style={styles.btn} /></View> : null
     }
         </View >
     )

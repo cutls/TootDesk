@@ -4,14 +4,13 @@ import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
 import * as M from '../interfaces/MastodonApiReturns'
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import * as api from '../utils/api'
 import * as Alert from '../utils/alert'
 import { commonStyle } from '../utils/styles'
 import Toot from '../components/Toot'
-import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
 import { AccountName, emojify } from '../components/AccountName'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
@@ -19,7 +18,6 @@ import Account from '../components/Account'
 import * as WebBrowser from 'expo-web-browser'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 import { SetConfigContext } from '../utils/context/config'
-import { ImageModalContext } from '../utils/context/imageModal'
 import { configInit, IConfig } from '../interfaces/Config'
 import { stripTags } from '../utils/stringUtil'
 import { resolveStatus } from '../utils/tootAction'
@@ -55,12 +53,12 @@ export default function TootIndv({ navigation, route }: StackScreenProps<ParamLi
 			headerTitleStyle: { color: isDark ? 'white' : 'black' },
 			headerLeft: () => (
 				<TouchableOpacity onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Root'))} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
+					<Octicons name="arrow-left" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={async () => await WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10 }}>
-					<MaterialIcons name="open-in-browser" size={30} color={isDark ? 'white' : 'black'} />
+					<Octicons name="link-external" size={30} color={isDark ? 'white' : 'black'} />
 				</TouchableOpacity>
 			)
 		})

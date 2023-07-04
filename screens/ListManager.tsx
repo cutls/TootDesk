@@ -4,7 +4,7 @@ import TimelineProps from '../interfaces/TimelineProps'
 import { Button, TouchableOpacity, View, Text } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as Alert from '../utils/alert'
 import * as storage from '../utils/storage'
@@ -17,18 +17,18 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     const theme = useColorScheme()
     const isDark = theme === 'dark'
     const { height, width } = useWindowDimensions()
-	const deviceWidth = width
-	useLayoutEffect(() => {
-		navigation.setOptions({
-			headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
-			headerTitleStyle: { color: isDark ? 'white' : 'black' },
-			headerLeft: () => (
-				<TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} color={isDark ? 'white' : 'black'} />
-				</TouchableOpacity>
-			),
-		});
-	}, [navigation, isDark])
+    const deviceWidth = width
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerStyle: { backgroundColor: isDark ? 'black' : 'white' },
+            headerTitleStyle: { color: isDark ? 'white' : 'black' },
+            headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.replace('Root')} style={{ marginLeft: 10 }}>
+                    <Octicons name="arrow-left" size={30} color={isDark ? 'white' : 'black'} />
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation, isDark])
     const [loading, setLoading] = useState<boolean>(true)
     const { acctId, targetAcct } = route.params
     const [mode, setMode] = useState<'list' | 'user'>('list')
@@ -195,7 +195,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
         } catch (e: any) {
             if (e.toString().match(/Account/)) {
                 const a = await Alert.promise(i18n.t('削除する'), i18n.t('このリストから削除しますか？'), Alert.DELETE)
-                if (a === 1) delUser(userId ,listId)
+                if (a === 1) delUser(userId, listId)
             } else {
                 Alert.alert('Error', e.toString())
 
@@ -211,7 +211,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
                 <View style={commonStyle.horizonal}>
                     <Account acctId={account} account={item} goToAccount={(id: string) => true} width={deviceWidth} />
                     <TouchableOpacity onPress={() => delUser(item.id)} style={styles.editMenu}>
-                        <MaterialIcons size={20} name="delete" color="red" />
+                        <Octicons size={20} name="trash" color="red" />
                     </TouchableOpacity>
                 </View>
                 <View style={{ height: 5 }} />
@@ -222,20 +222,21 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
     return (
         <View style={{ padding: 5, flex: 1 }}>
             <TouchableOpacity onPress={() => selectAcct()} style={[commonStyle.horizonal, { marginVertical: 15 }]}>
-                <MaterialIcons style={{paddingTop: 3}} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="switch-account" />
+                <Octicons style={{ paddingTop: 3 }} ref={(c: any) => setAnchorAcct(findNodeHandle(c))} name="person" />
+                <Octicons style={{ paddingTop: 3, marginRight: 3 }} name="arrow-switch" />
                 <Text style={{ textDecorationLine: 'underline' }}>{accountTxt}</Text>
             </TouchableOpacity>
+            {mode === 'user' && <Button title={i18n.t('戻る')} onPress={async () => setMode('list')} icon="x" style={{ width: '29%', marginLeft: '1%' }} />}
             {mode === 'user' ?
                 <View style={commonStyle.horizonal}>
                     <TextInput placeholder={i18n.t('リスト名編集')} onChangeText={(text) => setChangeName(text)} style={[{ borderColor: changeName ? 'black' : '#bf1313' }, styles.form]} value={changeName} />
-                    <Button title={i18n.t('変更')} onPress={async () => changeListName()} icon="refresh" style={{ width: '29%', marginLeft: '1%' }} />
+                    <Button title={i18n.t('変更')} onPress={async () => changeListName()} icon="sync" style={{ width: '29%', marginLeft: '1%' }} />
                 </View>
                 : <View style={commonStyle.horizonal}>
                     <TextInput placeholder={i18n.t('新規リスト名')} onChangeText={(text) => setNewListName(text)} style={[{ borderColor: newListName ? 'black' : '#bf1313' }, styles.form]} value={newListName} />
-                    <Button title={i18n.t('作成')} onPress={async () => addList()} icon="add" style={{ width: '29%', marginLeft: '1%' }} />
+                    <Button title={i18n.t('作成')} onPress={async () => addList()} icon="plus" style={{ width: '29%', marginLeft: '1%' }} />
                 </View>}
             <View style={{ height: 5 }} />
-            {mode === 'user' && <Button title={i18n.t('戻る')} onPress={async () => setMode('list')} icon="arrow-back" style={{ width: '29%', marginLeft: '1%' }} />}
             <View style={{ height: 10 }} />
             {loading && <Text>Loading...</Text>}
             {mode === 'list' && <FlatList ListEmptyComponent={() => <Text>{i18n.t('データがありません')}</Text>} data={list} keyExtractor={(item) => item.id} renderItem={renderList} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadListList(account)} />} />}

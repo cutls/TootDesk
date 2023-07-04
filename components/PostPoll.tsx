@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, TextInput, ActionSheetIOS, useColorScheme, useWindowDimensions, findNodeHandle } from 'react-native'
 import { TouchableOpacity, View, Text } from '../components/Themed'
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import moment from 'moment-timezone'
 import 'moment/locale/ja'
 import { commonStyle } from '../utils/styles'
@@ -57,18 +57,18 @@ export default (props: FromPostToPoll) => {
         <TextInput style={[styles.pollArea]} placeholder={`${i18n.t('選択肢')}4(${i18n.t('オプション')})`} value={poll4} onChangeText={(text) => setPoll4(text)} />
         <View style={[commonStyle.horizonal, { marginBottom: 10, justifyContent: 'space-between', alignItems: 'center' }]}>
             <View>
-                <MaterialCommunityIcons name={multiplePoll ? 'checkbox-multiple-marked-outline' : 'checkbox-marked-outline'} size={20} color={isDark ? 'white' : 'black'} onPress={() => setMultiplePoll(!multiplePoll)} />
+                <Octicons name={multiplePoll ? 'duplicate' : 'diamond'} size={20} color={isDark ? 'white' : 'black'} onPress={() => setMultiplePoll(!multiplePoll)} />
             </View>
             <View>
                 <TouchableOpacity onPress={() => endPollSet()} style={commonStyle.horizonal}>
-                    <MaterialIcons name="timer" size={18} style={styles.icon} ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
+                    <Octicons name="hourglass" size={18} style={styles.icon} ref={(c: any) => setAnchorEndPoll(findNodeHandle(c))} />
                     <Text style={isDark ? commonStyle.linkDark : commonStyle.link}>{moment().add(endPoll, 'seconds').fromNow()}</Text>
                 </TouchableOpacity>
             </View>
         </View>
         <View style={[commonStyle.horizonal, { justifyContent: 'space-between' }]}>
             <TouchableOpacity onPress={() => setHiddenPoll(!hiddenPoll)} style={commonStyle.horizonal}>
-                <MaterialCommunityIcons name={hiddenPoll ? 'checkbox-marked-outline' : 'crop-square'} size={18} color={isDark ? 'white' : 'black'} />
+                <Octicons name={hiddenPoll ? 'check-circle' : 'circle'} size={18} color={isDark ? 'white' : 'black'} />
                 <Text>{i18n.t('終了まで票数を隠す')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowPoll(false)} style={commonStyle.horizonal}>

@@ -1,14 +1,12 @@
 import React, { useState } from 'react'
-import { StyleSheet, StatusBar, Dimensions, Platform, Modal, SafeAreaView, Text, useColorScheme, Alert, useWindowDimensions } from 'react-native'
+import { StyleSheet, StatusBar, Platform, Text, useColorScheme, Alert, useWindowDimensions } from 'react-native'
 import TimelineProps from '../interfaces/TimelineProps'
 import { TouchableOpacity, View } from '../components/Themed'
-import Timeline from '../components/Timeline'
-import ImageModal from '../components/modal/ImageModal'
 import { Loading, ParamList } from '../interfaces/ParamList'
 import { StackScreenProps } from '@react-navigation/stack'
 import { statusBarHeight, isIPhoneX } from '../utils/statusBar'
 import { TopBtnContext, IFlatList } from '../utils/context/topBtn'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { commonStyle } from '../utils/styles'
 import * as storage from '../utils/storage'
 import * as S from '../interfaces/Storage'
@@ -47,7 +45,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 				<View style={[styles.top, commonStyle.horizonal]}>
 					<Text style={{ fontSize: 20, fontWeight: 'bold', width: deviceWidth - 80 }} numberOfLines={1}>{tlLabel}</Text>
 					<TouchableOpacity onPress={() => addTl()}>
-						<MaterialIcons name="push-pin" size={25} color={theFontGrayPlus} />
+						<Octicons name="pin" size={25} color={theFontGrayPlus} />
 					</TouchableOpacity>
 				</View>
 				<View>
@@ -63,7 +61,7 @@ export default function App({ navigation, route }: StackScreenProps<ParamList, '
 					</View>
 				</View>
 				<TouchableOpacity style={[styles.toTop, { opacity: showToTop ? 1 : 0.3 }]} onPress={() => flatList && flatList.current?.scrollToIndex({ index: 0 })}>
-					<MaterialIcons name="keyboard-arrow-up" size={27} />
+					<Octicons name="chevron-up" size={27} />
 				</TouchableOpacity>
 			</View>
 		</TopBtnContext.Provider>

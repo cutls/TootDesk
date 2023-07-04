@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Text, View, TouchableOpacity } from '../Themed'
 import { StyleSheet, Dimensions, Platform, useColorScheme, Modal, useWindowDimensions } from 'react-native'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import { commonStyle } from '../../utils/styles'
 import NotificationTimeline from '../NotificationTimeline'
 import i18n from '../../utils/i18n'
@@ -29,7 +29,7 @@ export default function NotificationModal({ setShowNotif, acctId, txtAction, nav
             <View style={[styles.top, commonStyle.horizonal]}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{i18n.t('通知')}</Text>
                 <TouchableOpacity onPress={() => dismiss()}>
-                    <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
+                    <Octicons name="x" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
             <NotificationTimeline navigation={navigation} acctId={acctId} txtAction={txtAction} dismiss={dismiss} width={modalWidth} />

@@ -4,7 +4,7 @@ import { Text, View, TouchableOpacity, TextInput, Button } from '../Themed'
 import { StyleSheet, FlatList, Platform, useColorScheme, Modal, useWindowDimensions, InputAccessoryView } from 'react-native'
 import { Image } from 'expo-image'
 import * as Alert from '../../utils/alert'
-import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as api from '../../utils/api'
 import { commonStyle } from '../../utils/styles'
 import * as storage from '../../utils/storage'
@@ -101,7 +101,7 @@ export default function SelectCustomEmoji({ setSelectCustomEmoji, callback, acct
         <Modal visible={modalVisible} presentationStyle={"formSheet"} animationType="slide">
             <View style={[styles.top, commonStyle.horizonal]}>
                 <TouchableOpacity onPress={() => dismiss()}>
-                    <MaterialIcons name="close" size={25} color={theFontGrayPlus} />
+                    <Octicons name="x" size={25} color={theFontGrayPlus} />
                 </TouchableOpacity>
             </View>
             <View style={[commonStyle.horizonal, { justifyContent: 'space-between', alignItems: 'center' }]}>

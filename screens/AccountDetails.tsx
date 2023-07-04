@@ -5,13 +5,12 @@ import { Text, View, TouchableOpacity } from '../components/Themed'
 import { ParamList } from '../interfaces/ParamList'
 import * as S from '../interfaces/Storage'
 import * as M from '../interfaces/MastodonApiReturns'
-import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { Octicons } from '@expo/vector-icons'
 import * as storage from '../utils/storage'
 import { StackScreenProps } from '@react-navigation/stack'
 import * as Alert from '../utils/alert'
 import * as api from '../utils/api'
 import { commonStyle } from '../utils/styles'
-import ImageModal from '../components/modal/ImageModal'
 import Post from '../components/Post'
 import { AccountName, emojify } from '../components/AccountName'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
@@ -33,20 +32,6 @@ const renderers = {
 export default function AccountDetails({ navigation, route }: StackScreenProps<ParamList, 'AccountDetails'>) {
 	const [openUrl, setOpenUrl] = useState<string | null>(null)
 	const [rootLoading, setRootLoading] = useState<null | string>(null)
-	useLayoutEffect(() => {
-		navigation.setOptions({
-			headerLeft: () => (
-				<TouchableOpacity onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Root'))} style={{ marginLeft: 10 }}>
-					<Ionicons name="arrow-back" size={30} />
-				</TouchableOpacity>
-			),
-			headerRight: () => (
-				<TouchableOpacity onPress={() => openUrl && WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10 }}>
-					<MaterialIcons name="open-in-browser" size={30} />
-				</TouchableOpacity>
-			),
-		})
-	}, [navigation, openUrl, WebBrowser])
 	const { height: deviceHeight, width: deviceWidth } = useWindowDimensions()
 	const styles = createStyle(deviceWidth, deviceHeight)
 	const [ready, setReady] = useState(false)
@@ -244,9 +229,14 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 	}
 	return (
 		<View style={[commonStyle.container, { padding: 0 }]}>
-			<View style={{ padding: 10 }}>
-				<AccountName account={account} fontSize={20} showWithoutEllipsis={false} width={deviceWidth} />
-				<Text>{account.acct}</Text>
+			<View style={[commonStyle.horizonal, { padding: 10, justifyContent: 'space-between' }]}>
+				<View>
+					<AccountName account={account} fontSize={20} showWithoutEllipsis={false} width={deviceWidth} />
+					<Text>{account.acct}</Text>
+				</View>
+				<TouchableOpacity onPress={() => openUrl && WebBrowser.openBrowserAsync(openUrl)} style={{ marginRight: 10, marginTop: 5 }}>
+					<Octicons name="link-external" size={30} />
+				</TouchableOpacity>
 			</View>
 			<ScrollView style={[{ backgroundColor: isDark ? 'black' : 'white', padding: 10 }]} stickyHeaderIndices={[4]}>
 				<View>
@@ -254,8 +244,7 @@ export default function AccountDetails({ navigation, route }: StackScreenProps<P
 						<Text style={{ color: 'white' }}>
 							→{relationship.following ? '〇' : relationship.requested ? '△' : '✕'} / ←{relationship.followed_by ? '〇' : '✕'}
 						</Text>
-						<Text style={{ color: 'white', fontSize: 8 }}>{i18n.t('タップしてアクション')}</Text>
-						<MaterialIcons style={{ paddingTop: 3 }} ref={(c: any) => setAnchor(findNodeHandle(c))} name="people" size={1} />
+						<Text style={{ color: 'white', fontSize: 8 }} ref={(c: any) => setAnchor(findNodeHandle(c))}>{i18n.t('タップしてアクション')}</Text>
 					</TouchableOpacity>}
 					<Image source={{ uri: account.header }} style={{ width: deviceWidth, height: 150, top: -10, left: -10 }} resizeMode="cover" />
 					<TouchableOpacity onPress={() => WebBrowser.openBrowserAsync(account.url)} style={{ width: 100, height: 100, left: 10, position: 'absolute', top: 10, borderRadius: 10, borderWidth: 2, borderColor: '#eee' }}>
