@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "post": "投稿",
+        "placeholder": "今何してる？",
+        "vis": {
+            "public": "公開",
+            "unlisted": "未収載",
+            "private": "非公開",
+            "direct": "ダイレクト"
+        }
+    }
+}
