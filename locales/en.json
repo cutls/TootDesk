@@ -1,0 +1,12 @@
+{
+    "composer": {
+        "post": "Post",
+        "placeholder": "What's on your mind?",
+        "vis": {
+            "public": "Public",
+            "unlisted": "Unlisted",
+            "private": "Private",
+            "direct": "Direct"
+        }
+    }
+}

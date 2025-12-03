@@ -9,6 +9,8 @@ dist/
 web-build/
 expo-env.d.ts
 
+.yarn/*
+
 # Native
 .kotlin/
 *.orig.*
@@ -41,3 +43,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+*.tar.gz
+*.app
+*.apk
+*.aab
