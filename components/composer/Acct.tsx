@@ -2,8 +2,9 @@ import { mockAccount, type Account } from '@/entities/account'
 import { listAccts } from '@/utils/storage'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, Text, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import Avatar from '../Avatar'
+import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
 
 interface Props {
@@ -25,12 +26,12 @@ export default function Acct({ change }: Props) {
 		fn()
 	}, [])
 	return (
-		<View>
+		<View style={{ minHeight: 200 }}>
 			{acct.map((a) => (
 				<Button key={a.id} onPress={() => change(a.id)}>
 					<View style={styles.container}>
 						<View>
-							<Avatar src={a.avatar || a.favicon} size={40} />
+							<Avatar src={a.avatar || a.favicon} fallback={a.sns} size={40} />
 						</View>
 						<View style={styles.infoContainer}>
 							<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>

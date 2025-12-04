@@ -1,4 +1,6 @@
 {
+    "ok": "OK",
+    "cancel": "キャンセル",
     "composer": {
         "post": "投稿",
         "placeholder": "今何してる？",
@@ -7,6 +9,19 @@
             "unlisted": "未収載",
             "private": "非公開",
             "direct": "ダイレクト"
+        },
+        "emoji": {
+            "empty": "絵文字がありません",
+            "close": "閉じる"
+        },
+        "menu": {
+            "poll": "投票を作成",
+            "schedule": "時間指定投稿",
+            "return": "投稿画面に戻る"
+        },
+
+        "schedule": {
+            "invalid": "現在時刻から5分以上先の日時を選択してください。"
         }
     }
 }

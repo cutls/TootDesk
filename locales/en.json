@@ -1,4 +1,6 @@
 {
+    "ok": "OK",
+    "cancel": "Cancel",
     "composer": {
         "post": "Post",
         "placeholder": "What's on your mind?",
@@ -7,6 +9,18 @@
             "unlisted": "Unlisted",
             "private": "Private",
             "direct": "Direct"
+        },
+        "emoji": {
+            "empty": "No emoji",
+            "close": "Close"
+        },
+        "menu": {
+            "poll": "Create Poll",
+            "schedule": "Scheduled Post",
+            "return": "Return to Composer"
+        },
+        "schedule": {
+            "invalid": "The selected date and time is invalid.(5 minutes ahead of current time or later required)"
         }
     }
 }

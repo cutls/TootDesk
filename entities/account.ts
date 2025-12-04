@@ -33,7 +33,7 @@ export const mockAccount: Account = {
 	refresh_token: '',
 	usual: false,
 	color: 'blue',
-	domain: 'mastodon.social',
+	domain: 'mastodon.example',
 	streamingUrl: 'wss://mastodon.social',
 	sns: 'mastodon',
 	favicon: null,

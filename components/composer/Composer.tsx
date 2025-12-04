@@ -1,15 +1,16 @@
 import type { Account } from '@/entities/account'
 import { uploadCallback } from '@/utils/picture'
-import type { ComposeMode } from '@/utils/type'
-import { frame } from '@expo/ui/swift-ui/modifiers'
+import type { ComposeMode, IState } from '@/utils/type'
+import { Button as SwiftButton } from '@expo/ui/swift-ui'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, Text, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
-import Avatar from '../Avatar'
+import { PlatformColor, StyleSheet, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Button } from '../ui/Button'
 import { Dropdown } from '../ui/Dropdown'
 
 interface Props {
+	text: string
+	setText: IState<string>
 	acct: Account
 	isOpened: boolean
 	changeMode: (m: ComposeMode) => void
@@ -21,7 +22,7 @@ const data = [
 	{ title: 'composer.vis.private', systemImage: 'person.2.fill' as const },
 	{ title: 'composer.vis.direct', systemImage: 'envelope.fill' as const }
 ]
-export default function Composer({ acct, isOpened, changeMode }: Props) {
+export default function Composer({ acct, isOpened, changeMode, text, setText }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -34,28 +35,19 @@ export default function Composer({ acct, isOpened, changeMode }: Props) {
 		if (isOpened) textInput.current?.focus()
 	}, [isOpened])
 	return (
-		<View>
-			<Button variant="bordered" onPress={() => changeMode('acct')} style={{ marginBottom: 10 }}>
-				<View style={styles.acctContainer}>
-					<View>
-						<Avatar src={acct.avatar || acct.favicon} size={20} />
-					</View>
-					<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
-						{acct.username}@{acct.domain}
-					</Text>
-				</View>
-			</Button>
-			<TextInput ref={textInput} multiline={true} style={styles.textarea} placeholder={t('composer.placeholder')} placeholderTextColor={isDark ? 'lightgray' : 'gray'} />
-			<View style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10, flexDirection: 'row', gap: 10 }}>
-				<Dropdown data={data} onSelect={(title) => setVis(title)} modifiers={[frame({ width: 50, height: 50 })]} style={{ width: 50, height: 50 }}>
-					<Button variant="glass" systemImage={data.find((d) => d.title === vis)?.systemImage || 'globe'} />
+		<View style={{ display: isOpened ? 'contents' : 'none' }}>
+			<TextInput value={text} onChangeText={(t) => setText(t)} ref={textInput} multiline={true} style={styles.textarea} placeholder={t('composer.placeholder')} placeholderTextColor={isDark ? 'lightgray' : 'gray'} />
+			<View style={{ display: 'flex', justifyContent: 'flex-end', marginVertical: 10, paddingBottom: 80, flexDirection: 'row', gap: 10 }}>
+				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="line.3.horizontal" onPress={() => changeMode('menu')} modifiers={[]} />
+				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="face.smiling" onPress={() => changeMode('emoji')} modifiers={[]} />
+				<Dropdown data={data} onSelect={(title) => setVis(title)} modifiers={[]} style={{ width: 50, height: 50 }}>
+					<SwiftButton variant="glass" systemImage={data.find((d) => d.title === vis)?.systemImage || 'globe'} />
 				</Dropdown>
-				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="photo" onPress={() => uploadCallback((e) => console.log(e))} />
+				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="photo" onPress={() => uploadCallback((e) => console.log(e))} modifiers={[]} />
 				<Button style={{ width: 100, height: 50 }} variant="glassProminent" color="teal" systemImage="square.and.pencil">
 					{t('composer.post')}
 				</Button>
 			</View>
-			<View style={{ height: 30 }} />
 		</View>
 	)
 }
@@ -68,7 +60,8 @@ const createStyles = ({ width }: { width: number }) =>
 		acctContainer: {
 			flexDirection: 'row',
 			alignItems: 'center',
-			paddingBottom: 10
+			paddingBottom: 10,
+			height: 40
 		},
 		username: {
 			fontSize: 16,
