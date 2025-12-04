@@ -21,6 +21,22 @@
         },
         "schedule": {
             "invalid": "The selected date and time is invalid.(5 minutes ahead of current time or later required)"
+        },
+        "remove": "Remove",
+        "poll": {
+            "addOption": "Add",
+            "multiple": "Allow Multiple Choices",
+            "hideTotals": "Hide Vote Totals until Poll Ends",
+            "config": "Poll Settings",
+            "expiresIn": "Expires In",
+            "option": "Option",
+            "5min": "5 minutes",
+            "30min": "30 minutes",
+            "1h": "1 hour",
+            "6h": "6 hours",
+            "1d": "1 day",
+            "3d": "3 days",
+            "7d": "7 days"
         }
     }
 }

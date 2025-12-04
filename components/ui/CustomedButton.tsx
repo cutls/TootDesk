@@ -6,15 +6,16 @@ import { Button } from './Button'
 
 interface Props extends ButtonProps {
 	style?: HostProps['style']
+	color?: string
 	isPrimary?: boolean
 }
-export function CustomedButton({ isPrimary, ...props }: Props) {
+export function CustomedButton({ isPrimary, color, ...props }: Props) {
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
 	return (
 		<Button variant={isPrimary ? 'borderedProminent' : 'bordered'} onPress={props.onPress} style={[styles.btn, props.style]}>
 			<View style={{ justifyContent: 'center', height: 40 }}>
-				<Text style={[{ width: width - 65, textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : undefined }]}>{props.children}</Text>
+				<Text style={[{ width: width - 65, textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : color }]}>{props.children}</Text>
 			</View>
 		</Button>
 	)

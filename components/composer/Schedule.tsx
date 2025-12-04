@@ -1,6 +1,6 @@
 import type { ComposeMode } from '@/utils/type'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { addMinutes, compareAsc } from 'date-fns'
+import { addMinutes, compareAsc, parseISO } from 'date-fns'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
@@ -10,15 +10,16 @@ import { CustomedButton } from '../ui/CustomedButton'
 interface Props {
 	changeMode: (m: ComposeMode) => void
 	addSchedule: (date: Date | null) => void
+    defaultSchedule?: string | null
 }
-export default function Schedule({ changeMode, addSchedule }: Props) {
+export default function Schedule({ changeMode, addSchedule, defaultSchedule }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
-	const [date, setDate] = useState(addMinutes(new Date(), 5))
+	const [date, setDate] = useState(defaultSchedule ? parseISO(defaultSchedule) : addMinutes(new Date(), 5))
 	const isInvalid = compareAsc(date, addMinutes(new Date(), 4)) === -1
 	return (
 		<View style={styles.container}>
@@ -31,9 +32,12 @@ export default function Schedule({ changeMode, addSchedule }: Props) {
 				<CustomedButton isPrimary={true} onPress={() => addSchedule(isInvalid ? null : date)}>
 					{t('ok')}
 				</CustomedButton>
-				<CustomedButton style={{ marginTop: 10 }} onPress={() => addSchedule(null)}>
+				<CustomedButton style={{ marginTop: 10 }} onPress={() => changeMode('compose')}>
 					{t('cancel')}
 				</CustomedButton>
+				{defaultSchedule && <CustomedButton  color="red" style={{ marginTop: 10 }} onPress={() => addSchedule(null)}>
+					{t('composer.remove')}
+				</CustomedButton>}
 			</View>
 		</View>
 	)

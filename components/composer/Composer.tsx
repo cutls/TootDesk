@@ -17,10 +17,10 @@ interface Props {
 }
 
 const data = [
-	{ title: 'composer.vis.public', systemImage: 'globe' as const },
-	{ title: 'composer.vis.unlisted', systemImage: 'eye.slash' as const },
-	{ title: 'composer.vis.private', systemImage: 'person.2.fill' as const },
-	{ title: 'composer.vis.direct', systemImage: 'envelope.fill' as const }
+	{ title: 'composer.vis.public', value: 'public', systemImage: 'globe' as const },
+	{ title: 'composer.vis.unlisted', value: 'unlisted', systemImage: 'eye.slash' as const },
+	{ title: 'composer.vis.private', value: 'private', systemImage: 'person.2.fill' as const },
+	{ title: 'composer.vis.direct', value: 'direct', systemImage: 'envelope.fill' as const }
 ]
 export default function Composer({ acct, isOpened, changeMode, text, setText }: Props) {
 	const { t } = useTranslation()

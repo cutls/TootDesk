@@ -6,9 +6,10 @@ interface Props extends ContextMenuProps {
 	style?: HostProps['style']
 	data: {
 		title: string
-		systemImage: ButtonProps['systemImage']
+		value: string
+		systemImage?: ButtonProps['systemImage']
 	}[]
-	onSelect: (title: string) => void
+	onSelect: (value: string) => void
 }
 export function Dropdown({ style, children, data, onSelect, ...props }: Props) {
 	const { t } = useTranslation()
@@ -17,7 +18,7 @@ export function Dropdown({ style, children, data, onSelect, ...props }: Props) {
 			<ContextMenu activationMethod="singlePress" {...props}>
 				<ContextMenu.Items>
 					{data.map((item) => (
-						<SwiftButton key={item.title} systemImage={item.systemImage} onPress={() => onSelect(item.title)}>
+						<SwiftButton key={item.value} systemImage={item.systemImage} onPress={() => onSelect(item.value)}>
 							{t(item.title)}
 						</SwiftButton>
 					))}

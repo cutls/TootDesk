@@ -1,5 +1,5 @@
 import { type Account, mockAccount } from '@/entities/account'
-import type { Poll as IPoll } from '@/entities/status'
+import type { Poll } from '@/entities/status'
 import { listAccts } from '@/utils/storage'
 import type { ComposeMode, IState } from '@/utils/type'
 import { BottomSheet, Host } from '@expo/ui/swift-ui'
@@ -11,7 +11,6 @@ import Acct from './composer/Acct'
 import Composer from './composer/Composer'
 import Emoji from './composer/Emoji'
 import Menu from './composer/Menu'
-import Poll from './composer/Poll'
 import Schedule from './composer/Schedule'
 import { Text } from './themed/Text'
 import { Button } from './ui/Button'
@@ -22,12 +21,12 @@ interface Props {
 }
 interface IOptional {
 	scheduled_at?: string
-	poll?: IPoll
+	poll?: Poll
 }
 export default function Navigator({ isOpened, setIsOpened }: Props) {
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
-	const [mode, setMode] = useState<ComposeMode>('poll')
+	const [mode, setMode] = useState<ComposeMode>('compose')
 	const [useAcct, setUseAcct] = useState<Account | null>(mockAccount)
 	const [text, setText] = useState('')
 	const [optional, setOptional] = useState<IOptional>({})
@@ -46,7 +45,7 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 		setOptional((o) => ({ ...o, scheduled_at: date ? date.toISOString() : undefined }))
 		setMode('compose')
 	}
-	const addPoll = (poll: IPoll | null) => {
+	const addPoll = (poll: Poll | null) => {
 		setOptional((o) => ({ ...o, poll: poll || undefined }))
 		setMode('compose')
 	}
@@ -85,8 +84,8 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 					{mode === 'acct' && <Acct change={(r) => setMode('compose')} />}
 					{mode === 'emoji' && <Emoji acct={useAcct} add={(r) => addEmoji(r)} />}
 					{mode === 'menu' && <Menu changeMode={changeMode} />}
-					{mode === 'schedule' && <Schedule defaultSchedule={optional.scheduled_at || null} changeMode={changeMode} addSchedule={addSchedule} />}
-					{mode === 'poll' && <Poll  defaultPoll={optional.poll || null} changeMode={changeMode} addPoll={addPoll} />}
+					{mode === 'schedule' && <Schedule changeMode={changeMode} addSchedule={addSchedule} />}
+					{mode === 'poll' && <Poll changeMode={changeMode} addPoll={addPoll} />}
 				</View>
 			</BottomSheet>
 		</Host>
