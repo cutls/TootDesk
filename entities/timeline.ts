@@ -20,7 +20,7 @@ export type AddTimeline = {
 	isMisskeyAntenna?: boolean
 	columnWidth: ColumnWidth | number
 }
-export const colorList = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'violet'] as const
+export const colorList = ['blue', 'green', 'indigo', 'orange', 'red', 'teal', 'yellow'] as const
 export type Color = (typeof colorList)[number]
 export type TimelineKind = 'home' | 'notifications' | 'local' | 'public' | 'favourites' | 'list' | 'bookmarks' | 'direct' | 'tag'
 export const columnWidthSet = ['xs', 'sm', 'md', 'lg'] as const

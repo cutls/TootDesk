@@ -3,7 +3,15 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-import { Platform } from 'react-native'
+import { Platform, PlatformColor, StyleSheet } from 'react-native'
+
+export const staticStyles = StyleSheet.create({
+	input: {
+		padding: 15,
+		borderRadius: 10,
+		backgroundColor: PlatformColor('systemGray5')
+	}
+})
 
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#fff'

@@ -1,4 +1,5 @@
 import type { Poll as IPoll } from '@/entities/status'
+import { staticStyles } from '@/utils/theme'
 import type { ComposeMode } from '@/utils/type'
 import { Button as SwiftButton } from '@expo/ui/swift-ui'
 import React, { useState } from 'react'
@@ -13,6 +14,7 @@ interface Props {
 	changeMode: (m: ComposeMode) => void
 	addPoll: (poll: IPoll | null) => void
 	defaultPoll: IPoll | null
+	maxPollsOptions: number
 }
 const expiresList = [
 	{ title: 'composer.poll.5min', value: '300' },
@@ -23,7 +25,7 @@ const expiresList = [
 	{ title: 'composer.poll.3d', value: '259200' },
 	{ title: 'composer.poll.7d', value: '604800' }
 ]
-export default function Poll({ changeMode, addPoll, defaultPoll }: Props) {
+export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -56,7 +58,7 @@ export default function Poll({ changeMode, addPoll, defaultPoll }: Props) {
 							newOpts[idx] = t
 							setOptions(newOpts)
 						}}
-						style={[styles.input, { flexGrow: 1 }]}
+						style={[staticStyles.input, { flexGrow: 1 }]}
 						placeholder={`${t('composer.poll.option')}${idx + 1}`}
 						placeholderTextColor={isDark ? 'lightgray' : 'gray'}
 					/>
@@ -79,7 +81,7 @@ export default function Poll({ changeMode, addPoll, defaultPoll }: Props) {
 						{t(expiresList.find((s) => s.value === expires.toString())?.title || '')}
 					</SwiftButton>
 				</Dropdown>
-				<Button style={{ width: 100, height: 50 }} disabled={options.length === 4} onPress={() => setOptions((o) => [...o, ''])} variant="bordered" systemImage="plus">
+				<Button style={{ width: 100, height: 50 }} disabled={options.length === maxPollsOptions} onPress={() => setOptions((o) => [...o, ''])} variant="bordered" systemImage="plus">
 					{t('composer.poll.addOption')}
 				</Button>
 			</View>
@@ -117,11 +119,6 @@ const createStyles = ({ width }: { width: number }) =>
 			fontSize: 20,
 			fontWeight: '600',
 			marginBottom: 20
-		},
-		input: {
-			padding: 15,
-			borderRadius: 10,
-			backgroundColor: PlatformColor('systemGray5')
 		},
 		container: {
 			minHeight: 350,

@@ -8,12 +8,16 @@ interface Props extends ButtonProps {
 	style?: HostProps['style']
 	color?: string
 	isPrimary?: boolean
+	isGlass?: boolean
 }
 export function CustomedButton({ isPrimary, color, ...props }: Props) {
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
+	const useVariantNotGlass = isPrimary ? 'borderedProminent' : 'bordered'
+	const useVariantGlass = isPrimary ? 'glassProminent' : 'glass'
+	const variant = props.isGlass ? useVariantGlass : useVariantNotGlass
 	return (
-		<Button variant={isPrimary ? 'borderedProminent' : 'bordered'} onPress={props.onPress} style={[styles.btn, props.style]}>
+		<Button variant={variant} onPress={props.onPress} color={isPrimary ? color : undefined} style={[styles.btn, props.style]}>
 			<View style={{ justifyContent: 'center', height: 40 }}>
 				<Text style={[{ width: width - 65, textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : color }]}>{props.children}</Text>
 			</View>

@@ -6,15 +6,19 @@ import { KeyboardProvider } from 'react-native-keyboard-controller'
 import 'react-native-reanimated'
 
 import { useColorScheme } from '@/hooks/use-color-scheme'
+import { useTranslation } from 'react-i18next'
 
 export default function RootLayout() {
+	const { t } = useTranslation()
 	const colorScheme = useColorScheme()
 
 	return (
 		<KeyboardProvider>
 			<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
 				<Stack>
-					<Stack.Screen name="index" options={{ headerShown: false }} />
+					<Stack.Screen name="index" options={{ headerShown: false, title: '' }} />
+					<Stack.Screen name="login" options={{ title: t('screen.login') }} />
+					<Stack.Screen name="acct" options={{ title: t('screen.acct') }} />
 				</Stack>
 				<StatusBar style="auto" />
 			</ThemeProvider>

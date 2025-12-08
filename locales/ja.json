@@ -1,6 +1,13 @@
 {
     "ok": "OK",
     "cancel": "キャンセル",
+    "screen": {
+        "login": "ログイン",
+        "acct": "アカウントマネージャー"
+    },
+    "login": {
+        "failed": "ログインに失敗しました"
+    },
     "composer": {
         "post": "投稿",
         "placeholder": "今何してる？",

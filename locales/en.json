@@ -1,6 +1,13 @@
 {
     "ok": "OK",
     "cancel": "Cancel",
+    "screen": {
+        "login": "Login",
+        "acct": "Account Manager"
+    },
+    "login": {
+        "failed": "Login failed"
+    },
     "composer": {
         "post": "Post",
         "placeholder": "What's on your mind?",

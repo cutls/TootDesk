@@ -9,9 +9,9 @@ export type Account = {
 	clientId: string | null
 	clientSecret: string
 	accessToken: string
-	refresh_token: string
+	refreshToken: string
 	usual: boolean
-	color: Color
+	color?: Color | null
 	domain: string
 	streamingUrl: string
 	sns: 'mastodon' | 'pleroma' | 'misskey'
@@ -30,7 +30,7 @@ export const mockAccount: Account = {
 	clientId: null,
 	clientSecret: '',
 	accessToken: '',
-	refresh_token: '',
+	refreshToken: '',
 	usual: false,
 	color: 'blue',
 	domain: 'mastodon.example',

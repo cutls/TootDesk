@@ -1,4 +1,5 @@
 import { GlassView } from 'expo-glass-effect'
+import { useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import React from 'react'
 import { PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
@@ -15,6 +16,7 @@ export default function Navigator({ openComposer }: Props) {
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
+		const router = useRouter()
 	return (
 		<GlassView style={styles.containerStyle}>
 			<View style={{ width: width - 100, height: '100%', paddingLeft: 8 }}>
@@ -23,9 +25,9 @@ export default function Navigator({ openComposer }: Props) {
 						<TouchableOpacity style={styles.glass20}>
 							<SymbolView name="arrow.clockwise" type="monochrome" tintColor={textColor} size={20} />
 						</TouchableOpacity>
-						<View style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
+						<TouchableOpacity onPress={() => router.push('/acct')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
 							<Text style={{ textAlign: 'center' }}>Home @cutls@6m.cutls.dev</Text>
-						</View>
+						</TouchableOpacity>
 						<TouchableOpacity style={styles.glass20}>
 							<SymbolView name="arrow.up.to.line" type="monochrome" tintColor={textColor} size={20} />
 						</TouchableOpacity>

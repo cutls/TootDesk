@@ -1,11 +1,13 @@
-import { type Account, mockAccount } from '@/entities/account'
+import type { Account } from '@/entities/account'
 import type { Poll as IPoll } from '@/entities/status'
-import { listAccts } from '@/utils/storage'
-import type { ComposeMode, IState } from '@/utils/type'
+import { getUsualAcct } from '@/utils/storage'
+import type { ComposeMode, IState, PostComposer } from '@/utils/type'
+import generator, { type MegalodonInterface } from '@cutls/megalodon'
 import { BottomSheet, Host } from '@expo/ui/swift-ui'
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { options } from 'superagent'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import Composer from './composer/Composer'
@@ -27,14 +29,18 @@ interface IOptional {
 export default function Navigator({ isOpened, setIsOpened }: Props) {
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
-	const [mode, setMode] = useState<ComposeMode>('poll')
-	const [useAcct, setUseAcct] = useState<Account | null>(mockAccount)
+	const [mode, setMode] = useState<ComposeMode>('compose')
+	const [useAcct, setUseAcct] = useState<Account | null>(null)
 	const [text, setText] = useState('')
 	const [optional, setOptional] = useState<IOptional>({})
+	const [vis, setVis] = useState<'public' | 'unlisted' | 'private' | 'direct'>('public')
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
-	const [maxChars, setMaxChars] = useState(5000)
+	const [client, setClient] = useState<MegalodonInterface | null>(null)
+	const [maxChars, setMaxChars] = useState(500)
+	const [maxPollsOptions, setMaxPollsOptions] = useState(4)
+	const [isLoading, setIsLoading] = useState(false)
 	const changeMode = (m: ComposeMode) => {
 		setMode(m)
 	}
@@ -50,13 +56,49 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 		setOptional((o) => ({ ...o, poll: poll || undefined }))
 		setMode('compose')
 	}
+	const post = async (p: PostComposer) => {
+		setMode('loading')
+		try {
+			const postData = {
+				...options,
+				visibility: p.visibility
+			}
+			await client?.postStatus(text, postData)
+			setIsOpened(false)
+		} finally {
+			setMode('compose')
+		}
+	}
+	const loadClient = async (acct: Account) => {
+		const https = `https://${acct.domain}`
+		const client = generator(acct.sns, https, acct.accessToken)
+		setClient(client)
+		const instance = await client.getInstance()
+		const dataMaxChars = instance.data.configuration.statuses.max_characters
+		setMaxPollsOptions(instance.data.configuration.polls?.max_options || 4)
+		setMaxChars(dataMaxChars || 500)
+		const { data: acctInfo } = await client.verifyAccountCredentials()
+		const priv = acctInfo.source?.privacy
+		if (['public', 'unlisted', 'private', 'direct'].includes(priv || '')) setVis((priv as any) || 'public')
+	}
 	useEffect(() => {
 		const fn = async () => {
-			const accts = await listAccts()
-			// setUseAcct(accts[0] || null)
+			const accts = await getUsualAcct()
+			setUseAcct(accts)
 		}
 		fn()
 	}, [])
+	useEffect(() => {
+		if (useAcct) loadClient(useAcct)
+		if (useAcct) setMode('compose')
+	}, [useAcct])
+	useEffect(() => {
+		if (isOpened) {
+			setMode('compose')
+			setText('')
+			setOptional({})
+		}
+	}, [isOpened])
 	if (!useAcct) return null
 	return (
 		<Host style={{ width }}>
@@ -81,12 +123,17 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 							</View>
 						</View>
 					)}
-					<Composer isOpened={mode === 'compose'} acct={useAcct} changeMode={changeMode} text={text} setText={setText} />
-					{mode === 'acct' && <Acct change={(r) => setMode('compose')} />}
-					{mode === 'emoji' && <Emoji acct={useAcct} add={(r) => addEmoji(r)} />}
+					<Composer isOpened={mode === 'compose'} post={post} defaultVis={vis} acct={useAcct} changeMode={changeMode} text={text} setText={setText} />
+					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
+					{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
 					{mode === 'menu' && <Menu changeMode={changeMode} />}
 					{mode === 'schedule' && <Schedule defaultSchedule={optional.scheduled_at || null} changeMode={changeMode} addSchedule={addSchedule} />}
-					{mode === 'poll' && <Poll  defaultPoll={optional.poll || null} changeMode={changeMode} addPoll={addPoll} />}
+					{mode === 'poll' && <Poll defaultPoll={optional.poll || null} maxPollsOptions={maxPollsOptions} changeMode={changeMode} addPoll={addPoll} />}
+					{mode === 'loading' && (
+						<View style={{ width: '100%', height: 200, alignItems: 'center', justifyContent: 'center' }}>
+							<ActivityIndicator />
+						</View>
+					)}
 				</View>
 			</BottomSheet>
 		</Host>

@@ -1,4 +1,4 @@
-import { mockAccount, type Account } from '@/entities/account'
+import type { Account } from '@/entities/account'
 import { listAccts } from '@/utils/storage'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +8,7 @@ import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
 
 interface Props {
-	change: (id: number) => void
+	change: (acct: Account) => void
 }
 export default function Acct({ change }: Props) {
 	const { t } = useTranslation()
@@ -17,18 +17,18 @@ export default function Acct({ change }: Props) {
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
-	const [acct, setAcct] = useState<Account[]>([mockAccount])
+	const [acct, setAcct] = useState<Account[]>([])
 	useEffect(() => {
 		const fn = async () => {
 			const accts = await listAccts()
-			// setAcct(accts)
+			setAcct(accts)
 		}
 		fn()
 	}, [])
 	return (
 		<View style={{ minHeight: 200 }}>
 			{acct.map((a) => (
-				<Button key={a.id} onPress={() => change(a.id)}>
+				<Button key={a.id} onPress={() => change(a)}>
 					<View style={styles.container}>
 						<View>
 							<Avatar src={a.avatar || a.favicon} fallback={a.sns} size={40} />
