@@ -1,6 +1,12 @@
 {
     "ok": "OK",
     "cancel": "Cancel",
+    "add": "Add",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "delete": "Delete",
+    "yes": "Yes",
+    "no": "No",
     "screen": {
         "login": "Login",
         "acct": "Account Manager"
@@ -11,6 +17,8 @@
     "composer": {
         "post": "Post",
         "placeholder": "What's on your mind?",
+        "cwPlaceholder": "Content Warning (optional)",
+        "deleteAttachmentConfirm": "Are you sure you want to delete this attachment?",
         "vis": {
             "public": "Public",
             "unlisted": "Unlisted",
@@ -45,5 +53,34 @@
             "3d": "3 days",
             "7d": "7 days"
         }
+    },
+    "user": {
+        "followedBy": "Following you",
+        "requestedBy": "Requested to follow you",
+        "alert": {
+            "follow": "Follow this account",
+            "unfollow": "Unfollow this account",
+            "block": "Block this account",
+            "unblock": "Unblock this account",
+            "mute": "Mute this account",
+            "unmute": "Unmute this account",
+            "request": "Send follow request to this account",
+            "unrequest": "Cancel follow request to this account",
+            "accept": "Accept follow request from this account",
+            "reject": "Reject follow request from this account"
+        },
+        "follow": "Follow",
+        "unfollow": "Unfollow",
+        "block": "Block",
+        "unblock": "Unblock",
+        "mute": "Mute",
+        "unmute": "Unmute",
+        "request": "Request to follow",
+        "unrequest": "Cancel Request",
+        "accept": "Accept",
+        "reject": "Reject",
+        "followers": "Followers",
+        "follows": "Following",
+        "posts": "Posts"
     }
 }

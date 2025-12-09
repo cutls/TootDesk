@@ -1,4 +1,5 @@
 import { mockAccount, type Account } from '@/entities/account'
+import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Storage from 'expo-sqlite/kv-store'
 
 export const listAccts = async () => {
@@ -28,4 +29,27 @@ export const getUsualAcct = async (): Promise<Account> => {
 	const id = (await Storage.getItem('usualAcct')) || null
 	if (!id) return accts[0] || mockAccount
 	return accts.find((a) => a.id.toString() === id) || mockAccount
+}
+
+export const cachedGetEmojis = async (acctId: number, client: MegalodonInterface) => {
+	const acct = await getAcctById(acctId)
+	if (!acct) return []
+	const value = (await Storage.getItem(`emoji-${acct.domain}`)) || '{"emojis":[],"updated":0}'
+	const parsed = JSON.parse(value) as { emojis: Array<Entity.Emoji>; updated: number }
+	const unixTime = Date.now()
+	if (parsed.updated + 24 * 60 * 60 * 1000 < unixTime) {
+		try {
+			const res = await client.getInstanceCustomEmojis()
+			const toStore = {
+				emojis: res.data,
+				updated: unixTime
+			}
+			await Storage.setItem(`emoji-${acct.domain}`, JSON.stringify(toStore))
+			return res.data
+		} catch (e) {
+			return parsed.emojis
+		}
+	} else {
+		return parsed.emojis
+	}
 }

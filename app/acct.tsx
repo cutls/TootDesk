@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { FlatList, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 export default function Index() {
 	const { t } = useTranslation()
 
@@ -48,44 +48,52 @@ export default function Index() {
 	}
 	return (
 		<View style={{ flex: 1, alignItems: 'center', padding: 20 }}>
-			{acct.map((a) => (
-				<GlassView key={a.id} style={[styles.container, { backgroundColor: PlatformColor(colorToSystemColor(a.color || 'gray4')) }]}>
-					<View style={styles.horizontal}>
-						<View>
-							<Avatar src={a.avatar || a.favicon} fallback={a.sns} color={a.color} size={40} />
+			<FlatList
+				data={acct}
+				keyExtractor={(item, index) => `${item.id}-${index}`}
+				renderItem={({ item: a }) => (
+					<GlassView style={[styles.container, { backgroundColor: PlatformColor(colorToSystemColor(a.color || 'gray4')) }]}>
+						<View style={styles.horizontal}>
+							<View>
+								<Avatar src={a.avatar || a.favicon} fallback={a.sns} color={a.color} size={40} />
+							</View>
+							<View style={styles.infoContainer}>
+								<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
+									{a.username}
+								</Text>
+								<Text style={[styles.domain, { color: textColor }]} numberOfLines={1}>
+									{a.domain}
+								</Text>
+							</View>
 						</View>
-						<View style={styles.infoContainer}>
-							<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
-								{a.username}
-							</Text>
-							<Text style={[styles.domain, { color: textColor }]} numberOfLines={1}>
-								{a.domain}
-							</Text>
+						<View style={styles.actions}>
+							<View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, flexShrink: 1 }}>
+								{colors.map((color) => (
+									<TouchableOpacity key={color} style={createColorBtn(colorToSystemColor(color))} onPress={() => updateColor(a.id, color)}>
+										{color === a.color && <SymbolView name="checkmark" type="monochrome" tintColor={getTextColor(color)} size={15} />}
+									</TouchableOpacity>
+								))}
+								{a.color && (
+									<TouchableOpacity style={createColorBtn(`systemGray4`)} onPress={() => updateColor(a.id, null)}>
+										<SymbolView name="xmark" type="monochrome" tintColor={textColor} size={15} />
+									</TouchableOpacity>
+								)}
+							</View>
+							<Button variant="borderedProminent" color={PlatformColor('systemRed')} onPress={() => removeAcctId(a.id)} style={{ width: 50, height: 50 }} systemImage="trash"></Button>
 						</View>
-					</View>
-					<View style={styles.actions}>
-						<View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, flexShrink: 1 }}>
-							{colors.map((color) => (
-								<TouchableOpacity key={color} style={createColorBtn(colorToSystemColor(color))} onPress={() => updateColor(a.id, color)}>
-									{color === a.color && <SymbolView name="checkmark" type="monochrome" tintColor={getTextColor(color)} size={15} />}
-								</TouchableOpacity>
-							))}
-							{a.color && (
-								<TouchableOpacity style={createColorBtn(`systemGray4`)} onPress={() => updateColor(a.id, null)}>
-									<SymbolView name="xmark" type="monochrome" tintColor={textColor} size={15} />
-								</TouchableOpacity>
-							)}
-						</View>
-						<Button variant="borderedProminent" color={PlatformColor('systemRed')} onPress={() => removeAcctId(a.id)} style={{ width: 50, height: 50 }} systemImage="trash"></Button>
-					</View>
-				</GlassView>
-			))}
+					</GlassView>
+				)}
+			/>
+			<Button variant="glassProminent" systemImage="plus" onPress={() => router.push('/login')} style={{ marginVertical: 20, width: 200, height: 50 }}>
+				{t('add')}
+			</Button>
 		</View>
 	)
 }
 const createStyles = ({ width }: { width: number }) =>
 	StyleSheet.create({
 		container: {
+			marginVertical: 10,
 			width: width - 40,
 			borderRadius: 20,
 			padding: 15

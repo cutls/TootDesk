@@ -25,7 +25,7 @@ export default function Navigator({ openComposer }: Props) {
 						<TouchableOpacity style={styles.glass20}>
 							<SymbolView name="arrow.clockwise" type="monochrome" tintColor={textColor} size={20} />
 						</TouchableOpacity>
-						<TouchableOpacity onPress={() => router.push('/acct')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
+						<TouchableOpacity onPress={() => router.push('/user?acctId=1&userId=115526765967888727')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
 							<Text style={{ textAlign: 'center' }}>Home @cutls@6m.cutls.dev</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.glass20}>

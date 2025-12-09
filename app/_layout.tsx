@@ -15,10 +15,11 @@ export default function RootLayout() {
 	return (
 		<KeyboardProvider>
 			<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-				<Stack>
+				<Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
 					<Stack.Screen name="index" options={{ headerShown: false, title: '' }} />
 					<Stack.Screen name="login" options={{ title: t('screen.login') }} />
 					<Stack.Screen name="acct" options={{ title: t('screen.acct') }} />
+					<Stack.Screen name="user" options={{ title: '', headerShown: false }} />
 				</Stack>
 				<StatusBar style="auto" />
 			</ThemeProvider>

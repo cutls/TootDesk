@@ -61,7 +61,7 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 		try {
 			const postData = {
 				...options,
-				visibility: p.visibility
+				...p
 			}
 			await client?.postStatus(text, postData)
 			setIsOpened(false)
@@ -123,7 +123,7 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 							</View>
 						</View>
 					)}
-					<Composer isOpened={mode === 'compose'} post={post} defaultVis={vis} acct={useAcct} changeMode={changeMode} text={text} setText={setText} />
+					<Composer isOpened={mode === 'compose'} client={client} post={post} defaultVis={vis} acct={useAcct} changeMode={changeMode} text={text} setText={setText} />
 					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
 					{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
 					{mode === 'menu' && <Menu changeMode={changeMode} />}

@@ -31,7 +31,7 @@ export default function Acct({ change }: Props) {
 				<Button key={a.id} onPress={() => change(a)}>
 					<View style={styles.container}>
 						<View>
-							<Avatar src={a.avatar || a.favicon} fallback={a.sns} size={40} />
+							<Avatar src={a.avatar || a.favicon} color={a.color} fallback={a.sns} size={40} />
 						</View>
 						<View style={styles.infoContainer}>
 							<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
