@@ -1,4 +1,6 @@
 import Avatar from '@/components/Avatar'
+import { ProfileText } from '@/components/profile/ProfileText'
+import { ProfileStatuses } from '@/components/profile/Statuses'
 import { Followed } from '@/components/relations/Followed'
 import { Following } from '@/components/relations/Following'
 import { FollowingFollowed } from '@/components/relations/FollowingFollowed'
@@ -9,17 +11,18 @@ import { RequestingFollowed } from '@/components/relations/RequestingFollowed'
 import { RequestingRequested } from '@/components/relations/RequestingRequested'
 import RelationSheet from '@/components/RelationSheet'
 import { AccountName } from '@/components/status/AccountName'
-import { ProfileText } from '@/components/status/ProfileText'
 import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
 import { getAcctById } from '@/utils/storage'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
+import { BlurView } from 'expo-blur'
 import { GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import * as Localization from 'expo-localization'
+import { useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, type OpaqueColorValue, PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -45,6 +48,8 @@ const Relation = ({ relation: r, textColor }: { relation: Entity.Relationship; t
 }
 export default function Index() {
 	const { t } = useTranslation()
+	const isPreview = useIsPreview()
+	const [scrolled, setScrolled] = useState(false)
 
 	const router = useRouter()
 	const params = useLocalSearchParams()
@@ -59,7 +64,9 @@ export default function Index() {
 	const [basic, setBasic] = useState<Entity.Account | null>(null)
 	const [relation, setRelation] = useState<Entity.Relationship | null>(null)
 	const [rSheet, setRSheet] = useState(false)
+	const ref = useRef<ScrollView>(null)
 	const verifiedBg = isDark ? '#083416' : '#d2e2d7'
+	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
 	const updateRelation = async () => {
 		if (!client) return
 		const r = await client.getRelationship(userId)
@@ -92,86 +99,130 @@ export default function Index() {
 		)
 	}
 	return (
-		<ScrollView style={{}}>
-			<View style={{ position: 'absolute', paddingHorizontal: 10, marginTop: 20, zIndex: 2, paddingTop: 20, justifyContent: 'space-between', flexDirection: 'row', width: width }}>
-				<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 45 }}>
-					<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
-				</Button>
-				{relation && (
-					<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 80, height: 45 }}>
-						<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50 }}>
-							<BasePerson relation={relation} textColor={textColor} />
-							<Relation relation={relation} textColor={textColor} />
-						</View>
-					</Button>
-				)}
-			</View>
-			<Image style={styles.header} source={{ uri: basic.header }} />
-			<GlassView style={styles.infoBar}>
-				<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>
-					<Avatar src={basic.avatar} size={80} />
-				</View>
-
-				<View style={{ marginLeft: 5 }}>
-					<AccountName account={basic} fontSize={24} width={width - 145} />
-					<TouchableOpacity style={{ display: 'flex', flexDirection: 'row', marginVertical: 5 }} onPress={() => Linking.openURL(basic.url)}>
-						<Text style={{}}>@{basic.acct}</Text>
-						{basic.locked && <SymbolView name="lock" type="monochrome" tintColor={textColor} size={16} />}
-					</TouchableOpacity>
-					<View style={{ display: 'flex', flexDirection: 'row' }}>
-						<View style={{ width: (width - 145) / 3 }}>
-							<Text numberOfLines={1} style={{ textAlign: 'center' }}>
-								{t('user.posts')}
-							</Text>
-							<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
-								{basic.statuses_count.toLocaleString()}
-							</Text>
-						</View>
-						<View style={{ width: (width - 145) / 3 }}>
-							<Text numberOfLines={1} style={{ textAlign: 'center' }}>
-								{t('user.follows')}
-							</Text>
-							<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
-								{basic.following_count.toLocaleString()}
-							</Text>
-						</View>
-						<View style={{ width: (width - 145) / 3 }}>
-							<Text numberOfLines={1} style={{ textAlign: 'center' }}>
-								{t('user.followers')}
-							</Text>
-							<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
-								{basic.followers_count.toLocaleString()}
-							</Text>
-						</View>
-					</View>
-				</View>
-			</GlassView>
-			<View style={{ padding: 10 }}>
-				<ProfileText account={basic} width={width - 20} fontSize={14} />
-				{basic.fields.map((field, idx) => (
+		<View>
+			{scrolled && (
+				<View style={{ position: 'sticky', top: 0, left: 0, right: 0, alignItems: 'center', height: 100, justifyContent: 'center', zIndex: 5 }}>
 					<View
-						key={`${field.name}-${idx}`}
 						style={{
-							padding: 5,
-							display: 'flex',
+							position: 'absolute',
+							paddingHorizontal: 10,
+							marginTop: 20,
+							zIndex: 2,
+							paddingTop: 20,
+							justifyContent: 'space-between',
 							flexDirection: 'row',
-							alignItems: 'center',
-							backgroundColor: field.verified ? verifiedBg : undefined,
-							borderTopLeftRadius: idx === 0 ? 10 : 0,
-							borderTopRightRadius: idx === 0 ? 10 : 0,
-							borderBottomLeftRadius: idx === basic.fields.length - 1 ? 10 : 0,
-							borderBottomRightRadius: idx === basic.fields.length - 1 ? 10 : 0
+							width: width
 						}}
 					>
-						<Text style={{ fontWeight: 'bold', width: 100 }} numberOfLines={2}>
-							{field.name}
-						</Text>
-						<ProfileText account={{ ...basic, note: field.value }} width={width - 120} fontSize={14} />
+						<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 45 }}>
+							<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
+						</Button>
+						<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 45 }}>
+							{basic.acct}
+						</Button>
+						<View style={{ width: 45 }} />
 					</View>
-				))}
-			</View>
-			{client && relation && <RelationSheet locked={basic.locked} isOpened={rSheet} setIsOpened={setRSheet} update={() => updateRelation()} client={client} relation={relation} targetId={userId} />}
-		</ScrollView>
+					<Image style={{ height: 100, width: width }} source={{ uri: basic.header }} />
+					<BlurView intensity={100} style={{ position: 'absolute', height: 100, width }}></BlurView>
+				</View>
+			)}
+			<ScrollView ref={ref} onScroll={(e) => setScrolled(e.nativeEvent.contentOffset.y > 300)} style={{}}>
+				<View
+					style={{
+						position: 'absolute',
+						display: isPreview ? 'none' : undefined,
+						paddingHorizontal: 10,
+						marginTop: 20,
+						zIndex: 2,
+						paddingTop: 20,
+						justifyContent: 'space-between',
+						flexDirection: 'row',
+						width: width
+					}}
+				>
+					<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 45 }}>
+						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
+					</Button>
+					{relation && (
+						<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 80, height: 45 }}>
+							<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50 }}>
+								<BasePerson relation={relation} textColor={textColor} />
+								<Relation relation={relation} textColor={textColor} />
+							</View>
+						</Button>
+					)}
+				</View>
+				<Image style={styles.header} source={{ uri: basic.header }} />
+				<GlassView style={styles.infoBar}>
+					<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>
+						<Avatar src={basic.avatar} size={80} />
+					</View>
+
+					<View style={{ marginLeft: 5 }}>
+						<AccountName account={basic} fontSize={24} width={width - 145} />
+						<TouchableOpacity style={{ display: 'flex', flexDirection: 'row', marginVertical: 5 }} onPress={() => Linking.openURL(basic.url)}>
+							<Text style={{}}>@{basic.acct}</Text>
+							{basic.locked && <SymbolView name="lock" type="monochrome" tintColor={textColor} size={16} />}
+						</TouchableOpacity>
+						<View style={{ display: 'flex', flexDirection: 'row' }}>
+							<View style={{ width: (width - 145) / 3 }}>
+								<Text numberOfLines={1} style={{ textAlign: 'center' }}>
+									{t('user.posts')}
+								</Text>
+								<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
+									{basic.statuses_count.toLocaleString()}
+								</Text>
+							</View>
+							<View style={{ width: (width - 145) / 3 }}>
+								<Text numberOfLines={1} style={{ textAlign: 'center' }}>
+									{t('user.follows')}
+								</Text>
+								<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
+									{basic.following_count.toLocaleString()}
+								</Text>
+							</View>
+							<View style={{ width: (width - 145) / 3 }}>
+								<Text numberOfLines={1} style={{ textAlign: 'center' }}>
+									{t('user.followers')}
+								</Text>
+								<Text numberOfLines={1} style={{ fontWeight: 'bold', textAlign: 'center' }}>
+									{basic.followers_count.toLocaleString()}
+								</Text>
+							</View>
+						</View>
+					</View>
+				</GlassView>
+				<View style={{ padding: 10 }}>
+					<ProfileText account={basic} width={width - 20} fontSize={14} />
+					{basic.fields.map((field, idx) => (
+						<View
+							key={`${field.name}-${idx}`}
+							style={{
+								padding: 5,
+								display: 'flex',
+								flexDirection: 'row',
+								alignItems: 'center',
+								backgroundColor: field.verified ? verifiedBg : undefined,
+								borderTopLeftRadius: idx === 0 ? 10 : 0,
+								borderTopRightRadius: idx === 0 ? 10 : 0,
+								borderBottomLeftRadius: idx === basic.fields.length - 1 ? 10 : 0,
+								borderBottomRightRadius: idx === basic.fields.length - 1 ? 10 : 0
+							}}
+						>
+							<Text style={{ fontWeight: 'bold', width: 100 }} numberOfLines={2}>
+								{field.name}
+							</Text>
+							<ProfileText account={{ ...basic, note: field.value }} width={width - 120} fontSize={14} />
+						</View>
+					))}
+				</View>
+				<View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: width - 10, marginVertical: 10 }}></View>
+				<View>
+					<ProfileStatuses lang={lang} targetId={basic.id} client={client} acctId={acctId} columnWidth={width} />
+				</View>
+				{client && relation && <RelationSheet locked={basic.locked} isOpened={rSheet} setIsOpened={setRSheet} update={() => updateRelation()} client={client} relation={relation} targetId={userId} />}
+			</ScrollView>
+		</View>
 	)
 }
 const createStyles = ({ width }: { width: number }) =>

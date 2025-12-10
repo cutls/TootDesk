@@ -1,9 +1,9 @@
+import { emojify } from '@/utils/emojify'
 import type { Entity } from '@cutls/megalodon'
 import { openBrowserAsync } from 'expo-web-browser'
 import React from 'react'
 import { PlatformColor, useColorScheme } from 'react-native'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
-import { emojify } from './AccountName'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed

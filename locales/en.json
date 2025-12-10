@@ -14,6 +14,102 @@
     "login": {
         "failed": "Login failed"
     },
+    "timeline": {
+        "notification": {
+			"follow": {
+				"title": "Follow",
+				"body": "{user} followed you"
+			},
+			"followRequest": {
+				"title": "Follow Request",
+				"body": "{user} requested to follow you"
+			},
+			"favourite": {
+				"title": "Favourite",
+				"body": "{user} favourited your post"
+			},
+			"reblog": {
+				"title": "Boost",
+				"body": "{user} boosted your post"
+			},
+			"pollExpired": {
+				"title": "Poll",
+				"body": "{user}'s poll is expired"
+			},
+			"pollVote": {
+				"title": "Poll",
+				"body": "{user} voted your poll"
+			},
+			"quote": {
+				"title": "Quote",
+				"body": "{user} quoted your post"
+			},
+			"status": {
+				"title": "Status",
+				"body": "{user} just post"
+			},
+			"update": {
+				"title": "Update",
+				"body": "{user} updated the post"
+			},
+			"emojiReaction": {
+				"title": "Reaction",
+				"body": "{user} reacted your post"
+			},
+			"move": {
+				"title": "Move",
+				"body": "{user} migrated to"
+			},
+			"unread": "{count} unread notifications (Click to mark as read)"
+		},
+		"actions": {
+			"reply": "Reply",
+			"reblog": "Boost",
+			"favourite": "Favourite",
+			"emojiReaction": "Emoji reaction",
+			"bookmark": "Bookmark",
+			"quote": "Quote",
+			"revokeQuoting": "Revoke this quote",
+			"detail": {
+				"title": "Detail",
+				"browser": "Open original page",
+				"copy": "Copy link to post",
+				"edit": "Edit",
+				"delete": "Delete",
+				"report": "Report {user}",
+				"fromOtherAccount": "React from other accounts"
+			}
+		},
+		"status": {
+			"showMore": "Show",
+			"showMoreAuto": "Show more(long)",
+			"showLess": "Hide",
+			"mediaHidden": "Media hidden",
+			"pinnedPost": "Pnned post",
+			"filtered": "Filtered",
+			"showAnyway": "Show anyway",
+			"rebloggedBy": "Boosted by {{name}}"
+		},
+		"poll": {
+			"vote": "Vote",
+			"refresh": "Refresh",
+			"people": "{count} people",
+			"closed": "Closed",
+			"left": "left"
+		},
+		"quoteState": {
+			"pending": "The quoted post is being processed.",
+			"accepted": "Quoted successfully.",
+			"rejected": "The quoted post was rejected.",
+			"revoked": "The quoting of the post has been revoked.",
+			"deleted": "The quoted post has been deleted.",
+			"unauthorized": "The quoted post is private.",
+			"blocked_account": "The quoting account is blocked.",
+			"blocked_domain": "The quoting domain is blocked.",
+			"muted_account": "The quoting account is muted.",
+			"view": "View"
+		}
+    },
     "composer": {
         "post": "Post",
         "placeholder": "What's on your mind?",

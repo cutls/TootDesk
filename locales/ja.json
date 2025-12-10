@@ -54,6 +54,103 @@
             "7d": "7日"
         }
     },
+    "timeline": {
+
+		"notification": {
+			"follow": {
+				"title": "フォロー",
+				"body": "{{user}} があなたをフォローしました"
+			},
+			"followRequest": {
+				"title": "フォローリクエスト",
+				"body": "{{user}} からフォローリクエストを受け取りました"
+			},
+			"favourite": {
+				"title": "お気に入り",
+				"body": "{{user}} があなたの投稿をお気に入りに登録しました"
+			},
+			"reblog": {
+				"title": "ブースト",
+				"body": "{{user}} があなたの投稿をブーストしました"
+			},
+			"pollExpired": {
+				"title": "アンケート",
+				"body": "{{user}} のアンケートが終了しました"
+			},
+			"pollVote": {
+				"title": "アンケート",
+				"body": "{{user}} があなたのアンケートに投票しました"
+			},
+			"quote": {
+				"title": "引用",
+				"body": "{{user}} があなたの投稿を引用しました"
+			},
+			"status": {
+				"title": "ステータス",
+				"body": "{{user}} が投稿しました"
+			},
+			"update": {
+				"title": "編集",
+				"body": "{{user}} が投稿を編集しました"
+			},
+			"emojiReaction": {
+				"title": "リアクション",
+				"body": "{{user}} があなたの投稿にリアクションしました"
+			},
+			"move": {
+				"title": "引越し",
+				"body": "{{user}} が引越しました"
+			},
+			"unread": "{{count}} 件の未読通知 (クリックして既読にする)"
+		},
+		"actions": {
+			"reply": "返信",
+			"reblog": "ブースト",
+			"favourite": "お気に入り",
+			"emojiReaction": "絵文字リアクション",
+			"bookmark": "ブックマーク",
+			"quote": "引用",
+			"revokeQuoting": "この引用の取り消させる",
+			"detail": {
+				"title": "詳細",
+				"browser": "元のページを開く",
+				"copy": "投稿へのリンクをコピー",
+				"edit": "編集",
+				"delete": "削除",
+				"report": "{{user}} を通報",
+				"fromOtherAccount": "他のアカウントからリアクション"
+			}
+		},
+		"status": {
+			"showMore": "もっと見る",
+			"showMoreAuto": "もっと見る(長い)",
+			"showLess": "隠す",
+			"mediaHidden": "非表示のメディア",
+			"pinnedPost": "ピン留めされた投稿",
+			"filtered": "フィルターされました",
+			"showAnyway": "表示する",
+			"rebloggedBy": "{{name}}がブースト"
+		},
+		"poll": {
+			"vote": "投票",
+			"refresh": "更新",
+			"people": "{{count}} 人",
+			"closed": "終了",
+			"left": "残り"
+		},
+		"quoteState": {
+			"pending": "引用は承認待ちです",
+			"accepted": "引用は承認されました",
+			"rejected": "引用は拒否されました",
+			"revoked": "引用は取り消されました",
+			"deleted": "引用元の投稿は削除されました",
+			"unauthorized": "引用元の投稿を表示する権限がありません",
+			"blocked_account": "引用元のアカウントはブロックされています",
+			"blocked_domain": "引用元のドメインはブロックされています",
+			"muted_account": "引用元のアカウントはミュートされています",
+			"view": "表示"
+		}
+    },
     "user": {
         "followedBy": "あなたをフォローしています",
         "requestedBy": "あなたへのフォローリクエストがあります",
