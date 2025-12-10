@@ -15,7 +15,7 @@ export default function Menu({ changeMode }: Props) {
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
 	return (
-		<View style={{ minHeight: 200 }}>
+		<View style={{ minHeight: 220 }}>
 			<CustomedButton onPress={() => changeMode('poll')}>{t('composer.menu.poll')}</CustomedButton>
 			<CustomedButton onPress={() => changeMode('schedule')} style={{ marginVertical: 10 }}>{t('composer.menu.schedule')}</CustomedButton>
 			<CustomedButton isPrimary={true} onPress={() => changeMode('compose')}>{t('composer.menu.return')}</CustomedButton>

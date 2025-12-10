@@ -1,4 +1,5 @@
 import ComposeSheet from '@/components/ComposeSheet'
+import { Timelines } from '@/components/timeline/Timelines.demo'
 import { listAccts } from '@/utils/storage'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -18,6 +19,7 @@ export default function Index() {
 	})
 	return (
 		<View style={styles.container}>
+			<Timelines />
 			<Navigator openComposer={() => setIsOpened(true)} />
 			<ComposeSheet isOpened={isOpened} setIsOpened={setIsOpened} />
 		</View>
@@ -25,10 +27,8 @@ export default function Index() {
 }
 const styles = StyleSheet.create({
 	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 20
+		height: '100%',
+		width: '100%'
 	},
 	link: {
 		marginTop: 15,

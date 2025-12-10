@@ -83,6 +83,7 @@ export default function Index() {
 				setClient(client)
 				const d = await client.getAccount(userId)
 				setBasic(d.data)
+				if (d.data.acct === acct.username) return
 				const r = await client.getRelationship(userId)
 				setRelation(r.data)
 			} finally {
@@ -140,11 +141,11 @@ export default function Index() {
 						width: width
 					}}
 				>
-					<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 45 }}>
+					<Button variant="glass" onPress={() => router.back()} style={{ width: 40, height: 60 }}>
 						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
 					</Button>
 					{relation && (
-						<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 80, height: 45 }}>
+						<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 70, height: 60 }}>
 							<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50 }}>
 								<BasePerson relation={relation} textColor={textColor} />
 								<Relation relation={relation} textColor={textColor} />

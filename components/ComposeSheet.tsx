@@ -101,7 +101,7 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 	}, [isOpened])
 	if (!useAcct) return null
 	return (
-		<Host style={{ width }}>
+		<Host style={{ width, position: 'absolute', zIndex: 1000 }}>
 			<BottomSheet isOpened={isOpened} onIsOpenedChange={(e) => setIsOpened(e)}>
 				<View style={{ padding: 20 }}>
 					{mode === 'compose' && (

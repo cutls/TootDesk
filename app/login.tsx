@@ -111,7 +111,7 @@ export default function Index() {
 				}
 				accounts.push(account)
 				await saveAccts(accounts)
-                router.replace('/acct')
+                router.replace('/')
 			} else {
 				throw new Error('User cancelled login.')
 			}
@@ -126,7 +126,7 @@ export default function Index() {
 			<TextInput
 				value={domain}
 				onChangeText={(t) => setDomain(t)}
-				style={[staticStyles.input, { width: '100%', borderRadius: 20 }]}
+				style={[staticStyles.input, { width: '100%', borderRadius: 20, color: isDark ? 'white' : 'black' }]}
 				placeholder="mastodon.social"
 				placeholderTextColor={isDark ? 'lightgray' : 'gray'}
 				readOnly={isLoading}

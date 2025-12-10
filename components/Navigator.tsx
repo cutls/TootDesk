@@ -57,6 +57,7 @@ const createStyles = ({ width }: { width: number }) =>
 		containerStyle: {
 			position: 'absolute',
 			bottom: 25,
+			zIndex: 2,
 			left: 10,
 			height: 110,
 			width: width - 20,

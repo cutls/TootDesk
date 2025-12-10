@@ -179,7 +179,7 @@ export const Status = (props: IProps) => {
 						<TouchableOpacity style={styles.action} onPress={() => action('bookmark')}>
 							<SymbolView name={status.bookmarked ? 'bookmark.fill' : 'bookmark'} type="monochrome" tintColor={status.bookmarked ? PlatformColor('systemRed') : txtColor} size={fontSize * 1.2} />
 						</TouchableOpacity>
-						<Dropdown data={actions} onSelect={(title) => console.log(title)} modifiers={[]} style={{ width: 20, height: 10, marginTop: fontSize * 0.4 }}>
+						<Dropdown data={actions} onSelect={(title) => console.log(title)} modifiers={[]} style={{ width: 20, height: 10, marginTop: fontSize * 0.2 }}>
 							<SwiftButton systemImage="ellipsis" variant="default" color={txtColor} />
 						</Dropdown>
 					</View>

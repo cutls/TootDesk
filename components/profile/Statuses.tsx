@@ -15,7 +15,6 @@ export const ProfileStatuses = (props: IProps) => {
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
-	if (!client) return null
 	const [statuses, setStatuses] = useState<Entity.Status[]>([])
 	const updateStatus = (newStatus: Entity.Status) => {
 		setStatuses((prevStatuses) => prevStatuses.map((s) => (s.id === newStatus.id ? newStatus : s)))
@@ -23,6 +22,7 @@ export const ProfileStatuses = (props: IProps) => {
 	useEffect(() => {
 		const fn = async () => {
 			try {
+				if (!client) return
 				const res = await client.getAccountStatuses(targetId)
 				setStatuses(res.data)
 			} catch (e) {
@@ -30,7 +30,8 @@ export const ProfileStatuses = (props: IProps) => {
 			}
 		}
 		fn()
-	}, [])
+	}, [client])
+	if (!client) return null
 
 	return (
 		<FlashList

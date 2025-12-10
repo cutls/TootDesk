@@ -65,7 +65,7 @@ export default function RelationSheet({ isOpened, setIsOpened, client, relation,
 						<ActivityIndicator />
 					</View>
 				) : (
-					<View style={{ padding: 20 }}>
+					<View style={{ padding: 20, paddingBottom: 40 }}>
 						{relation.requested_by && (
 							<>
 								<Text>{t('user.requestedBy')}</Text>

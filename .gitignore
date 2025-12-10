@@ -44,7 +44,11 @@ app-example
 /ios
 /android
 
+*.demo.tsx
+*.demo.ts
+
 *.tar.gz
 *.app
 *.apk
 *.aab
+*.ipa

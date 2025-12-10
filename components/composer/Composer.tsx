@@ -153,7 +153,7 @@ export default function Composer({ acct, post, isOpened, changeMode, text, setTe
 					</View>
 				</InputAccessoryView>
 			)}
-			<View style={{ display: 'flex', justifyContent: 'flex-end', marginVertical: 5, paddingBottom: 100, flexDirection: 'row', gap: 2 }}>
+			<View style={{ display: 'flex', justifyContent: 'flex-end', marginVertical: 5, paddingBottom: 10, flexDirection: 'row', gap: 2 }}>
 				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="line.3.horizontal" onPress={() => changeMode('menu')} modifiers={[]} />
 				<Button style={{ width: 55, height: 50 }} color={isCW ? PlatformColor('systemYellow') : undefined} variant="glass" onPress={() => setIsCW(!isCW)} modifiers={[]}>
 					CW
