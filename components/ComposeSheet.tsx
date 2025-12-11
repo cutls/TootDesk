@@ -1,13 +1,14 @@
 import type { Account } from '@/entities/account'
 import type { Poll as IPoll } from '@/entities/status'
-import { getUsualAcct } from '@/utils/storage'
-import type { ComposeMode, IState, PostComposer } from '@/utils/type'
-import generator, { type MegalodonInterface } from '@cutls/megalodon'
+import { getAcctById, getUsualAcct } from '@/utils/storage'
+import type { ActionProps, ComposeMode, IState } from '@/utils/type'
+import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
 import { BottomSheet, Host } from '@expo/ui/swift-ui'
+import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
-import { options } from 'superagent'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import Composer from './composer/Composer'
@@ -21,19 +22,25 @@ import { Button } from './ui/Button'
 interface Props {
 	isOpened: boolean
 	setIsOpened: IState<boolean>
+	composeAction: ActionProps | null
+	clearComposeAction: () => void
 }
 interface IOptional {
 	scheduled_at?: string
 	poll?: IPoll
+	editTargetId?: string
+	in_reply_to_id?: string
+	quoted_status_id?: string
 }
-export default function Navigator({ isOpened, setIsOpened }: Props) {
+export default function Navigator({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
+	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
 	const [mode, setMode] = useState<ComposeMode>('compose')
 	const [useAcct, setUseAcct] = useState<Account | null>(null)
 	const [text, setText] = useState('')
 	const [optional, setOptional] = useState<IOptional>({})
-	const [vis, setVis] = useState<'public' | 'unlisted' | 'private' | 'direct'>('public')
+	const [vis, setVis] = useState<'public' | 'unlisted' | 'private' | 'direct' | 'local'>('public')
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
@@ -41,6 +48,8 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 	const [maxChars, setMaxChars] = useState(500)
 	const [maxPollsOptions, setMaxPollsOptions] = useState(4)
 	const [isLoading, setIsLoading] = useState(false)
+	const [cw, setCW] = useState('')
+	const [uploaded, setUploaded] = useState<Array<Entity.Attachment | Entity.AsyncAttachment>>([])
 	const changeMode = (m: ComposeMode) => {
 		setMode(m)
 	}
@@ -56,14 +65,26 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 		setOptional((o) => ({ ...o, poll: poll || undefined }))
 		setMode('compose')
 	}
-	const post = async (p: PostComposer) => {
+	const post = async () => {
 		setMode('loading')
 		try {
-			const postData = {
-				...options,
-				...p
+			if (optional.editTargetId) {
+				const editData = {
+					...optional,
+					spoiler_text: cw || undefined,
+					visibility: vis,
+					media_ids: uploaded.map((u) => u.id)
+				}
+				await client?.editStatus(optional.editTargetId, { status: text, ...editData })
+			} else {
+				const postData = {
+					...optional,
+					spoiler_text: cw || undefined,
+					visibility: vis,
+					media_ids: uploaded.map((u) => u.id)
+				}
+				await client?.postStatus(text, postData)
 			}
-			await client?.postStatus(text, postData)
 			setIsOpened(false)
 		} finally {
 			setMode('compose')
@@ -93,37 +114,95 @@ export default function Navigator({ isOpened, setIsOpened }: Props) {
 		if (useAcct) setMode('compose')
 	}, [useAcct])
 	useEffect(() => {
+		const fn = async () => {
+			const accts = await getAcctById(composeAction?.acctId || 0)
+			if (accts) setUseAcct(accts)
+			if (composeAction?.type) setIsOpened(true)
+			if (composeAction?.addText) setText(composeAction.addText)
+			if (composeAction?.type === 'reply') setOptional((o) => ({ ...o, in_reply_to_id: composeAction.targetId }))
+			if (composeAction?.type === 'quote') setOptional((o) => ({ ...o, quoted_status_id: composeAction.targetId }))
+			if (composeAction?.type === 'edit') setOptional((o) => ({ ...o, editTargetId: composeAction.targetId }))
+			if (composeAction?.visibility) {
+				const priv = composeAction.visibility
+				if (['public', 'unlisted', 'private', 'direct'].includes(priv || '')) setVis((priv as any) || 'public')
+			}
+			if (composeAction?.status) {
+				const status = composeAction.status
+				const priv = status.visibility
+				if (['public', 'unlisted', 'private', 'direct'].includes(priv || '')) setVis((priv as any) || 'public')
+				if (status.spoiler_text) setCW(status.spoiler_text)
+				console.log(status.media_attachments)
+				if (status.media_attachments && status.media_attachments.length > 0) setUploaded(status.media_attachments)
+				setOptional((o) => {
+					const newOptional: IOptional = { ...o }
+					//if (status.scheduled_at) newOptional.scheduled_at = status.scheduled_at
+					if (status.poll)
+						newOptional.poll = {
+							options: status.poll.options.map((o) => o.title),
+							expires_in: status.poll.expires_at ? Math.floor((new Date(status.poll.expires_at).getTime() - Date.now()) / 1000) : 300,
+							multiple: status.poll.multiple,
+							hide_totals: false
+						}
+					return newOptional
+				})
+			}
+		}
+		fn()
+	}, [composeAction])
+	useEffect(() => {
 		if (isOpened) {
 			setMode('compose')
+		} else {
 			setText('')
 			setOptional({})
+			setCW('')
+			setUploaded([])
+			setVis('public')
+			clearComposeAction()
 		}
 	}, [isOpened])
 	if (!useAcct) return null
 	return (
-		<Host style={{ width, position: 'absolute', zIndex: 1000 }}>
+		<Host style={{ width, position: isOpened ? 'absolute' : undefined, zIndex: 1000 }}>
 			<BottomSheet isOpened={isOpened} onIsOpenedChange={(e) => setIsOpened(e)}>
 				<View style={{ padding: 20 }}>
 					{mode === 'compose' && (
-						<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-							<Button variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
-								<View style={styles.acctContainer}>
-									<View>
-										<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
+						<>
+							<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+								<Button modifiers={[ignoreSafeArea({ regions: 'all'})]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
+									<View style={styles.acctContainer}>
+										<View>
+											<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
+										</View>
+										<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
+											{useAcct.username}@{useAcct.domain}
+										</Text>
 									</View>
-									<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
-										{useAcct.username}@{useAcct.domain}
-									</Text>
+								</Button>
+								<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 80 }}>
+									{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
+									{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
+									<Text>{maxChars - text.length}</Text>
 								</View>
-							</Button>
-							<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 80 }}>
-								{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
-								{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
-								<Text>{maxChars - text.length}</Text>
 							</View>
-						</View>
+							{composeAction?.type && (
+								<View style={{}}>
+									<Text>{t(`composer.${composeAction.type}`)}</Text>
+								</View>
+							)}
+						</>
 					)}
-					<Composer isOpened={mode === 'compose'} client={client} post={post} defaultVis={vis} acct={useAcct} changeMode={changeMode} text={text} setText={setText} />
+					<Composer
+						isOpened={mode === 'compose' && isOpened}
+						client={client}
+						post={post}
+						defaultVis={vis}
+						acct={useAcct}
+						changeMode={changeMode}
+						textState={{ text, setText }}
+						cwState={{ cw, setCW }}
+						uploadedState={{ uploaded, setUploaded }}
+					/>
 					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
 					{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
 					{mode === 'menu' && <Menu changeMode={changeMode} />}

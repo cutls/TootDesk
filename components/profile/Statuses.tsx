@@ -1,55 +1,89 @@
+import type { Account } from '@/entities/account'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
 import React, { useEffect, useState } from 'react'
-import { PlatformColor, useColorScheme, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import { ActivityIndicator, PlatformColor, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Status } from '../status/Status'
+import { Text } from '../themed/Text'
 interface IProps {
 	client: MegalodonInterface | null
 	targetId: string
-	acctId: string
+	acct: Account
 	columnWidth: number
 	lang: string
 }
 export const ProfileStatuses = (props: IProps) => {
-	const { client, acctId, columnWidth, targetId } = props
+	const { t } = useTranslation()
+	const { client, acct, columnWidth, targetId } = props
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
 	const [statuses, setStatuses] = useState<Entity.Status[]>([])
+	const [isMore, setIsMore] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 	const updateStatus = (newStatus: Entity.Status) => {
 		setStatuses((prevStatuses) => prevStatuses.map((s) => (s.id === newStatus.id ? newStatus : s)))
 	}
 	useEffect(() => {
 		const fn = async () => {
+			setIsLoading(true)
 			try {
 				if (!client) return
 				const res = await client.getAccountStatuses(targetId)
 				setStatuses(res.data)
 			} catch (e) {
 				console.log(e)
+			} finally {
+				setIsLoading(false)
 			}
 		}
 		fn()
 	}, [client])
+	const more = async () => {
+		setIsMore(true)
+		try {
+			if (!client) return
+			const res = await client.getAccountStatuses(targetId, { max_id: statuses[statuses.length - 1]?.id })
+			setStatuses((p) => [...p, ...res.data])
+		} catch (e) {
+			console.log(e)
+		} finally {
+			setIsMore(false)
+		}
+	}
 	if (!client) return null
 
 	return (
 		<FlashList
 			data={statuses}
 			keyExtractor={(item) => item.id}
-			ItemSeparatorComponent={() => <View style={{ borderWidth : 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: columnWidth - 10 }}></View>}
+			ItemSeparatorComponent={() => <View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: columnWidth - 10 }}></View>}
 			renderItem={({ item: status }) => (
 				<Status
 					status={status}
 					client={client}
-					acctId={acctId}
+					acct={acct}
 					columnWidth={columnWidth}
 					updateStatus={updateStatus}
 					config={{}}
+					composeAction={(type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {}}
 					lang={props.lang === 'ja' ? 'ja' : 'en'}
 					statusAction={(status: Entity.Status, type: 'reply' | 'quote' | 'edit') => console.log(status, type)}
 					filters={[]}
 				/>
+			)}
+			ListEmptyComponent={() => (
+				<View style={{ alignItems: 'center', marginTop: 100 }}>
+					{isLoading ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}
+				</View>
+			)}
+			ListFooterComponent={() => (
+				<View style={{ width: columnWidth, justifyContent: 'center', alignItems: 'center', padding: 20, display: statuses.length === 0 ? 'none' : 'flex' }}>
+					{isMore ? <ActivityIndicator /> : <TouchableOpacity activeOpacity={0.7} onPress={() => more()} style={{ padding: 10, borderRadius: 5, borderWidth: 1, borderColor: PlatformColor('separator') }}>
+						<Text>{t('timeline.more')}</Text>
+					</TouchableOpacity>}
+				</View>
 			)}
 		/>
 	)

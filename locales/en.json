@@ -7,6 +7,7 @@
     "delete": "Delete",
     "yes": "Yes",
     "no": "No",
+	"empty": "No data",
     "screen": {
         "login": "Login",
         "acct": "Account Manager"
@@ -108,7 +109,8 @@
 			"blocked_domain": "The quoting domain is blocked.",
 			"muted_account": "The quoting account is muted.",
 			"view": "View"
-		}
+		},
+		"more": "More"
     },
     "composer": {
         "post": "Post",
@@ -148,7 +150,10 @@
             "1d": "1 day",
             "3d": "3 days",
             "7d": "7 days"
-        }
+        },
+		"reply": "Reply Mode",
+		"quote": "Quote Mode",
+		"edit": "Edit Mode"
     },
     "user": {
         "followedBy": "Following you",

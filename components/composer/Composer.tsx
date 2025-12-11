@@ -2,7 +2,7 @@ import type { Account } from '@/entities/account'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { uploadCallback } from '@/utils/picture'
 import { suggest } from '@/utils/suggest'
-import type { ComposeMode, IState, PostComposer } from '@/utils/type'
+import type { ComposeMode, IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { Button as SwiftButton } from '@expo/ui/swift-ui'
 import { Image } from 'expo-image'
@@ -13,13 +13,14 @@ import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
 import { Dropdown } from '../ui/Dropdown'
 interface Props {
-	text: string
-	setText: IState<string>
+	textState: { text: string, setText: IState<string> }
+	cwState: { cw: string, setCW: IState<string> }
+	uploadedState: { uploaded: Array<Entity.Attachment | Entity.AsyncAttachment>, setUploaded: IState<Array<Entity.Attachment | Entity.AsyncAttachment>> }
 	acct: Account
 	isOpened: boolean
 	changeMode: (m: ComposeMode) => void
-	defaultVis: 'public' | 'unlisted' | 'private' | 'direct'
-	post: (p: PostComposer) => void
+	defaultVis: 'public' | 'unlisted' | 'private' | 'direct' | 'local'
+	post: () => void
 	client: MegalodonInterface | null
 }
 interface Suggested {
@@ -35,7 +36,10 @@ const data = [
 	{ title: 'composer.vis.private', value: 'private', systemImage: 'person.2.fill' as const },
 	{ title: 'composer.vis.direct', value: 'direct', systemImage: 'envelope.fill' as const }
 ]
-export default function Composer({ acct, post, isOpened, changeMode, text, setText, defaultVis, client }: Props) {
+export default function Composer({ acct, post, isOpened, changeMode, textState, cwState, uploadedState, defaultVis, client }: Props) {
+	const { text, setText } = textState
+	const { cw, setCW } = cwState
+	const { uploaded, setUploaded } = uploadedState
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -44,18 +48,16 @@ export default function Composer({ acct, post, isOpened, changeMode, text, setTe
 	const textColor = PlatformColor('label')
 	const [vis, setVis] = useState<string>(defaultVis)
 	const textInput = React.useRef<TextInput>(null)
-	const [isCW, setIsCW] = useState(false)
-	const [cw, setCW] = useState('')
+	const [isCW, setIsCW] = useState(!!cw)
 	const [suggested, setSuggested] = useState<Array<Suggested>>([])
 
 	const [selection, setSelection] = useState({ start: 0, end: 0 })
 	const [deleteTxt, setDeleteTxt] = useState('')
-	const [uploaded, setUploaded] = useState<Array<Entity.Attachment | Entity.AsyncAttachment>>([])
 	const [uploading, setUploading] = useState(0)
 	const uploadStatus = (i: number) => setUploading(i)
 	const upload = async (result: Entity.Attachment | Entity.AsyncAttachment) => setUploaded((prev) => [...prev, result])
-	const deleteItem = (id: string) => {
-		if (!confirmDialog(t('confirm'), t('composer.deleteAttachmentConfirm'), CONTINUE, (s) => t(s))) return
+	const deleteItem = async (id: string) => {
+		if (!await confirmDialog(t('confirm'), t('composer.deleteAttachmentConfirm'), CONTINUE, (s) => t(s))) return
 		setUploaded((prev) => prev.filter((a) => a.id !== id))
 	}
 	const sSelect = (inputIt: string) => {
@@ -168,7 +170,7 @@ export default function Composer({ acct, post, isOpened, changeMode, text, setTe
 					variant="glassProminent"
 					color="teal"
 					systemImage="square.and.pencil"
-					onPress={() => post({ visibility: vis as Entity.StatusVisibility, spoiler_text: isCW ? cw : undefined, media_ids: uploaded.map((u) => u.id) })}
+					onPress={() => post()}
 					modifiers={[]}
 				>
 					{t('composer.post')}

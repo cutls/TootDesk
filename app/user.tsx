@@ -1,6 +1,7 @@
 import Avatar from '@/components/Avatar'
 import { ProfileText } from '@/components/profile/ProfileText'
 import { ProfileStatuses } from '@/components/profile/Statuses'
+import { ProfileUsers } from '@/components/profile/Users'
 import { Followed } from '@/components/relations/Followed'
 import { Following } from '@/components/relations/Following'
 import { FollowingFollowed } from '@/components/relations/FollowingFollowed'
@@ -13,8 +14,11 @@ import RelationSheet from '@/components/RelationSheet'
 import { AccountName } from '@/components/status/AccountName'
 import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
+import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
+import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import { BlurView } from 'expo-blur'
 import { GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
@@ -46,6 +50,12 @@ const Relation = ({ relation: r, textColor }: { relation: Entity.Relationship; t
 	if (r.followed_by) return <Followed />
 	return <SymbolView name="circle.dashed" type="monochrome" tintColor={textColor} size={20} />
 }
+const GlassViewFallback = ({ isPreview, style, children }: { isPreview: boolean; style?: any; children: React.ReactNode }) => {
+	if (isPreview) {
+		return <View style={[style, { backgroundColor: PlatformColor('systemGray5'), opacity: 0.8 }]}>{children}</View>
+	}
+	return <GlassView style={style}>{children}</GlassView>
+}
 export default function Index() {
 	const { t } = useTranslation()
 	const isPreview = useIsPreview()
@@ -61,10 +71,12 @@ export default function Index() {
 	const textColor = PlatformColor('label')
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [acct, setAcct] = useState<Account | null>(null)
 	const [basic, setBasic] = useState<Entity.Account | null>(null)
 	const [relation, setRelation] = useState<Entity.Relationship | null>(null)
 	const [rSheet, setRSheet] = useState(false)
 	const ref = useRef<ScrollView>(null)
+	const [page, setPage] = useState(0)
 	const verifiedBg = isDark ? '#083416' : '#d2e2d7'
 	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
 	const updateRelation = async () => {
@@ -78,6 +90,7 @@ export default function Index() {
 			try {
 				const acct = await getAcctById(Number(acctId))
 				if (!acct) throw new Error('Invalid account id')
+				setAcct(acct)
 				const https = `https://${acct.domain}`
 				const client = generator(acct.sns, https, acct.accessToken)
 				setClient(client)
@@ -92,7 +105,7 @@ export default function Index() {
 		}
 		fn()
 	}, [acctId, userId])
-	if (isLoading || !basic) {
+	if (isLoading || !basic || !acct) {
 		return (
 			<SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 				<ActivityIndicator />
@@ -100,7 +113,7 @@ export default function Index() {
 		)
 	}
 	return (
-		<View>
+		<>
 			{scrolled && (
 				<View style={{ position: 'sticky', top: 0, left: 0, right: 0, alignItems: 'center', height: 100, justifyContent: 'center', zIndex: 5 }}>
 					<View
@@ -145,8 +158,8 @@ export default function Index() {
 						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
 					</Button>
 					{relation && (
-						<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 70, height: 60 }}>
-							<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50 }}>
+						<Button variant="glass" modifiers={[ignoreSafeArea({ regions: 'all' })]} onPress={() => setRSheet(true)} style={{ width: 70, height: 60 }}>
+							<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50, height: 30 }}>
 								<BasePerson relation={relation} textColor={textColor} />
 								<Relation relation={relation} textColor={textColor} />
 							</View>
@@ -154,7 +167,7 @@ export default function Index() {
 					)}
 				</View>
 				<Image style={styles.header} source={{ uri: basic.header }} />
-				<GlassView style={styles.infoBar}>
+				<GlassViewFallback isPreview={isPreview} style={styles.infoBar}>
 					<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>
 						<Avatar src={basic.avatar} size={80} />
 					</View>
@@ -192,7 +205,7 @@ export default function Index() {
 							</View>
 						</View>
 					</View>
-				</GlassView>
+				</GlassViewFallback>
 				<View style={{ padding: 10 }}>
 					<ProfileText account={basic} width={width - 20} fontSize={14} />
 					{basic.fields.map((field, idx) => (
@@ -218,12 +231,25 @@ export default function Index() {
 					))}
 				</View>
 				<View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: width - 10, marginVertical: 10 }}></View>
-				<View>
-					<ProfileStatuses lang={lang} targetId={basic.id} client={client} acctId={acctId} columnWidth={width} />
-				</View>
+				<SegmentedControl
+					values={[t('user.posts'), t('user.follows'), t('user.followers')]}
+					selectedIndex={page}
+					onChange={(event) => {
+						setPage(event.nativeEvent.selectedSegmentIndex)
+					}}
+				/>
+				{page === 0 && <View style={{ flex: 1 }}>
+					<ProfileStatuses lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+				</View>}
+				{page === 1 && <View>
+					<ProfileUsers type="following" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+				</View>}
+				{page === 2 && <View>
+					<ProfileUsers type="followers" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+				</View>}
 				{client && relation && <RelationSheet locked={basic.locked} isOpened={rSheet} setIsOpened={setRSheet} update={() => updateRelation()} client={client} relation={relation} targetId={userId} />}
 			</ScrollView>
-		</View>
+		</>
 	)
 }
 const createStyles = ({ width }: { width: number }) =>

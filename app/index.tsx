@@ -1,14 +1,20 @@
 import ComposeSheet from '@/components/ComposeSheet'
 import { Timelines } from '@/components/timeline/Timelines.demo'
 import { listAccts } from '@/utils/storage'
+import type { ActionProps } from '@/utils/type'
+import type { Entity } from '@cutls/megalodon'
+import type { FlashListRef } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import Navigator from '../components/Navigator'
 
 export default function Index() {
 	const { width } = useWindowDimensions()
 	const [isOpened, setIsOpened] = useState(false)
+	const [current, setCurrent] = useState(0)
+	const [composeAction, setComposeAction] = useState<ActionProps | null>(null)
+	const relayRef = useRef<FlashListRef<Entity.Status>>(null)
 	const router = useRouter()
 	useEffect(() => {
 		const fn = async () => {
@@ -16,12 +22,13 @@ export default function Index() {
 			if (accts.length === 0) router.replace('/login')
 		}
 		fn()
-	})
+	}, [])
+	useEffect(() => setComposeAction({ acctId: 1 }), [current])
 	return (
 		<View style={styles.container}>
-			<Timelines />
-			<Navigator openComposer={() => setIsOpened(true)} />
-			<ComposeSheet isOpened={isOpened} setIsOpened={setIsOpened} />
+			<Timelines context={{ current, setCurrent, relayRef, setComposeAction }} />
+			<Navigator context={{ current, setCurrent, relayRef }} openComposer={() => setIsOpened(true)} />
+			<ComposeSheet isOpened={isOpened} setIsOpened={setIsOpened} composeAction={composeAction} clearComposeAction={() => setComposeAction({ acctId: 1 })} />
 		</View>
 	)
 }
