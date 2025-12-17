@@ -2,23 +2,13 @@ export type Timeline = {
 	id: number
 	kind: TimelineKind
 	name: string
-	sort: number
-	server_id: number
-	list_id: string | null
-	column_width: ColumnWidth | number
-	column_height?: number
+	acctId: number
+	listId?: string | null
+	tagName?: string | null
 	color?: Color
 	tts?: boolean
 	mediaOnly?: boolean
-	stacked?: boolean
-	is_misskey_antenna?: boolean
-}
-export type AddTimeline = {
-	kind: TimelineKind
-	name: string
-	listId?: string
 	isMisskeyAntenna?: boolean
-	columnWidth: ColumnWidth | number
 }
 export const colorList = ['blue', 'green', 'indigo', 'orange', 'red', 'teal', 'yellow'] as const
 export type Color = (typeof colorList)[number]

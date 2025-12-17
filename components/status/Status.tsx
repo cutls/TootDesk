@@ -1,22 +1,20 @@
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { ja } from 'date-fns/locale'
 import { SymbolView } from 'expo-symbols'
-import React, { useState } from 'react'
-import { ActivityIndicator, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
+import React, { useRef, useState } from 'react'
+import { ActionSheetIOS, ActivityIndicator, findNodeHandle, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
 import { AccountName } from './AccountName'
 
 import type { Account } from '@/entities/account'
+import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { emojify } from '@/utils/emojify'
-import { Button as SwiftButton } from '@expo/ui/swift-ui'
-import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { formatDistanceToNow } from 'date-fns'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { openBrowserAsync } from 'expo-web-browser'
 import { useTranslation } from 'react-i18next'
 import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
-import { Dropdown } from '../ui/Dropdown'
 import { Attachment } from './Attachments'
 import { Card } from './Card'
 import { Quote } from './Quote'
@@ -47,9 +45,13 @@ const data = [
 	{ value: 'private', systemImage: 'person.2.fill' as const },
 	{ value: 'direct', systemImage: 'envelope.fill' as const }
 ]
-const actions = [{ title: 'Quote', value: 'quote', systemImage: 'quote.bubble' as const }]
-const actionOnlyMe = [{ title: 'Edit', value: 'edit', systemImage: 'pencil' as const }]
-const isP = (content: string) => (content.startsWith('<p') ? content : `<p>${content}</p>`)
+const actions = [{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const }]
+const actionOnlyMe = [
+	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
+	{ title: 'timeline.action.delete', value: 'delete', systemImage: 'trash' as const, isDestructive: true }
+]
+//const isP = (content: string) => (content.startsWith('<p') ? content : `<p>${content}</p>`)
+const isP = (content: string) => content
 const shortenTime = (time: string, isJa: boolean) => {
 	const start = time.replace('約', '').replace('about', '')
 	const en = start.replace('days', 'd').replace('day', 'd').replace('hours', 'h').replace('hour', 'h').replace('minutes', 'm').replace('minute', 'm').replace('seconds', 's').trim()
@@ -61,6 +63,8 @@ export const Status = (props: IProps) => {
 	const isMe = acct.username === status.account.acct
 	const { t } = useTranslation()
 	const theme = useColorScheme()
+	const router = useRouter()
+	const dropdownRef = useRef<View>(null)
 	const [isProcessing, setIsProcessing] = useState(false)
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
@@ -91,11 +95,28 @@ export const Status = (props: IProps) => {
 		}
 	}
 	const handleLink = (url: string) => {
-		openBrowserAsync(url)
+		const mentionCheck = status.mentions.find((m) => m.url === url)
+		if (mentionCheck) {
+			router.push(`/user?acctId=${acct.id}&userId=${mentionCheck.id}`)
+		} else {
+			openBrowserAsync(url)
+		}
 	}
-	const dropdown = (d: string) => {
+	const dropdown = async () => {
+		const d = await new Promise<string>((resolve) => ActionSheetIOS.showActionSheetWithOptions(
+			{
+				options: otherAction.map((a) => t(a.title)),
+				anchor: findNodeHandle(dropdownRef.current) || undefined,
+				destructiveButtonIndex: otherAction.findIndex((a) => a.value === 'delete') || undefined
+			},
+			(i) => resolve(otherAction[i].value)
+		))
 		if (d === 'quote') composeAction('quote', status)
 		if (d === 'edit') composeAction('edit', status)
+		if (d === 'delete') {
+			if (!(await confirmDialog(t('timeline.action.delete'), t('timeline.action.deleteConfirm'), CONTINUE, (s) => t(s)))) return
+			client.deleteStatus(status.id)
+		}
 	}
 	const otherAction = isMe ? [...actions, ...actionOnlyMe] : actions
 	return (
@@ -149,16 +170,19 @@ export const Status = (props: IProps) => {
 						<View style={{ minHeight: 30, display: 'flex', marginTop: 5 }}>
 							<HTML
 								source={{ html: `${emojify(isP(status.content), status.emojis, fontSize * 0.8, showGif)}` }}
-								tagsStyles={{ span: { color: txtColor }, p: { color: txtColor }, a: { color: PlatformColor('link') } }}
+								tagsStyles={{ p: { color: txtColor }, a: { color: PlatformColor('link') } }}
 								customHTMLElementModels={renderers}
 								contentWidth={columnWidth - left}
-								classesStyles={{ invisible: { color: PlatformColor('link') }, ellipsis: { color: PlatformColor('link') }, 'quote-inline': { display: 'none' } }}
-								defaultViewProps={{ style: { width: columnWidth - left } }}
-								renderersProps={{
-									a: {
-										onPress: (e, href) => handleLink(href)
-									}
+								classesStyles={{
+									invisible: { color: PlatformColor('link') },
+									ellipsis: { color: PlatformColor('link') },
+									'quote-inline': { display: 'none' },
+									mention: { color: PlatformColor('link') },
+									hashtag: { color: PlatformColor('link') }
 								}}
+								baseStyle={{ color: txtColor, fontSize: fontSize }}
+								defaultViewProps={{ style: { width: columnWidth - left } }}
+								renderersProps={{ a: { onPress: (e, href) => handleLink(href) } }}
 							/>
 						</View>
 					)}
@@ -181,9 +205,9 @@ export const Status = (props: IProps) => {
 						<TouchableOpacity style={styles.action} onPress={() => action('bookmark')}>
 							<SymbolView name={status.bookmarked ? 'bookmark.fill' : 'bookmark'} type="monochrome" tintColor={status.bookmarked ? PlatformColor('systemRed') : txtColor} size={fontSize * 1.2} />
 						</TouchableOpacity>
-						<Dropdown data={otherAction} onSelect={(d) => dropdown(d)} modifiers={[ignoreSafeArea({ regions: 'all' })]} style={{ width: 20, height: 10, marginTop: fontSize * 0.2 }}>
-							<SwiftButton systemImage="ellipsis" variant="default" color={txtColor} />
-						</Dropdown>
+						<TouchableOpacity ref={dropdownRef} style={styles.action} onPress={() => dropdown()}>
+							<SymbolView name="ellipsis" type="monochrome" tintColor={txtColor} size={fontSize * 1.2} />
+						</TouchableOpacity>
 					</View>
 				</View>
 			</View>

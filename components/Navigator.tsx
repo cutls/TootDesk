@@ -1,9 +1,11 @@
+import type { TimelineKind } from '@/entities/timeline'
+import { useTimelineStore } from '@/utils/store/timelines'
 import type { IState } from '@/utils/type'
 import type { Entity } from '@cutls/megalodon'
 import type { FlashListRef } from '@shopify/flash-list'
 import { GlassView } from 'expo-glass-effect'
 import { useRouter } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
+import { SymbolView, type SFSymbol } from 'expo-symbols'
 import type React from 'react'
 import type { RefObject } from 'react'
 import { PlatformColor, Pressable, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
@@ -12,19 +14,34 @@ import { Button } from './ui/Button'
 
 interface Props {
 	openComposer: () => void
+	openAddTimeline: () => void
 	context: {
 		current: number
 		setCurrent: IState<number>
 		relayRef: RefObject<FlashListRef<Entity.Status> | null>
 	}
 }
+const icon = (kind: TimelineKind): SFSymbol => {
+	if (kind === 'home') return 'house.fill'
+	if (kind === 'notifications') return 'bell.fill'
+	if (kind === 'local') return 'person.2.fill'
+	if (kind === 'public') return 'globe'
+	if (kind === 'list') return 'list.bullet'
+	if (kind === 'bookmarks') return 'bookmark.fill'
+	if (kind === 'direct') return 'envelope.fill'
+	if (kind === 'favourites') return 'star.fill'
+	if (kind === 'tag') return 'tag.fill'
+	return 'rectangle.stack.person.crop'
+}
 
-export default function Navigator({ openComposer, context }: Props) {
+export default function Navigator({ openComposer, openAddTimeline, context }: Props) {
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
+	const { timelines } = useTimelineStore()
+	const currentTimeline = timelines[context.current]
 	const router = useRouter()
 	return (
 		<GlassView style={styles.containerStyle}>
@@ -34,8 +51,8 @@ export default function Navigator({ openComposer, context }: Props) {
 						<TouchableOpacity style={styles.glass20}>
 							<SymbolView name="gearshape" type="monochrome" tintColor={textColor} size={20} />
 						</TouchableOpacity>
-						<TouchableOpacity onPress={() => router.push('/user?acctId=1&userId=115469566062452004')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
-							<Text style={{ textAlign: 'center' }}>Home @cutls@6m.cutls.dev</Text>
+						<TouchableOpacity onPress={() => router.push('/login')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
+							<Text style={{ textAlign: 'center' }}>{currentTimeline?.name || '?'}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.glass20} onPress={() => context.relayRef.current?.scrollToOffset({ offset: 0, animated: true })}>
 							<SymbolView name="arrow.up.to.line" type="monochrome" tintColor={textColor} size={20} />
@@ -44,17 +61,18 @@ export default function Navigator({ openComposer, context }: Props) {
 					<View style={styles.border} />
 				</View>
 				<ScrollView style={styles.scrollBar} horizontal={true}>
-					<Pressable onPress={() => context.setCurrent(0)}>
-						<GlassView style={styles.glass30} isInteractive={true} tintColor="teal">
-							<SymbolView name="house" type="monochrome" tintColor="white" size={25} />
+					{timelines.map((tl, index) => (
+						<Pressable key={tl.id} onPress={() => context.setCurrent(index)}>
+							<GlassView style={styles.glass30} isInteractive={true} tintColor={context.current === index ? 'teal' : undefined}>
+								<SymbolView name={icon(tl.kind)} type="monochrome" tintColor="white" size={25} />
+							</GlassView>
+						</Pressable>
+					))}
+					<Pressable onPress={() => openAddTimeline()}>
+						<GlassView style={styles.glassAdd} isInteractive={true}>
+							<SymbolView name="plus" type="monochrome" tintColor={textColor} size={20} />
 						</GlassView>
 					</Pressable>
-					<GlassView style={styles.glass30} isInteractive={true}>
-						<SymbolView name="globe" type="monochrome" tintColor={textColor} size={25} />
-					</GlassView>
-					<GlassView style={styles.glassAdd} isInteractive={true}>
-						<SymbolView name="plus" type="monochrome" tintColor={textColor} size={20} />
-					</GlassView>
 				</ScrollView>
 			</View>
 			<Button onPress={() => openComposer()} style={{ width: 60, height: 60, margin: 5, marginTop: 20 }} variant="glassProminent" color="teal">
@@ -109,7 +127,8 @@ const createStyles = ({ width }: { width: number }) =>
 			borderRadius: 5,
 			alignItems: 'center',
 			justifyContent: 'center',
-			marginHorizontal: 3
+			marginHorizontal: 3,
+			backgroundColor: PlatformColor('systemGray')
 		},
 		glassAdd: {
 			width: 55,
@@ -117,6 +136,7 @@ const createStyles = ({ width }: { width: number }) =>
 			borderRadius: 25,
 			alignItems: 'center',
 			justifyContent: 'center',
-			marginHorizontal: 3
+			marginHorizontal: 3,
+			backgroundColor: PlatformColor('systemGray')
 		}
 	})

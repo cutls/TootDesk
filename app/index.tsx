@@ -1,3 +1,4 @@
+import AddTimeline from '@/components/AddTimeline'
 import ComposeSheet from '@/components/ComposeSheet'
 import { Timelines } from '@/components/timeline/Timelines.demo'
 import { listAccts } from '@/utils/storage'
@@ -11,7 +12,8 @@ import Navigator from '../components/Navigator'
 
 export default function Index() {
 	const { width } = useWindowDimensions()
-	const [isOpened, setIsOpened] = useState(false)
+	const [isComposeOpened, setIsComposeOpened] = useState(false)
+	const [isAddTLOpened, setIsAddTLOpened] = useState(false)
 	const [current, setCurrent] = useState(0)
 	const [composeAction, setComposeAction] = useState<ActionProps | null>(null)
 	const relayRef = useRef<FlashListRef<Entity.Status>>(null)
@@ -27,8 +29,9 @@ export default function Index() {
 	return (
 		<View style={styles.container}>
 			<Timelines context={{ current, setCurrent, relayRef, setComposeAction }} />
-			<Navigator context={{ current, setCurrent, relayRef }} openComposer={() => setIsOpened(true)} />
-			<ComposeSheet isOpened={isOpened} setIsOpened={setIsOpened} composeAction={composeAction} clearComposeAction={() => setComposeAction({ acctId: 1 })} />
+			<Navigator context={{ current, setCurrent, relayRef }} openComposer={() => setIsComposeOpened(true)} openAddTimeline={() => setIsAddTLOpened(true)} />
+			<ComposeSheet isOpened={isComposeOpened} setIsOpened={setIsComposeOpened} composeAction={composeAction} clearComposeAction={() => setComposeAction({ acctId: 1 })} />
+			<AddTimeline context={{ current, setCurrent }} isOpened={isAddTLOpened} setIsOpened={setIsAddTLOpened} />
 		</View>
 	)
 }

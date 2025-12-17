@@ -26,6 +26,11 @@ export const YESNO: AlertButton[] = [
 	{ text: 'no', style: 'default', position: 'negative' },
 	{ text: 'yes', style: 'cancel', position: 'positive' }
 ]
+export const TIMELINE_ADD_DUPLICATED: AlertButton[] = [
+	{ text: 'cancel', style: 'cancel', position: 'negative' },
+	{ text: 'timeline.duplicateConfirm.goToColumn', position: 'neutral' },
+	{ text: 'timeline.duplicateConfirm.addAnyway', style: 'destructive', position: 'positive' }
+]
 export const confirmDialog = async (title: string, message: string, buttons: AlertButton[] | string[], t: (s: string) => string, options?: AlertOptions) => {
 	return new Promise((resolve: (value: number) => void, reject) => {
 		const useButton = []

@@ -8,6 +8,7 @@ interface Props extends ContextMenuProps {
 		title: string
 		value: string
 		systemImage?: ButtonProps['systemImage']
+		isDestructive?: boolean
 	}[]
 	onSelect: (value: string) => void
 }

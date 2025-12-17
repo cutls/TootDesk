@@ -1,6 +1,8 @@
 import type { ButtonProps, HostProps } from '@expo/ui/swift-ui'
+import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import { SymbolView } from 'expo-symbols'
 import type React from 'react'
-import { StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button } from './Button'
 
@@ -10,11 +12,12 @@ interface Props extends ButtonProps {
 	isPrimary?: boolean
 	width?: number
 	isGlass?: boolean
+	isLoading?: boolean
 }
-export function CustomedButton({ isPrimary, color, width: requestedWidth, ...props }: Props) {
+export function CustomedButton({ isPrimary, color, width: requestedWidth, isLoading, systemImage, ...props }: Props) {
 	const { width: screenWidth } = useWindowDimensions()
-		const colorScheme = useColorScheme()
-		const isDark = colorScheme === 'dark'
+	const colorScheme = useColorScheme()
+	const isDark = colorScheme === 'dark'
 	const width = requestedWidth || screenWidth
 	const styles = createStyles({ width })
 	const useVariantNotGlass = isPrimary ? 'borderedProminent' : 'bordered'
@@ -22,9 +25,11 @@ export function CustomedButton({ isPrimary, color, width: requestedWidth, ...pro
 	const variant = props.isGlass ? useVariantGlass : useVariantNotGlass
 
 	return (
-		<Button variant={variant} onPress={props.onPress} color={isPrimary ? color : undefined} style={[styles.btn, props.style]}>
-			<View style={{ justifyContent: 'center', height: 40 }}>
-				<Text style={[{ width: width - 65, textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : (color ? color : isDark ? 'white' : 'black') }]}>{props.children}</Text>
+		<Button variant={variant} disabled={isLoading} onPress={() => (isLoading || !props.onPress) ? {} : props.onPress()} color={isPrimary ? color : undefined} modifiers={[ignoreSafeArea({ regions: 'all' })]} style={[styles.btn, props.style]}>
+			<View style={{ justifyContent: 'center', height: 40, flexDirection: 'row', alignItems: 'center', width: width - 65 }}>
+				{systemImage && !isLoading && <SymbolView name={systemImage} type="monochrome" tintColor={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} size={20} style={{ marginRight: 5 }} />}
+				{isLoading && <ActivityIndicator size="small" color={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} style={{ width: width - 65 }} />}
+				{!isLoading && <Text style={[{ textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black' }]}>{props.children}</Text>}
 			</View>
 		</Button>
 	)

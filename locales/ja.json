@@ -1,65 +1,64 @@
 {
-    "ok": "OK",
-    "cancel": "キャンセル",
-    "add": "追加",
-    "confirm": "確認",
-    "continue": "続行",
-    "delete": "削除",
-    "yes": "はい",
-    "no": "いいえ",
+	"ok": "OK",
+	"cancel": "キャンセル",
+	"add": "追加",
+	"confirm": "確認",
+	"continue": "続行",
+	"delete": "削除",
+	"yes": "はい",
+	"no": "いいえ",
 	"empty": "データがありません",
-    "screen": {
-        "login": "ログイン",
-        "acct": "アカウントマネージャー"
-    },
-    "login": {
-        "failed": "ログインに失敗しました"
-    },
-    "composer": {
-        "post": "投稿",
-        "placeholder": "今何してる？",
-        "deleteAttachmentConfirm": "この添付ファイルを削除してもよろしいですか？",
-        "cwPlaceholder": "閲覧注意(オプション)",
-        "vis": {
-            "public": "公開",
-            "unlisted": "未収載",
-            "private": "非公開",
-            "direct": "ダイレクト"
-        },
-        "emoji": {
-            "empty": "絵文字がありません",
-            "close": "閉じる"
-        },
-        "menu": {
-            "poll": "投票を作成",
-            "schedule": "時間指定投稿",
-            "return": "投稿画面に戻る"
-        },
-        "schedule": {
-            "invalid": "現在時刻から5分以上先の日時を選択してください。"
-        },
-        "remove": "削除",
-        "poll": {
-            "addOption": "追加",
-            "multiple": "複数選択を許可",
-            "hideTotals": "投票終了まで投票数を非表示",
-            "expiresIn": "終了までの時間",
-            "config": "投票設定",
-            "option": "選択肢",
-            "5min": "5分",
-            "30min": "30分",
-            "1h": "1時間",
-            "6h": "6時間",
-            "1d": "1日",
-            "3d": "3日",
-            "7d": "7日"
-        },
+	"screen": {
+		"login": "ログイン",
+		"acct": "アカウントマネージャー"
+	},
+	"login": {
+		"failed": "ログインに失敗しました"
+	},
+	"composer": {
+		"post": "投稿",
+		"placeholder": "今何してる？",
+		"deleteAttachmentConfirm": "この添付ファイルを削除してもよろしいですか？",
+		"cwPlaceholder": "閲覧注意(オプション)",
+		"vis": {
+			"public": "公開",
+			"unlisted": "未収載",
+			"private": "非公開",
+			"direct": "ダイレクト"
+		},
+		"emoji": {
+			"empty": "絵文字がありません",
+			"close": "閉じる"
+		},
+		"menu": {
+			"poll": "投票を作成",
+			"schedule": "時間指定投稿",
+			"return": "投稿画面に戻る"
+		},
+		"schedule": {
+			"invalid": "現在時刻から5分以上先の日時を選択してください。"
+		},
+		"remove": "削除",
+		"poll": {
+			"addOption": "追加",
+			"multiple": "複数選択を許可",
+			"hideTotals": "投票終了まで投票数を非表示",
+			"expiresIn": "終了までの時間",
+			"config": "投票設定",
+			"option": "選択肢",
+			"5min": "5分",
+			"30min": "30分",
+			"1h": "1時間",
+			"6h": "6時間",
+			"1d": "1日",
+			"3d": "3日",
+			"7d": "7日"
+		},
 		"reply": "返信モード",
 		"quote": "引用モード",
 		"edit": "編集モード"
-    },
-    "timeline": {
-
+	},
+	"timeline": {
 		"notification": {
 			"follow": {
 				"title": "フォロー",
@@ -154,35 +153,58 @@
 			"muted_account": "引用元のアカウントはミュートされています",
 			"view": "表示"
 		},
-		"more": "もっと見る"
-    },
-    "user": {
-        "followedBy": "あなたをフォローしています",
-        "requestedBy": "あなたへのフォローリクエストがあります",
-        "alert": {
-            "follow": "このユーザーをフォローしますか？",
-            "unfollow": "このユーザーのフォローを解除しますか？",
-            "block": "このユーザーをブロックしますか？",
-            "unblock": "このユーザーのブロックを解除しますか？",
-            "mute": "このユーザーをミュートしますか？",
-            "unmute": "このユーザーのミュートを解除しますか？",
-            "request": "このユーザーにフォローリクエストを送信しますか？",
-            "unrequest": "このユーザーへのフォローリクエストを取消しますか？",
-            "accept": "このユーザーのフォローリクエストを承認しますか？",
-            "reject": "このユーザーのフォローリクエストを拒否しますか？"
-        },
-        "follow": "フォロー",
-        "unfollow": "フォロー解除",
-        "block": "ブロック",
-        "unblock": "ブロック解除",
-        "mute": "ミュート",
-        "unmute": "ミュート解除",
-        "request": "フォローリクエスト送信",
-        "unrequest": "フォローリクエスト取消",
-        "accept": "承認",
-        "reject": "拒否",
-        "followers": "フォロワー",
-        "follows": "フォロー",
-        "posts": "投稿"
-    }
+		"more": "もっと見る",
+		"action": {
+			"quote": "引用",
+			"edit": "編集",
+			"delete": "削除",
+			"deleteConfirm": "この投稿を削除してもよろしいですか？"
+		},
+		"kind": {
+			"home": "ホーム",
+			"notifications": "通知",
+			"local": "ローカル",
+			"public": "連合",
+			"favourites": "お気に入り",
+			"list": "リスト",
+			"bookmarks": "ブックマーク",
+			"direct": "会話",
+			"tag": "タグ"
+		},
+		"duplicateConfirm": {
+			"title": "重複したタイムライン",
+			"message": "このカラムは既に存在しています。本当に追加しますか？",
+			"goToColumn": "既存のカラムに移動",
+			"addAnyway": "それでも追加する"
+		}
+	},
+	"user": {
+		"followedBy": "あなたをフォローしています",
+		"requestedBy": "あなたへのフォローリクエストがあります",
+		"alert": {
+			"follow": "このユーザーをフォローしますか？",
+			"unfollow": "このユーザーのフォローを解除しますか？",
+			"block": "このユーザーをブロックしますか？",
+			"unblock": "このユーザーのブロックを解除しますか？",
+			"mute": "このユーザーをミュートしますか？",
+			"unmute": "このユーザーのミュートを解除しますか？",
+			"request": "このユーザーにフォローリクエストを送信しますか？",
+			"unrequest": "このユーザーへのフォローリクエストを取消しますか？",
+			"accept": "このユーザーのフォローリクエストを承認しますか？",
+			"reject": "このユーザーのフォローリクエストを拒否しますか？"
+		},
+		"follow": "フォロー",
+		"unfollow": "フォロー解除",
+		"block": "ブロック",
+		"unblock": "ブロック解除",
+		"mute": "ミュート",
+		"unmute": "ミュート解除",
+		"request": "フォローリクエスト送信",
+		"unrequest": "フォローリクエスト取消",
+		"accept": "承認",
+		"reject": "拒否",
+		"followers": "フォロワー",
+		"follows": "フォロー",
+		"posts": "投稿"
+	}
 }

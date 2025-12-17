@@ -169,7 +169,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 					{mode === 'compose' && (
 						<>
 							<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-								<Button modifiers={[ignoreSafeArea({ regions: 'all'})]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
+								<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
 									<View style={styles.acctContainer}>
 										<View>
 											<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
@@ -196,7 +196,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 						isOpened={mode === 'compose' && isOpened}
 						client={client}
 						post={post}
-						defaultVis={vis}
+						visState={{ vis, setVis }}
 						acct={useAcct}
 						changeMode={changeMode}
 						textState={{ text, setText }}
@@ -205,7 +205,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 					/>
 					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
 					{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
-					{mode === 'menu' && <Menu changeMode={changeMode} />}
+					{mode === 'menu' && <Menu client={client} npSet={{ setText, setUploaded }} changeMode={changeMode} />}
 					{mode === 'schedule' && <Schedule defaultSchedule={optional.scheduled_at || null} changeMode={changeMode} addSchedule={addSchedule} />}
 					{mode === 'poll' && <Poll defaultPoll={optional.poll || null} maxPollsOptions={maxPollsOptions} changeMode={changeMode} addPoll={addPoll} />}
 					{mode === 'loading' && (

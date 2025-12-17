@@ -66,7 +66,7 @@ export default function Index() {
 	const [isLoading, setIsLoading] = useState(false)
 	const domainWithProtocol = `https://${domain}`
 	const login = async () => {
-        if (!domain) return
+		if (!domain) return
 		setIsLoading(true)
 		try {
 			const { compatibleSns: sns, semanticVersionCompatibleNumber } = await getData(domainWithProtocol)
@@ -111,7 +111,7 @@ export default function Index() {
 				}
 				accounts.push(account)
 				await saveAccts(accounts)
-                router.replace('/')
+				router.replace('/')
 			} else {
 				throw new Error('User cancelled login.')
 			}
@@ -131,11 +131,15 @@ export default function Index() {
 				placeholderTextColor={isDark ? 'lightgray' : 'gray'}
 				readOnly={isLoading}
 			/>
-			{isLoading ? <View style={{ marginTop: 20 }}>
-                <ActivityIndicator />
-            </View> : <CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => login()}>
-				{t('screen.login')}
-			</CustomedButton>}
+			{isLoading ? (
+				<View style={{ marginTop: 20 }}>
+					<ActivityIndicator />
+				</View>
+			) : (
+				<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => login()}>
+					{t('screen.login')}
+				</CustomedButton>
+			)}
 		</KeyboardAvoidingView>
 	)
 }

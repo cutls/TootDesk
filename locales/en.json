@@ -110,7 +110,30 @@
 			"muted_account": "The quoting account is muted.",
 			"view": "View"
 		},
-		"more": "More"
+		"more": "More",
+		"action": {
+			"quote": "Quote",
+			"edit": "Edit",
+			"delete": "Delete",
+			"deleteConfirm": "Are you sure you want to delete this post?"
+		},
+		"kind": {
+			"home": "Home",
+			"notifications": "Notifications",
+			"local": "Local",
+			"public": "Federated",
+			"favourites": "Favourites",
+			"bookmarks": "Bookmarks",
+			"direct": "Direct",
+			"list": "List",
+			"tag": "Tag"
+		},
+		"duplicateConfirm": {
+			"title": "Duplicated Timeline",
+			"message": "This column seems to be duplicated. Are you sure you want to add it?",
+			"goToColumn": "Go to the existing column",
+			"addAnyway": "Add anyway"
+		}
     },
     "composer": {
         "post": "Post",

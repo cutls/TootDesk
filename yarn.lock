@@ -1222,6 +1222,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@edualm/react-native-now-playing@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@edualm/react-native-now-playing@npm:0.2.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/ed72fd089c9efe6b9869da0b4c1989cd35a9d3d457c4d3a63688736453788605c09f4cbcb509ba5a41942e798e3b13ac807c062e3206289d4cbac9c6564acb5b
+  languageName: node
+  linkType: hard
+
 "@egjs/hammerjs@npm:^2.0.17":
   version: 2.0.17
   resolution: "@egjs/hammerjs@npm:2.0.17"
@@ -3815,6 +3825,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^1.13.2":
+  version: 1.13.2
+  resolution: "axios@npm:1.13.2"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.4"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10c0/e8a42e37e5568ae9c7a28c348db0e8cf3e43d06fcbef73f0048669edfe4f71219664da7b6cc991b0c0f01c28a48f037c515263cb79be1f1ae8ff034cd813867b
+  languageName: node
+  linkType: hard
+
 "babel-jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "babel-jest@npm:29.7.0"
@@ -5571,6 +5592,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-blob@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "expo-blob@npm:0.1.7"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/2406659176c24a149d2ecbc3fd8fb3775c72f8e0ff81ce4690a67c8d94d7ee84335e74f0156b9d7f4c4935058f0eb4026daadd71a90a47e308135c927245ee8e
+  languageName: node
+  linkType: hard
+
 "expo-blur@npm:~15.0.8":
   version: 15.0.8
   resolution: "expo-blur@npm:15.0.8"
@@ -5691,6 +5721,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/36f1e80d2b3d2a1cce440c7d938cd3cf3138f2b1fa706a1954e415bfae87b5b8eeaec65be0ab17880eb7585dd28c9225d056ebdb98ac81e0ffbfe880d952b0eb
+  languageName: node
+  linkType: hard
+
+"expo-image-manipulator@npm:~14.0.8":
+  version: 14.0.8
+  resolution: "expo-image-manipulator@npm:14.0.8"
+  dependencies:
+    expo-image-loader: "npm:~6.0.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/74ffd39bd205272edcdb0805109add190716090b137f371bb573aec9c6f638ca612155b0ff6cbfb7725c6b3c43a10901a47a0dab9c8ca2c467b2c1924e6503b6
   languageName: node
   linkType: hard
 
@@ -10711,6 +10752,7 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:2.2.0"
     "@cutls/megalodon": "npm:7.1.11"
+    "@edualm/react-native-now-playing": "npm:^0.2.1"
     "@expo/ui": "npm:~0.2.0-beta.7"
     "@expo/vector-icons": "npm:^15.0.3"
     "@nandorojo/galeria": "npm:^1.2.0"
@@ -10723,11 +10765,13 @@ __metadata:
     "@types/react": "npm:~19.1.0"
     "@types/semver": "npm:^7"
     "@types/superagent": "npm:^8.1.9"
+    axios: "npm:^1.13.2"
     cheerio: "npm:^1.1.2"
     date-fns: "npm:^4.1.0"
     eslint: "npm:^9.25.0"
     eslint-config-expo: "npm:~10.0.0"
     expo: "npm:~54.0.20"
+    expo-blob: "npm:^0.1.7"
     expo-blur: "npm:~15.0.8"
     expo-constants: "npm:~18.0.10"
     expo-dev-client: "npm:~6.0.16"
@@ -10735,6 +10779,7 @@ __metadata:
     expo-glass-effect: "npm:~0.1.7"
     expo-haptics: "npm:~15.0.7"
     expo-image: "npm:~3.0.10"
+    expo-image-manipulator: "npm:~14.0.8"
     expo-image-picker: "npm:~17.0.8"
     expo-linking: "npm:~8.0.8"
     expo-localization: "npm:~17.0.7"
@@ -10764,6 +10809,7 @@ __metadata:
     semver: "npm:^7.7.3"
     superagent: "npm:^10.2.3"
     typescript: "npm:~5.9.2"
+    zustand: "npm:^5.0.9"
   languageName: unknown
   linkType: soft
 
@@ -11615,5 +11661,26 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
+  languageName: node
+  linkType: hard
+
+"zustand@npm:^5.0.9":
+  version: 5.0.9
+  resolution: "zustand@npm:5.0.9"
+  peerDependencies:
+    "@types/react": ">=18.0.0"
+    immer: ">=9.0.6"
+    react: ">=18.0.0"
+    use-sync-external-store: ">=1.2.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    immer:
+      optional: true
+    react:
+      optional: true
+    use-sync-external-store:
+      optional: true
+  checksum: 10c0/552849e4546c7760704d6509a5c412d57c62a1fa9e53169c939ba5e3d75f8cb3df50a64c3a22e6c3f1c8cc00de7543e4edd61ab5ae0c9169ba9a98e28303aba6
   languageName: node
   linkType: hard

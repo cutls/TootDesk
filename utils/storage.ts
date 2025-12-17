@@ -1,4 +1,5 @@
 import { mockAccount, type Account } from '@/entities/account'
+import type { Timeline } from '@/entities/timeline'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Storage from 'expo-sqlite/kv-store'
 
@@ -31,6 +32,15 @@ export const getUsualAcct = async (): Promise<Account> => {
 	return accts.find((a) => a.id.toString() === id) || mockAccount
 }
 
+export const getTimelines = async (): Promise<Timeline[]> => {
+	const value = (await Storage.getItem('timelines')) || '[]'
+	return JSON.parse(value) as Timeline[]
+}
+export const saveTimelines = async (timelines: Timeline[]) => {
+	await Storage.setItem('timelines', JSON.stringify(timelines))
+	
+}
+
 export const cachedGetEmojis = async (acctId: number, client: MegalodonInterface) => {
 	const acct = await getAcctById(acctId)
 	if (!acct) return []
@@ -52,4 +62,13 @@ export const cachedGetEmojis = async (acctId: number, client: MegalodonInterface
 	} else {
 		return parsed.emojis
 	}
+}
+export const saveSpotifyToken = async (accessToken: string, refreshToken: string, expiresIn: number) => {
+	const unixTime = Date.now()
+	await Storage.setItem('spotify', JSON.stringify({ accessToken, refreshToken, expires: (unixTime / 1000 + expiresIn).toString() }))
+}
+export const getSpotifyToken = async (): Promise<{ accessToken: string; refreshToken: string; expires: string } | null> => {
+	const value = (await Storage.getItem('spotify')) || null
+	if (!value) return null
+	return JSON.parse(value) as { accessToken: string; refreshToken: string; expires: string }
 }

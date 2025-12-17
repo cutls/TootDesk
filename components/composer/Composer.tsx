@@ -5,6 +5,7 @@ import { suggest } from '@/utils/suggest'
 import type { ComposeMode, IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { Button as SwiftButton } from '@expo/ui/swift-ui'
+import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +20,7 @@ interface Props {
 	acct: Account
 	isOpened: boolean
 	changeMode: (m: ComposeMode) => void
-	defaultVis: 'public' | 'unlisted' | 'private' | 'direct' | 'local'
+	visState: { vis: 'public' | 'unlisted' | 'private' | 'direct' | 'local', setVis: IState<'public' | 'unlisted' | 'private' | 'direct' | 'local'> }
 	post: () => void
 	client: MegalodonInterface | null
 }
@@ -36,9 +37,10 @@ const data = [
 	{ title: 'composer.vis.private', value: 'private', systemImage: 'person.2.fill' as const },
 	{ title: 'composer.vis.direct', value: 'direct', systemImage: 'envelope.fill' as const }
 ]
-export default function Composer({ acct, post, isOpened, changeMode, textState, cwState, uploadedState, defaultVis, client }: Props) {
+export default function Composer({ acct, post, isOpened, changeMode, textState, cwState, uploadedState, visState, client }: Props) {
 	const { text, setText } = textState
 	const { cw, setCW } = cwState
+	const { vis, setVis } = visState
 	const { uploaded, setUploaded } = uploadedState
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
@@ -46,7 +48,6 @@ export default function Composer({ acct, post, isOpened, changeMode, textState, 
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
-	const [vis, setVis] = useState<string>(defaultVis)
 	const textInput = React.useRef<TextInput>(null)
 	const [isCW, setIsCW] = useState(!!cw)
 	const [suggested, setSuggested] = useState<Array<Suggested>>([])
@@ -108,7 +109,7 @@ export default function Composer({ acct, post, isOpened, changeMode, textState, 
 	return (
 		<View style={{ display: isOpened ? 'contents' : 'none' }}>
 			<View style={{ flexDirection: 'row', marginBottom: 5, justifyContent: 'flex-end' }}>
-				{uploaded.map((a) => <Button key={a.id} onPress={() => deleteItem(a.id)}>
+				{uploaded.map((a) => <Button key={a.id} onPress={() => deleteItem(a.id)} modifiers={[ignoreSafeArea({ regions: 'all' })]}>
 					<Image
 						source={{ uri: a.preview_url || a.url || '' }}
 						style={{ width: 50, height: 50, borderRadius: 10, marginHorizontal: 2 }}
@@ -161,7 +162,7 @@ export default function Composer({ acct, post, isOpened, changeMode, textState, 
 					CW
 				</Button>
 				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="face.smiling" onPress={() => changeMode('emoji')} modifiers={[]} />
-				<Dropdown data={data} onSelect={(title) => setVis(title)} modifiers={[]} style={{ width: 50, height: 50 }}>
+				<Dropdown data={data} onSelect={(title) => setVis(title as any)} modifiers={[]} style={{ width: 50, height: 50 }}>
 					<SwiftButton variant="glass" systemImage={data.find((d) => d.value === vis)?.systemImage || 'globe'} />
 				</Dropdown>
 				<Button style={{ width: 50, height: 50 }} variant="glass" systemImage="photo" onPress={() => uploadCallback(upload, uploadStatus, client)} modifiers={[]} />
