@@ -13,7 +13,16 @@
         "acct": "Account Manager"
     },
     "login": {
-        "failed": "Login failed"
+        "failed": "Login failed",
+		"instance": {
+			"version": "Version",
+			"description": "Description",
+			"rules": "Rules",
+			"engine": "Compatibility",
+			"sns": "Software",
+			"misskey": "Compatibility with Misskey is not very high. Some features may not work properly.",
+			"misskey_io": "Due to compatibility issues, this software does not guarantee the use of Misskey other than misskey.io."
+		}
     },
     "timeline": {
         "notification": {
@@ -21,7 +30,7 @@
 				"title": "Follow",
 				"body": "{user} followed you"
 			},
-			"followRequest": {
+			"follow_request": {
 				"title": "Follow Request",
 				"body": "{user} requested to follow you"
 			},
@@ -33,11 +42,11 @@
 				"title": "Boost",
 				"body": "{user} boosted your post"
 			},
-			"pollExpired": {
+			"poll_expired": {
 				"title": "Poll",
 				"body": "{user}'s poll is expired"
 			},
-			"pollVote": {
+			"poll_vote": {
 				"title": "Poll",
 				"body": "{user} voted your poll"
 			},
@@ -53,9 +62,17 @@
 				"title": "Update",
 				"body": "{user} updated the post"
 			},
-			"emojiReaction": {
+			"emoji_reaction": {
 				"title": "Reaction",
 				"body": "{user} reacted your post"
+			},
+			"reaction": {
+				"title": "Reaction",
+				"body": "{user} reacted your post"
+			},
+			"mention": {
+				"title": "Mention",
+				"body": "{user} replied to your post"
 			},
 			"move": {
 				"title": "Move",
@@ -93,10 +110,14 @@
 		},
 		"poll": {
 			"vote": "Vote",
+			"votes": "votes",
 			"refresh": "Refresh",
 			"people": "{count} people",
 			"closed": "Closed",
-			"left": "left"
+			"left": "{{time}} left",
+			"finished": "Finished {{time}}",
+			"multiple": "Multiple choice",
+			"single": "Single choice"
 		},
 		"quoteState": {
 			"pending": "The quoted post is being processed.",

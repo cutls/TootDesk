@@ -1,9 +1,10 @@
 import AddTimeline from '@/components/AddTimeline'
 import ComposeSheet from '@/components/ComposeSheet'
-import { Timelines } from '@/components/timeline/Timelines.demo'
-import { listAccts } from '@/utils/storage'
+import { Columns } from '@/components/timeline/Columns'
+import { getTimelines, listAccts } from '@/utils/storage'
+import { useFilterStore } from '@/utils/store/filter'
 import type { ActionProps } from '@/utils/type'
-import type { Entity } from '@cutls/megalodon'
+import generator from '@cutls/megalodon'
 import type { FlashListRef } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
@@ -16,21 +17,36 @@ export default function Index() {
 	const [isAddTLOpened, setIsAddTLOpened] = useState(false)
 	const [current, setCurrent] = useState(0)
 	const [composeAction, setComposeAction] = useState<ActionProps | null>(null)
-	const relayRef = useRef<FlashListRef<Entity.Status>>(null)
+	const relayRef = useRef<FlashListRef<any>>(null)
 	const router = useRouter()
+	const { setFilters } = useFilterStore()
 	useEffect(() => {
 		const fn = async () => {
 			const accts = await listAccts()
 			if (accts.length === 0) router.replace('/login')
+			const timeline = await getTimelines()
+			if (timeline.length === 0) setIsAddTLOpened(true)
+			for (const acct of accts) {
+				const https = `https://${acct.domain}`
+				const client = generator(acct.sns, https, acct.accessToken)
+				const filters = await client.getFilters()
+				setFilters(acct.id, filters.data)
+			}
 		}
 		fn()
 	}, [])
-	useEffect(() => setComposeAction({ acctId: 1 }), [current])
+	useEffect(() => {
+		const fn = async () => {
+			const accts = await listAccts()
+			setComposeAction({ acctId: accts[current]?.id || '' })
+		}
+		fn()
+	}, [current])
 	return (
 		<View style={styles.container}>
-			<Timelines context={{ current, setCurrent, relayRef, setComposeAction }} />
+			<Columns context={{ current, setCurrent, relayRef, setComposeAction }} />
 			<Navigator context={{ current, setCurrent, relayRef }} openComposer={() => setIsComposeOpened(true)} openAddTimeline={() => setIsAddTLOpened(true)} />
-			<ComposeSheet isOpened={isComposeOpened} setIsOpened={setIsComposeOpened} composeAction={composeAction} clearComposeAction={() => setComposeAction({ acctId: 1 })} />
+			<ComposeSheet isOpened={isComposeOpened} setIsOpened={setIsComposeOpened} composeAction={composeAction} clearComposeAction={(acctId: string) => setComposeAction({ acctId })} />
 			<AddTimeline context={{ current, setCurrent }} isOpened={isAddTLOpened} setIsOpened={setIsAddTLOpened} />
 		</View>
 	)

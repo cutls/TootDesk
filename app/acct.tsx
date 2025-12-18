@@ -3,7 +3,7 @@ import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Color } from '@/entities/timeline'
-import { listAccts, removeAcct, updateAcct } from '@/utils/storage'
+import { listAccts, removeAcct, removeTimelinesByAcctId, updateAcct } from '@/utils/storage'
 import { colors, getTextColor } from '@/utils/type'
 import { GlassView } from 'expo-glass-effect'
 import { useRouter } from 'expo-router'
@@ -38,12 +38,13 @@ export default function Index() {
 			alignItems: 'center',
 			justifyContent: 'center'
 		}) as const
-	const updateColor = async (acctId: number, color: Color | null) => {
+	const updateColor = async (acctId: string, color: Color | null) => {
 		await updateAcct(acctId, { color })
 		load()
 	}
-	const removeAcctId = async (acctId: number) => {
+	const removeAcctId = async (acctId: string) => {
 		await removeAcct(acctId)
+		await removeTimelinesByAcctId(acctId)
 		load()
 	}
 	return (

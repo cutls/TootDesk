@@ -1,7 +1,6 @@
 import type { TimelineKind } from '@/entities/timeline'
 import { useTimelineStore } from '@/utils/store/timelines'
 import type { IState } from '@/utils/type'
-import type { Entity } from '@cutls/megalodon'
 import type { FlashListRef } from '@shopify/flash-list'
 import { GlassView } from 'expo-glass-effect'
 import { useRouter } from 'expo-router'
@@ -18,7 +17,7 @@ interface Props {
 	context: {
 		current: number
 		setCurrent: IState<number>
-		relayRef: RefObject<FlashListRef<Entity.Status> | null>
+		relayRef: RefObject<FlashListRef<any> | null>
 	}
 }
 const icon = (kind: TimelineKind): SFSymbol => {
@@ -51,7 +50,7 @@ export default function Navigator({ openComposer, openAddTimeline, context }: Pr
 						<TouchableOpacity style={styles.glass20}>
 							<SymbolView name="gearshape" type="monochrome" tintColor={textColor} size={20} />
 						</TouchableOpacity>
-						<TouchableOpacity onPress={() => router.push('/login')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
+						<TouchableOpacity onPress={() => router.push('/acct')} style={{ width: width - 175, alignItems: 'center', justifyContent: 'center' }}>
 							<Text style={{ textAlign: 'center' }}>{currentTimeline?.name || '?'}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity style={styles.glass20} onPress={() => context.relayRef.current?.scrollToOffset({ offset: 0, animated: true })}>
@@ -64,7 +63,7 @@ export default function Navigator({ openComposer, openAddTimeline, context }: Pr
 					{timelines.map((tl, index) => (
 						<Pressable key={tl.id} onPress={() => context.setCurrent(index)}>
 							<GlassView style={styles.glass30} isInteractive={true} tintColor={context.current === index ? 'teal' : undefined}>
-								<SymbolView name={icon(tl.kind)} type="monochrome" tintColor="white" size={25} />
+								<SymbolView name={icon(tl.kind)} type="monochrome" tintColor={context.current === index ? 'white' : textColor} size={25} />
 							</GlassView>
 						</Pressable>
 					))}
@@ -127,8 +126,7 @@ const createStyles = ({ width }: { width: number }) =>
 			borderRadius: 5,
 			alignItems: 'center',
 			justifyContent: 'center',
-			marginHorizontal: 3,
-			backgroundColor: PlatformColor('systemGray')
+			marginHorizontal: 3
 		},
 		glassAdd: {
 			width: 55,
@@ -136,7 +134,6 @@ const createStyles = ({ width }: { width: number }) =>
 			borderRadius: 25,
 			alignItems: 'center',
 			justifyContent: 'center',
-			marginHorizontal: 3,
-			backgroundColor: PlatformColor('systemGray')
+			marginHorizontal: 3
 		}
 	})

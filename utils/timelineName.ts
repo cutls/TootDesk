@@ -1,12 +1,12 @@
 import generator from '@cutls/megalodon'
 import { getAcctById } from './storage'
 
-export const makeTimelineNameWithAcctId = async (kind: string, kindLocalized: string, acctId: number): Promise<string> => {
+export const makeTimelineNameWithAcctId = async (kind: string, kindLocalized: string, acctId: string): Promise<string> => {
 	const acct = await getAcctById(acctId)
 	if (!acct) return kindLocalized || kind
 	return `${kindLocalized} (${acct.username}@${acct.domain})`
 }
-export const makeListTimelineNameWithAcctId = async (kind: string, kindLocalized: string, acctId: number, listId: string): Promise<string> => {
+export const makeListTimelineNameWithAcctId = async (kind: string, kindLocalized: string, acctId: string, listId: string): Promise<string> => {
 	try {
 		const acct = await getAcctById(acctId)
 		if (!acct) return kindLocalized || kind

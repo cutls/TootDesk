@@ -10,17 +10,17 @@ export const listAccts = async () => {
 export const saveAccts = async (accts: Account[]) => {
 	await Storage.setItem('acct', JSON.stringify(accts))
 }
-export const updateAcct = async (targetId: number, updatedFields: Partial<Account>) => {
+export const updateAcct = async (targetId: string, updatedFields: Partial<Account>) => {
 	const accts = await listAccts()
 	const updatedAccts = accts.map((a) => (a.id === targetId ? { ...a, ...updatedFields } : a))
 	await saveAccts(updatedAccts)
 }
-export const removeAcct = async (targetId: number) => {
+export const removeAcct = async (targetId: string) => {
 	const accts = await listAccts()
 	const updatedAccts = accts.filter((a) => a.id !== targetId)
 	await saveAccts(updatedAccts)
 }
-export const getAcctById = async (id: number): Promise<Account | null> => {
+export const getAcctById = async (id: string): Promise<Account | null> => {
 	const accts = await listAccts()
 	return accts.find((a) => a.id === id) || null
 }
@@ -29,7 +29,7 @@ export const getUsualAcct = async (): Promise<Account> => {
 	const accts = await listAccts()
 	const id = (await Storage.getItem('usualAcct')) || null
 	if (!id) return accts[0] || mockAccount
-	return accts.find((a) => a.id.toString() === id) || mockAccount
+	return accts.find((a) => a.id === id) || mockAccount
 }
 
 export const getTimelines = async (): Promise<Timeline[]> => {
@@ -38,10 +38,14 @@ export const getTimelines = async (): Promise<Timeline[]> => {
 }
 export const saveTimelines = async (timelines: Timeline[]) => {
 	await Storage.setItem('timelines', JSON.stringify(timelines))
-	
+}
+export const removeTimelinesByAcctId = async (acctId: string) => {
+	const timelines = await getTimelines()
+	const updatedTimelines = timelines.filter((t) => t.acctId !== acctId)
+	await saveTimelines(updatedTimelines)
 }
 
-export const cachedGetEmojis = async (acctId: number, client: MegalodonInterface) => {
+export const cachedGetEmojis = async (acctId: string, client: MegalodonInterface) => {
 	const acct = await getAcctById(acctId)
 	if (!acct) return []
 	const value = (await Storage.getItem(`emoji-${acct.domain}`)) || '{"emojis":[],"updated":0}'
@@ -71,4 +75,8 @@ export const getSpotifyToken = async (): Promise<{ accessToken: string; refreshT
 	const value = (await Storage.getItem('spotify')) || null
 	if (!value) return null
 	return JSON.parse(value) as { accessToken: string; refreshToken: string; expires: string }
+}
+
+export const allReset = async () => {
+	await Storage.clear()
 }

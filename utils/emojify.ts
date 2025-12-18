@@ -2,7 +2,6 @@ import type { Entity } from '@cutls/megalodon'
 import { stripTags } from './string'
 
 export const emojify = (content: string, emojis: Entity.Emoji[], fontSize = 20, showGif = true) => {
-	//const twemojified = twemoji.parse(content, { }).replace(/class="emoji"/g, `class="emoji" style="width: ${miniEmoji ? '1' : '1.1'}rem; height: ${miniEmoji ? '0.7' : '1.1'}rem"`)
 	const twemojified = content || ''
 	let emojified = twemojified
 	for (const emoji of emojis) {

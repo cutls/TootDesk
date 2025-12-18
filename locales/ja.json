@@ -13,7 +13,16 @@
 		"acct": "アカウントマネージャー"
 	},
 	"login": {
-		"failed": "ログインに失敗しました"
+		"failed": "ログインに失敗しました",
+		"instance": {
+			"version": "バージョン",
+			"description": "説明",
+			"rules": "ルール",
+			"engine": "互換性",
+			"sns": "ソフトウェア",
+			"misskey": "Misskeyに対する互換性はあまり高くありません。動作しない機能がある可能性があります。",
+			"misskey_io": "互換性の問題から、このソフトウェアはmisskey.io以外へのログインは推奨・保証していません。"
+		}
 	},
 	"composer": {
 		"post": "投稿",
@@ -64,7 +73,7 @@
 				"title": "フォロー",
 				"body": "{{user}} があなたをフォローしました"
 			},
-			"followRequest": {
+			"follow_request": {
 				"title": "フォローリクエスト",
 				"body": "{{user}} からフォローリクエストを受け取りました"
 			},
@@ -76,11 +85,11 @@
 				"title": "ブースト",
 				"body": "{{user}} があなたの投稿をブーストしました"
 			},
-			"pollExpired": {
+			"poll_expired": {
 				"title": "アンケート",
 				"body": "{{user}} のアンケートが終了しました"
 			},
-			"pollVote": {
+			"poll_vote": {
 				"title": "アンケート",
 				"body": "{{user}} があなたのアンケートに投票しました"
 			},
@@ -96,9 +105,17 @@
 				"title": "編集",
 				"body": "{{user}} が投稿を編集しました"
 			},
-			"emojiReaction": {
+			"emoji_reaction": {
 				"title": "リアクション",
 				"body": "{{user}} があなたの投稿にリアクションしました"
+			},
+			"reaction": {
+				"title": "リアクション",
+				"body": "{{user}} があなたの投稿にリアクションしました"
+			},
+			"mention": {
+				"title": "メンション",
+				"body": "{{user}} があなたの投稿に返信しました"
 			},
 			"move": {
 				"title": "引越し",
@@ -139,7 +156,11 @@
 			"refresh": "更新",
 			"people": "{{count}} 人",
 			"closed": "終了",
-			"left": "残り"
+			"left": "残り{{time}}",
+			"votes": "票",
+			"finished": "{{time}}で終了",
+			"multiple": "複数選択",
+			"single": "択一選択"
 		},
 		"quoteState": {
 			"pending": "引用は承認待ちです",

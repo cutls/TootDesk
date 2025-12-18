@@ -1,8 +1,8 @@
 export type Timeline = {
-	id: number
+	id: string
 	kind: TimelineKind
 	name: string
-	acctId: number
+	acctId: string
 	listId?: string | null
 	tagName?: string | null
 	color?: Color

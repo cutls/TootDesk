@@ -2,14 +2,11 @@ import type { Account } from '@/entities/account'
 import { parseHeader } from '@/utils/parseHeader'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
-import { Link } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, PlatformColor, TouchableOpacity, useColorScheme, View } from 'react-native'
-import Avatar from '../Avatar'
-import { AccountName } from '../status/AccountName'
 import { Text } from '../themed/Text'
+import { User } from './User'
 interface IProps {
 	client: MegalodonInterface | null
 	targetId: string
@@ -65,26 +62,7 @@ export const ProfileUsers = (props: IProps) => {
 			keyExtractor={(item) => item.id}
 			ItemSeparatorComponent={() => <View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: columnWidth - 10 }}></View>}
 			renderItem={({ item: basic }) => (
-				<Link href={`/user?acctId=${acct.id}&userId=${basic.id}`} push>
-					<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
-					<Link.Trigger>
-						<View>
-							<View style={{ padding: 10, width: columnWidth, flexDirection: 'row' }}>
-								<View style={{ width: 45, justifyContent: 'center', alignItems: 'center' }}>
-									<Avatar src={basic.avatar} size={35} />
-								</View>
-
-								<View style={{ marginLeft: 5 }}>
-									<AccountName account={basic} fontSize={16} width={columnWidth - 100} />
-									<View style={{ display: 'flex', flexDirection: 'row', marginVertical: 2, alignItems: 'center' }}>
-										<Text style={{}}>@{basic.acct}</Text>
-										{basic.locked && <SymbolView name="lock" type="monochrome" tintColor={txtColor} size={12} />}
-									</View>
-								</View>
-							</View>
-						</View>
-					</Link.Trigger>
-				</Link>
+				<User acct={acct} columnWidth={columnWidth} txtColor={txtColor} basic={basic} />
 			)}
 			ListEmptyComponent={() => <View style={{ alignItems: 'center', marginTop: 100 }}>{isLoading ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}</View>}
 			ListFooterComponent={() => (

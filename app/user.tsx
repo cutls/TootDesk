@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
-import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import { BlurView } from 'expo-blur'
 import { GlassView } from 'expo-glass-effect'
@@ -28,7 +27,7 @@ import { useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, type OpaqueColorValue, PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, type OpaqueColorValue, PlatformColor, Pressable, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const BasePerson = ({ relation: r, textColor }: { relation: Entity.Relationship; textColor: OpaqueColorValue }) => {
@@ -54,7 +53,11 @@ const GlassViewFallback = ({ isPreview, style, children }: { isPreview: boolean;
 	if (isPreview) {
 		return <View style={[style, { backgroundColor: PlatformColor('systemGray5'), opacity: 0.8 }]}>{children}</View>
 	}
-	return <GlassView style={style}>{children}</GlassView>
+	return (
+		<GlassView tintColor="gray" glassEffectStyle="clear" style={style}>
+			{children}
+		</GlassView>
+	)
 }
 export default function Index() {
 	const { t } = useTranslation()
@@ -88,7 +91,7 @@ export default function Index() {
 		const fn = async () => {
 			setIsLoading(true)
 			try {
-				const acct = await getAcctById(Number(acctId))
+				const acct = await getAcctById(acctId)
 				if (!acct) throw new Error('Invalid account id')
 				setAcct(acct)
 				const https = `https://${acct.domain}`
@@ -146,7 +149,7 @@ export default function Index() {
 						position: 'absolute',
 						display: isPreview ? 'none' : undefined,
 						paddingHorizontal: 10,
-						marginTop: 20,
+						marginTop: 25,
 						zIndex: 2,
 						paddingTop: 20,
 						justifyContent: 'space-between',
@@ -154,16 +157,23 @@ export default function Index() {
 						width: width
 					}}
 				>
-					<Button variant="glass" onPress={() => router.back()} style={{ width: 40, height: 60 }}>
-						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
-					</Button>
+					<Pressable onPress={() => router.back()}>
+						<GlassView style={{ width: 50, height: 50, padding: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center' }} tintColor="gray" glassEffectStyle="clear" isInteractive={true}>
+							<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} />
+						</GlassView>
+					</Pressable>
 					{relation && (
-						<Button variant="glass" modifiers={[ignoreSafeArea({ regions: 'all' })]} onPress={() => setRSheet(true)} style={{ width: 70, height: 60 }}>
-							<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 50, height: 30 }}>
+						<Pressable onPress={() => setRSheet(true)}>
+							<GlassView
+								style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 70, height: 50, padding: 10, borderRadius: 20 }}
+								tintColor="gray"
+								glassEffectStyle="clear"
+								isInteractive={true}
+							>
 								<BasePerson relation={relation} textColor={textColor} />
 								<Relation relation={relation} textColor={textColor} />
-							</View>
-						</Button>
+							</GlassView>
+						</Pressable>
 					)}
 				</View>
 				<Image style={styles.header} source={{ uri: basic.header }} />
@@ -238,15 +248,21 @@ export default function Index() {
 						setPage(event.nativeEvent.selectedSegmentIndex)
 					}}
 				/>
-				{page === 0 && <View style={{ flex: 1 }}>
-					<ProfileStatuses lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
-				</View>}
-				{page === 1 && <View>
-					<ProfileUsers type="following" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
-				</View>}
-				{page === 2 && <View>
-					<ProfileUsers type="followers" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
-				</View>}
+				{page === 0 && (
+					<View style={{ flex: 1 }}>
+						<ProfileStatuses lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+					</View>
+				)}
+				{page === 1 && (
+					<View>
+						<ProfileUsers type="following" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+					</View>
+				)}
+				{page === 2 && (
+					<View>
+						<ProfileUsers type="followers" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
+					</View>
+				)}
 				{client && relation && <RelationSheet locked={basic.locked} isOpened={rSheet} setIsOpened={setRSheet} update={() => updateRelation()} client={client} relation={relation} targetId={userId} />}
 			</ScrollView>
 		</>

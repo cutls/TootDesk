@@ -51,9 +51,9 @@ export const Quote = (props: IProps) => {
 	return (
 		<TouchableOpacity activeOpacity={0.7} style={{ display: 'flex', flexDirection: 'row', ...styles.container }}>
 			<View style={{ marginLeft: 5 }}>
-				<View style={{ display: 'flex', flexDirection: 'row' }}>
+				<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
 					<Avatar src={basic.avatar} size={20} />
-					<AccountName account={basic} fontSize={18} width={columnWidth - left - 175} />
+					<AccountName account={basic} fontSize={14} width={columnWidth - left - 175} />
 					<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', width: 150, marginRight: 5 }}>
 						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: 150 - daySize, textAlign: 'right' }}>
 							@{basic.acct}

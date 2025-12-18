@@ -6,7 +6,7 @@ interface Suggested {
 	acct?: Entity.Account
 	tag?: Entity.Tag
 }
-export const suggest = async (startPosition: number | undefined, inputText: string, acctId: number, client: MegalodonInterface): Promise<[Suggested[], string]> => {
+export const suggest = async (startPosition: number | undefined, inputText: string, acctId: string, client: MegalodonInterface): Promise<[Suggested[], string]> => {
 	const first1 = inputText.slice(0, startPosition)
 	const firstArr = first1.split(' ')
 	const first = firstArr[firstArr.length - 1]

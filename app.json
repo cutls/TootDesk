@@ -14,7 +14,7 @@
       "bundleIdentifier": "top.thedesk.ios",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSAppleMusicUsageDescription": "This app requires access to Apple Music to display and control the currently playing track.",
+        "NSAppleMusicUsageDescription": "This app requires access to Apple Music to display and control the currently playing track."
       }
     },
     "android": {
@@ -58,6 +58,12 @@
       "eas": {
         "projectId": "ba984335-bb74-42cf-9fc5-0420d1936731"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ba984335-bb74-42cf-9fc5-0420d1936731"
     }
   }
 }

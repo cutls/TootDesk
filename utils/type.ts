@@ -15,7 +15,7 @@ export const getTextColor = (color: Color) => {
 }
 export interface ActionProps {
 	type?: 'reply' | 'quote' | 'edit'
-	acctId: number
+	acctId: string
 	targetId?: string
 	addText?: string
 	status?: Entity.Status

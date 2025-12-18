@@ -9,20 +9,15 @@ import { AccountName } from './AccountName'
 
 import type { Account } from '@/entities/account'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
-import { emojify } from '@/utils/emojify'
 import { formatDistanceToNow } from 'date-fns'
 import { Link, useRouter } from 'expo-router'
 import { openBrowserAsync } from 'expo-web-browser'
 import { useTranslation } from 'react-i18next'
-import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 import { Attachment } from './Attachments'
 import { Card } from './Card'
+import { RenderHTML } from './HTML'
+import { Poll } from './Poll'
 import { Quote } from './Quote'
-const renderers = {
-	img: defaultHTMLElementModels.img.extend({
-		contentModel: HTMLContentModel.mixed
-	})
-}
 
 type IConfig = {}
 interface IProps {
@@ -35,8 +30,8 @@ interface IProps {
 	//openFromOtherAccount: (status: Entity.Status) => void
 	filters: Array<Entity.Filter>
 	lang: 'ja' | 'en'
-	updateStatus: (newStatus: Entity.Status) => void
-	composeAction: (type: 'quote' | 'reply' | 'edit', target: Entity.Status) => void
+	updateStatus: (newStatus: Entity.Status | null, deleteId?: string) => void
+	composeAction: (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => void
 }
 
 const data = [
@@ -50,15 +45,13 @@ const actionOnlyMe = [
 	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
 	{ title: 'timeline.action.delete', value: 'delete', systemImage: 'trash' as const, isDestructive: true }
 ]
-//const isP = (content: string) => (content.startsWith('<p') ? content : `<p>${content}</p>`)
-const isP = (content: string) => content
 const shortenTime = (time: string, isJa: boolean) => {
 	const start = time.replace('約', '').replace('about', '')
 	const en = start.replace('days', 'd').replace('day', 'd').replace('hours', 'h').replace('hour', 'h').replace('minutes', 'm').replace('minute', 'm').replace('seconds', 's').trim()
 	return isJa ? `${en.replace(' ', '')}前` : en.trim()
 }
 export const Status = (props: IProps) => {
-	const { status: statusRaw, client, columnWidth, lang, updateStatus, acct, composeAction } = props
+	const { status: statusRaw, client, columnWidth, lang, updateStatus, acct, composeAction, filters } = props
 	const status = statusRaw.reblog ? statusRaw.reblog : statusRaw
 	const isMe = acct.username === status.account.acct
 	const { t } = useTranslation()
@@ -69,7 +62,7 @@ export const Status = (props: IProps) => {
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
 	const styles = createStyles({ width: columnWidth })
-	const [isOpen, setIsOpen] = useState(!status.spoiler_text)
+	const [isOpen, setIsOpen] = useState(false)
 	const locale = lang === 'ja' ? ja : undefined
 	const fromNow = shortenTime(formatDistanceToNow(new Date(status.created_at), { addSuffix: false, locale }), lang === 'ja')
 	const basic = status.account
@@ -78,6 +71,7 @@ export const Status = (props: IProps) => {
 	const showCount = true
 	const avatarSize = 45
 	const left = avatarSize + 25
+	const [isFiltered, setIsFiltered] = useState(filters.some((f) => status.content.includes(f.phrase) || status.spoiler_text.includes(f.phrase)))
 	const action = async (type: 'bt' | 'fav' | 'bookmark') => {
 		setIsProcessing(true)
 		try {
@@ -103,42 +97,57 @@ export const Status = (props: IProps) => {
 		}
 	}
 	const dropdown = async () => {
-		const d = await new Promise<string>((resolve) => ActionSheetIOS.showActionSheetWithOptions(
-			{
-				options: otherAction.map((a) => t(a.title)),
-				anchor: findNodeHandle(dropdownRef.current) || undefined,
-				destructiveButtonIndex: otherAction.findIndex((a) => a.value === 'delete') || undefined
-			},
-			(i) => resolve(otherAction[i].value)
-		))
-		if (d === 'quote') composeAction('quote', status)
-		if (d === 'edit') composeAction('edit', status)
+		const d = await new Promise<string>((resolve) =>
+			ActionSheetIOS.showActionSheetWithOptions(
+				{
+					options: otherAction.map((a) => t(a.title)),
+					anchor: findNodeHandle(dropdownRef.current) || undefined,
+					destructiveButtonIndex: otherAction.findIndex((a) => a.value === 'delete') || undefined
+				},
+				(i) => resolve(otherAction[i].value)
+			)
+		)
+		if (d === 'quote') composeAction(client, acct, 'quote', status)
+		if (d === 'edit') composeAction(client, acct, 'edit', status)
 		if (d === 'delete') {
 			if (!(await confirmDialog(t('timeline.action.delete'), t('timeline.action.deleteConfirm'), CONTINUE, (s) => t(s)))) return
 			client.deleteStatus(status.id)
+			updateStatus(null, status.id)
 		}
 	}
+
 	const otherAction = isMe ? [...actions, ...actionOnlyMe] : actions
+	if (isFiltered) {
+		return (
+			<View style={{ width: columnWidth, paddingHorizontal: 10, paddingVertical: 5, flexDirection: 'row', alignItems: 'center' }}>
+				<Text style={{ fontSize: fontSize, color: PlatformColor('systemGray') }}>{t('timeline.status.filtered')}</Text>
+				<TouchableOpacity activeOpacity={0.7} onPress={() => setIsFiltered(false)} style={{ padding: 5, borderRadius: 5, backgroundColor: PlatformColor('systemGray3'), width: 90, marginLeft: 10 }}>
+					<Text style={{ fontSize: fontSize, textAlign: 'center' }}>{t('timeline.status.showAnyway')}</Text>
+				</TouchableOpacity>
+			</View>
+		)
+	}
 	return (
-		<View style={{ width: columnWidth, paddingHorizontal: 10, paddingVertical: 5 }}>
+		<View style={{ width: columnWidth, paddingHorizontal: 10, paddingVertical: 2 }}>
 			{statusRaw.reblog && (
-				<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
-					<SymbolView name="repeat" type="monochrome" tintColor={PlatformColor('systemBlue')} size={fontSize * 1.2} />
-					<Text style={{ marginLeft: 5, color: PlatformColor('systemGray') }}>{t('timeline.status.rebloggedBy', { name: statusRaw.account.display_name || statusRaw.account.acct })}</Text>
-				</View>
+				<Link href={`/user?acctId=${acct.id}&userId=${statusRaw.account.id}`} push>
+					<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
+					<Link.Trigger>
+						<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
+							<SymbolView name="repeat" type="monochrome" tintColor={PlatformColor('systemBlue')} size={fontSize * 1.2} />
+							<Text style={{ marginLeft: 5, color: PlatformColor('systemGray') }}>{t('timeline.status.rebloggedBy', { name: statusRaw.account.display_name || statusRaw.account.acct })}</Text>
+						</View>
+					</Link.Trigger>
+				</Link>
 			)}
 			<View style={{ display: 'flex', flexDirection: 'row' }}>
 				<View style={{ width: avatarSize, alignItems: 'center' }}>
-					<Link href={`/user?acctId=${acct.id}&userId=${basic.id}`} push asChild>
+					<Link href={`/user?acctId=${acct.id}&userId=${basic.id}`} push>
 						<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
 						<Link.Trigger>
 							<Avatar src={basic.avatar} size={avatarSize} />
 						</Link.Trigger>
 					</Link>
-					<View style={{ marginTop: 2 }} />
-					<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), textAlign: 'center', fontSize: 10 }}>
-						{fromNow}
-					</Text>
 					<View style={{ marginTop: 2 }} />
 					<SymbolView name={data.find((d) => d.value === status.visibility)?.systemImage || 'questionmark'} size={12} type="monochrome" tintColor={PlatformColor('systemGray')} />
 					<View style={{ marginTop: 2 }} />
@@ -146,14 +155,18 @@ export const Status = (props: IProps) => {
 				</View>
 
 				<View style={{ marginLeft: 5 }}>
-					<View style={{ display: 'flex', flexDirection: 'row' }}>
-						<AccountName account={basic} fontSize={fontSize * 1.1} width={columnWidth - left - 155} />
-						<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', width: 150, marginRight: 5 }}>
-							<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: 150, textAlign: 'right' }}>
+					<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+						<View style={{ width: columnWidth - left - 50 }}>
+							<AccountName account={basic} fontSize={fontSize * 1.1} width={columnWidth - left - 50} />
+							<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), fontSize: 10 }}>
 								@{basic.acct}
 							</Text>
 						</View>
+						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), textAlign: 'right', width: 50, fontSize: 10 }}>
+							{fromNow}
+						</Text>
 					</View>
+
 					{status.spoiler_text && (
 						<View style={styles.cwWrap}>
 							<Text style={{ fontSize: fontSize, marginRight: 2, width: columnWidth - 180 }}>{status.spoiler_text}</Text>
@@ -166,31 +179,17 @@ export const Status = (props: IProps) => {
 							</TouchableOpacity>
 						</View>
 					)}
-					{isOpen && (
-						<View style={{ minHeight: 30, display: 'flex', marginTop: 5 }}>
-							<HTML
-								source={{ html: `${emojify(isP(status.content), status.emojis, fontSize * 0.8, showGif)}` }}
-								tagsStyles={{ p: { color: txtColor }, a: { color: PlatformColor('link') } }}
-								customHTMLElementModels={renderers}
-								contentWidth={columnWidth - left}
-								classesStyles={{
-									invisible: { color: PlatformColor('link') },
-									ellipsis: { color: PlatformColor('link') },
-									'quote-inline': { display: 'none' },
-									mention: { color: PlatformColor('link') },
-									hashtag: { color: PlatformColor('link') }
-								}}
-								baseStyle={{ color: txtColor, fontSize: fontSize }}
-								defaultViewProps={{ style: { width: columnWidth - left } }}
-								renderersProps={{ a: { onPress: (e, href) => handleLink(href) } }}
-							/>
+					{(!status.spoiler_text || isOpen) && (
+						<View style={{ display: 'flex', marginTop: 5 }}>
+							<RenderHTML status={status} fontSize={fontSize} showGif={showGif} txtColor={txtColor} columnWidth={columnWidth} left={left} handleLink={handleLink} />
 						</View>
 					)}
+					{status.poll && <Poll client={client} updateStatus={updateStatus} emojis={status.emojis} status={status} columnWidth={columnWidth - left} config={{}} lang={lang} isMe={isMe} />}
 					{status.quote_status && <Quote status={status.quote_status} columnWidth={columnWidth - left} config={{}} lang={lang} state={status.quote_status_state} />}
 					{status.card && <Card card={status.card} columnWidth={columnWidth - left} />}
 					<Attachment attachments={status.media_attachments} width={columnWidth - left} isSensitive={status.sensitive} />
 					<View style={{ display: 'flex', flexDirection: 'row', marginVertical: 10, paddingHorizontal: 10, justifyContent: 'space-between', width: columnWidth - left }}>
-						<TouchableOpacity style={styles.action} onPress={() => composeAction('reply', status)}>
+						<TouchableOpacity style={styles.action} onPress={() => composeAction(client, acct, 'reply', status)}>
 							<SymbolView name="arrowshape.turn.up.left" type="monochrome" tintColor={txtColor} size={fontSize * 1.2} />
 							<Text style={{ marginLeft: 5 }}>{showCount ? status.replies_count.toLocaleString() : ''}</Text>
 						</TouchableOpacity>

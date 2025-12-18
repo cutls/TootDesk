@@ -1,4 +1,5 @@
 import type { Account } from '@/entities/account'
+import { useFilterStore } from '@/utils/store/filter'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
 import React, { useEffect, useState } from 'react'
@@ -22,10 +23,14 @@ export const ProfileStatuses = (props: IProps) => {
 	const [statuses, setStatuses] = useState<Entity.Status[]>([])
 	const [isMore, setIsMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const updateStatus = (newStatus: Entity.Status) => {
-		setStatuses((prevStatuses) => prevStatuses.map((s) => (s.id === newStatus.id ? newStatus : s)))
+	const [filters, setFilters] = useState<Entity.Filter[]>([])
+	const { getFilters } = useFilterStore()
+	const updateStatus = (newStatus: Entity.Status | null, deleteId?: string) => {
+		if (newStatus === null) setStatuses((prevStatuses) => prevStatuses.filter((s) => s.id !== deleteId))
+		if (newStatus) setStatuses((prevStatuses) => prevStatuses.map((s) => (s.id === newStatus.id ? newStatus : s)))
 	}
 	useEffect(() => {
+		setFilters(getFilters(acct.id, 'home'))
 		const fn = async () => {
 			setIsLoading(true)
 			try {
@@ -67,10 +72,10 @@ export const ProfileStatuses = (props: IProps) => {
 					columnWidth={columnWidth}
 					updateStatus={updateStatus}
 					config={{}}
-					composeAction={(type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {}}
+					composeAction={(client: MegalodonInterface, acct: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {}}
 					lang={props.lang === 'ja' ? 'ja' : 'en'}
 					statusAction={(status: Entity.Status, type: 'reply' | 'quote' | 'edit') => console.log(status, type)}
-					filters={[]}
+					filters={filters}
 				/>
 			)}
 			ListEmptyComponent={() => (

@@ -8,6 +8,7 @@ import type { IState } from '@/utils/type'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
 import { BottomSheet, Host, Label, List } from '@expo/ui/swift-ui'
 import { frame, ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import { randomUUID } from 'expo-crypto'
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,8 +63,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 	}, [useAcct])
 	const add = async (type: TimelineKind) => {
 		if (!client || !useAcct) return
-		const tlIds = timelines.map((tl) => tl.id)
-		const maxId = tlIds.length > 0 ? Math.max(...tlIds) : 0
+		const id = randomUUID()
 		const duplicated = timelines.find((tl) => tl.kind === type && tl.acctId === useAcct.id)
 		if (duplicated) {
 			const proceed = await confirmDialog(t('timeline.duplicateConfirm.title'), t('timeline.duplicateConfirm.message'), TIMELINE_ADD_DUPLICATED, (s) => t(s))
@@ -75,7 +75,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 			}
 		}
 		const newTimeline: Timeline = {
-			id: maxId + 1,
+			id: id,
 			name: await makeTimelineNameWithAcctId(type, t(`timeline.kind.${type}`), useAcct.id),
 			kind: type,
 			acctId: useAcct.id
@@ -86,8 +86,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 	}
 	const addList = async (id: string, isAntenna: boolean) => {
 		if (!client || !useAcct) return
-		const tlIds = timelines.map((tl) => tl.id)
-		const maxId = tlIds.length > 0 ? Math.max(...tlIds) : 0
+		const newId = randomUUID()
 		const duplicated = timelines.find((tl) => tl.kind === 'list' && tl.acctId === useAcct.id && tl.listId === id)
 		if (duplicated) {
 			const proceed = await confirmDialog(t('timeline.duplicateConfirm.title'), t('timeline.duplicateConfirm.message'), TIMELINE_ADD_DUPLICATED, (s) => t(s))
@@ -99,7 +98,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 			}
 		}
 		const newTimeline: Timeline = {
-			id: maxId + 1,
+			id: newId,
 			kind: 'list',
 			name: await makeListTimelineNameWithAcctId('list', t(`timeline.kind.list`), useAcct.id, id),
 			acctId: useAcct.id,
@@ -110,7 +109,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 		setTimelines([...timelines, newTimeline])
 		setIsOpened(false)
 	}
-	const deleteTimeline = async (tlId: number) => {
+	const deleteTimeline = async (tlId: string) => {
 		const updatedTimelines = timelines.filter((tl) => tl.id !== tlId)
 		await saveTimelines(updatedTimelines)
 		setTimelines(updatedTimelines)

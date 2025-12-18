@@ -23,7 +23,7 @@ interface Props {
 	isOpened: boolean
 	setIsOpened: IState<boolean>
 	composeAction: ActionProps | null
-	clearComposeAction: () => void
+	clearComposeAction: (acctId: string) => void
 }
 interface IOptional {
 	scheduled_at?: string
@@ -115,7 +115,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 	}, [useAcct])
 	useEffect(() => {
 		const fn = async () => {
-			const accts = await getAcctById(composeAction?.acctId || 0)
+			const accts = await getAcctById(composeAction?.acctId || '')
 			if (accts) setUseAcct(accts)
 			if (composeAction?.type) setIsOpened(true)
 			if (composeAction?.addText) setText(composeAction.addText)
@@ -158,7 +158,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 			setCW('')
 			setUploaded([])
 			setVis('public')
-			clearComposeAction()
+			clearComposeAction(useAcct?.id || '')
 		}
 	}, [isOpened])
 	if (!useAcct) return null

@@ -25,6 +25,19 @@ const expiresList = [
 	{ title: 'composer.poll.3d', value: '259200' },
 	{ title: 'composer.poll.7d', value: '604800' }
 ]
+const TextInputMulti = ({ onBlur, placeholder, isDark, defaultValue }: { onBlur: (value: string) => void; placeholder: string; isDark: boolean; defaultValue: string }) => {
+	const [value, setValue] = useState(defaultValue)
+	return (
+		<TextInput
+			value={value}
+			onChangeText={(t) => setValue(t)}
+			onBlur={() => onBlur(value)}
+			style={[staticStyles.input, { flexGrow: 1 }]}
+			placeholder={placeholder}
+			placeholderTextColor={isDark ? 'lightgray' : 'gray'}
+		/>
+	)
+}
 export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
@@ -51,16 +64,15 @@ export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions
 			<Text style={styles.title}>{t('composer.menu.poll')}</Text>
 			{options.map((opt, idx) => (
 				<View key={`${idx}${opt}`} style={{ flexDirection: 'row', alignItems: 'center' }}>
-					<TextInput
-						value={opt}
-						onChangeText={(t) => {
+					<TextInputMulti
+						defaultValue={opt}
+						onBlur={(t) => {
 							const newOpts = [...options]
 							newOpts[idx] = t
 							setOptions(newOpts)
 						}}
-						style={[staticStyles.input, { flexGrow: 1 }]}
 						placeholder={`${t('composer.poll.option')}${idx + 1}`}
-						placeholderTextColor={isDark ? 'lightgray' : 'gray'}
+						isDark={isDark}
 					/>
 					<Button
 						style={{ width: 50, height: 50 }}

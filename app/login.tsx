@@ -1,14 +1,18 @@
+import { RenderSimpleHTML } from '@/components/status/HTML'
+import { Text } from '@/components/themed/Text'
 import { CustomedButton } from '@/components/ui/CustomedButton'
 import type { Account } from '@/entities/account'
 import { listAccts, saveAccts } from '@/utils/storage'
 import { staticStyles } from '@/utils/theme'
-import generator, { getData } from '@cutls/megalodon'
+import generator, { type Entity, getData, type MegalodonInterface } from '@cutls/megalodon'
+import { randomUUID } from 'expo-crypto'
+import { Image } from 'expo-image'
 import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Alert, StyleSheet, TextInput, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, Alert, PlatformColor, ScrollView, StyleSheet, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import semver from 'semver'
 
@@ -56,21 +60,53 @@ const misskeyPremission = [
 	'read:federation',
 	'write:report-abuse'
 ]
+interface GetData {
+	url: string
+	compatibleSns: 'mastodon' | 'pleroma' | 'misskey'
+	softwareName: string
+	version: string
+	semanticVersionCompatibleNumber: string
+}
 export default function Index() {
 	const { t } = useTranslation()
+
+	const { width } = useWindowDimensions()
+	const appIcon = require('../assets/images/icon.png')
+	const mastodon = require('../assets/images/sns/mastodon.svg')
+	const misskey = require('../assets/images/sns/misskey.png')
+	const pleroma = require('../assets/images/sns/pleroma.svg')
 
 	const router = useRouter()
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const [domain, setDomain] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
+	const [client, setClient] = useState<MegalodonInterface | null>(null)
+	const [snsData, setSnsData] = useState<GetData | null>(null)
+	const [instanceData, setInstanceData] = useState<Entity.Instance | null>(null)
 	const domainWithProtocol = `https://${domain}`
-	const login = async () => {
+	const preLogin = async () => {
 		if (!domain) return
 		setIsLoading(true)
 		try {
-			const { compatibleSns: sns, semanticVersionCompatibleNumber } = await getData(domainWithProtocol)
+			const snsData = await getData(domainWithProtocol)
+			const { compatibleSns: sns } = snsData
 			const client = generator(sns, domainWithProtocol)
+			setClient(client)
+			setSnsData(snsData)
+			const { data: instanceData } = await client.getInstance()
+			setInstanceData(instanceData)
+		} catch (e: any) {
+			Alert.alert(t('login.failed'), `Reason: ${e.message || e.toString()}`)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+	const login = async () => {
+		if (!client || !snsData) return
+		setIsLoading(true)
+		try {
+			const { compatibleSns: sns, semanticVersionCompatibleNumber } = snsData
 			const isMisskey = sns === 'misskey'
 			const scopes = isMisskey ? misskeyPremission : ['read', 'write', 'follow']
 			const redirectUrl = Linking.createURL('login')
@@ -87,7 +123,7 @@ export default function Index() {
 				const { data: instanceData } = await authrizedClient.getInstance()
 
 				const accounts = await listAccts()
-				const id = accounts.length + 1
+				const id = randomUUID()
 				const account: Account = {
 					id,
 					username: accountData.username,
@@ -121,22 +157,82 @@ export default function Index() {
 			setIsLoading(false)
 		}
 	}
+	const changeDomain = (text: string) => {
+		setDomain(text)
+		setClient(null)
+		setSnsData(null)
+		setInstanceData(null)
+	}
+
+	const localImage = snsData?.compatibleSns === 'mastodon' ? mastodon : snsData?.compatibleSns === 'misskey' ? misskey : snsData?.compatibleSns === 'pleroma' ? pleroma : appIcon
 	return (
 		<KeyboardAvoidingView style={styles.container}>
 			<TextInput
 				value={domain}
-				onChangeText={(t) => setDomain(t)}
+				onChangeText={(t) => changeDomain(t)}
 				style={[staticStyles.input, { width: '100%', borderRadius: 20, color: isDark ? 'white' : 'black' }]}
 				placeholder="mastodon.social"
 				placeholderTextColor={isDark ? 'lightgray' : 'gray'}
 				readOnly={isLoading}
 			/>
-			{isLoading ? (
+			{client ? (
+				isLoading ? (
+					<View style={{ marginTop: 20 }}>
+						<ActivityIndicator />
+					</View>
+				) : (
+					<View style={{ width: '100%' }}>
+						<ScrollView>
+							<View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+								<Image
+									source={instanceData?.thumbnail ? { uri: instanceData?.thumbnail || '' } : localImage}
+									placeholder={localImage}
+									style={{ width: 100, height: 50, borderRadius: 10 }}
+									contentFit="contain"
+								/>
+								<Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 10 }}>{instanceData?.title}</Text>
+							</View>
+							<View style={styles.row}>
+								<Text style={styles.title}>{t('login.instance.sns')}</Text>
+								<Text style={styles.text}>{String(snsData?.softwareName).charAt(0).toUpperCase() + String(snsData?.softwareName).slice(1)}</Text>
+							</View>
+							<View style={styles.row}>
+								<Text style={styles.title}>{t('login.instance.engine')}</Text>
+								<Text style={styles.text}>{String(snsData?.compatibleSns).charAt(0).toUpperCase() + String(snsData?.compatibleSns).slice(1)}</Text>
+							</View>
+							<View style={styles.row}>
+								<Text style={styles.title}>{t('login.instance.version')}</Text>
+								<Text style={styles.text}>{instanceData?.version}</Text>
+							</View>
+							<Text style={[styles.title, { marginTop: 10, marginBottom: 5 }]}>{t('login.instance.description')}</Text>
+							<RenderSimpleHTML text={instanceData?.description || ''} txtColor={isDark ? 'white' : 'black'} />
+							{instanceData?.rules && instanceData.rules.length > 0 && <Text style={[styles.title, { marginTop: 10 }]}>{t('login.instance.rules')}</Text>}
+							{(instanceData?.rules || [])
+								.sort((a, b) => (a.id > b.id ? 1 : -1))
+								.map((rule) => (
+									<View key={rule.id} style={[styles.row, { justifyContent: 'flex-start' }]}>
+										<Text style={[styles.title, { marginBottom: 5, marginRight: 5 }]}>{rule.hint || rule.id}</Text>
+										<Text style={{ flexShrink: 1 }}>{rule.text}</Text>
+									</View>
+								))}
+							{snsData?.compatibleSns === 'misskey' && (<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
+								<Text style={[]}>{t('login.instance.misskey')}</Text>
+							</View>)}
+							{snsData?.compatibleSns === 'misskey' && domain !== 'misskey.io' && (<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
+								<Text style={[]}>{t('login.instance.misskey_io')}</Text>
+							</View>)}
+						</ScrollView>
+						<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => login()}>
+							{t('continue')}
+						</CustomedButton>
+					</View>
+				)
+			) : isLoading ? (
 				<View style={{ marginTop: 20 }}>
 					<ActivityIndicator />
 				</View>
 			) : (
-				<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => login()}>
+				<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => preLogin()}>
 					{t('screen.login')}
 				</CustomedButton>
 			)}
@@ -153,5 +249,16 @@ const styles = StyleSheet.create({
 	link: {
 		marginTop: 15,
 		paddingVertical: 15
-	}
+	},
+	row: {
+		flexDirection: 'row',
+		marginTop: 10,
+		justifyContent: 'space-between',
+		width: '100%'
+	},
+	title: {
+		fontWeight: 'bold',
+		fontSize: 16
+	},
+	text: {}
 })
