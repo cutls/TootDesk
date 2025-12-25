@@ -14,3 +14,7 @@ export const mb2xCount = (str: string) => {
 	const ascii = str.match(/[ -~]/g)?.length || 0
 	return str.length * 2 - ascii
 } 
+export const capitalizeFirst = (str: string) => {
+	if (!str) return ''
+	return str.charAt(0).toUpperCase() + str.slice(1)
+}

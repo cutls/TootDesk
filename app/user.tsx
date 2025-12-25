@@ -16,6 +16,7 @@ import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
+import { calcFromNow } from '@/utils/timeline'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
 import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import { BlurView } from 'expo-blur'
@@ -188,6 +189,9 @@ export default function Index() {
 							<Text style={{}}>@{basic.acct}</Text>
 							{basic.locked && <SymbolView name="lock" type="monochrome" tintColor={textColor} size={16} />}
 						</TouchableOpacity>
+						<Text style={{ marginBottom: 5, fontSize: 12 }} numberOfLines={1}>
+							{t('user.joinedAt', { absolute: new Date(basic.created_at).toLocaleDateString(), relative: calcFromNow(new Date(basic.created_at), lang === 'ja') })}
+						</Text>
 						<View style={{ display: 'flex', flexDirection: 'row' }}>
 							<View style={{ width: (width - 145) / 3 }}>
 								<Text numberOfLines={1} style={{ textAlign: 'center' }}>
@@ -217,7 +221,7 @@ export default function Index() {
 					</View>
 				</GlassViewFallback>
 				<View style={{ padding: 10 }}>
-					<ProfileText account={basic} width={width - 20} fontSize={14} />
+					<ProfileText acctId={acct.id} client={client} account={basic} width={width - 20} fontSize={14} />
 					{basic.fields.map((field, idx) => (
 						<View
 							key={`${field.name}-${idx}`}
@@ -236,7 +240,7 @@ export default function Index() {
 							<Text style={{ fontWeight: 'bold', width: 100 }} numberOfLines={2}>
 								{field.name}
 							</Text>
-							<ProfileText account={{ ...basic, note: field.value }} width={width - 120} fontSize={14} />
+							<ProfileText client={client} acctId={acct.id} account={{ ...basic, note: field.value }} width={width - 120} fontSize={14} />
 						</View>
 					))}
 				</View>
@@ -279,8 +283,8 @@ const createStyles = ({ width }: { width: number }) =>
 			flexDirection: 'row',
 			display: 'flex',
 			padding: 10,
-			top: 180,
-			height: 110,
+			top: 160,
+			height: 130,
 			left: 20,
 			borderRadius: 20
 		}

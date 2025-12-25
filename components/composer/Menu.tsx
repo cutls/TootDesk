@@ -37,10 +37,10 @@ export default function Menu({ changeMode, npSet, client }: Props) {
 			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
 				<Text style={{ fontWeight: 'bold', fontSize: 18 }}>NowPlaying</Text>
 				<CustomedButton width={150} onPress={() => np('apple')} style={{ marginVertical: 5 }}>
-					<Fontisto name="applemusic" size={24} color="black" />
+					<Fontisto name="applemusic" size={24} color={isDark ? 'white' : 'black'} />
 				</CustomedButton>
 				<CustomedButton isLoading={isSpotifyLoading} width={150} onPress={() => np('spotify')} style={{ marginVertical: 5 }}>
-					<Fontisto name="spotify" size={24} color="black" />
+					<Fontisto name="spotify" size={24} color={isDark ? 'white' : 'black'} />
 				</CustomedButton>
 			</View>
 			<View style={{ height: 5 }} />

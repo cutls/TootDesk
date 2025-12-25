@@ -1,5 +1,5 @@
 import AddTimeline from '@/components/AddTimeline'
-import ComposeSheet from '@/components/ComposeSheet'
+import ComposeSheetBase from '@/components/ComposeSheetBase'
 import { Columns } from '@/components/timeline/Columns'
 import { getTimelines, listAccts } from '@/utils/storage'
 import { useFilterStore } from '@/utils/store/filter'
@@ -46,7 +46,7 @@ export default function Index() {
 		<View style={styles.container}>
 			<Columns context={{ current, setCurrent, relayRef, setComposeAction }} />
 			<Navigator context={{ current, setCurrent, relayRef }} openComposer={() => setIsComposeOpened(true)} openAddTimeline={() => setIsAddTLOpened(true)} />
-			<ComposeSheet isOpened={isComposeOpened} setIsOpened={setIsComposeOpened} composeAction={composeAction} clearComposeAction={(acctId: string) => setComposeAction({ acctId })} />
+			<ComposeSheetBase isOpened={isComposeOpened} setIsOpened={setIsComposeOpened} composeAction={composeAction} clearComposeAction={(acctId: string) => setComposeAction({ acctId })} />
 			<AddTimeline context={{ current, setCurrent }} isOpened={isAddTLOpened} setIsOpened={setIsAddTLOpened} />
 		</View>
 	)

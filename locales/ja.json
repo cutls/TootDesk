@@ -10,7 +10,10 @@
 	"empty": "データがありません",
 	"screen": {
 		"login": "ログイン",
-		"acct": "アカウントマネージャー"
+		"acct": "アカウントマネージャー",
+		"detail": "詳細",
+		"post": "投稿",
+		"config": "設定"
 	},
 	"login": {
 		"failed": "ログインに失敗しました",
@@ -29,6 +32,8 @@
 		"placeholder": "今何してる？",
 		"deleteAttachmentConfirm": "この添付ファイルを削除してもよろしいですか？",
 		"cwPlaceholder": "閲覧注意(オプション)",
+		"discard": "下書きを破棄",
+		"discardConfirm": "下書きを破棄してもよろしいですか？",
 		"vis": {
 			"public": "公開",
 			"unlisted": "未収載",
@@ -179,7 +184,8 @@
 			"quote": "引用",
 			"edit": "編集",
 			"delete": "削除",
-			"deleteConfirm": "この投稿を削除してもよろしいですか？"
+			"deleteConfirm": "この投稿を削除してもよろしいですか？",
+			"translate": "翻訳"
 		},
 		"kind": {
 			"home": "ホーム",
@@ -197,7 +203,9 @@
 			"message": "このカラムは既に存在しています。本当に追加しますか？",
 			"goToColumn": "既存のカラムに移動",
 			"addAnyway": "それでも追加する"
-		}
+		},
+		"member": "メンバー: ",
+		"conversationMore": "他{count}人"
 	},
 	"user": {
 		"followedBy": "あなたをフォローしています",
@@ -226,6 +234,7 @@
 		"reject": "拒否",
 		"followers": "フォロワー",
 		"follows": "フォロー",
-		"posts": "投稿"
+		"posts": "投稿",
+		"joinedAt": "{{absolute}}({{relative}})から参加"
 	}
 }

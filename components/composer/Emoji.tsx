@@ -1,4 +1,4 @@
-import { type Entity, type MegalodonInterface } from '@cutls/megalodon'
+import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
+import { CustomedButton } from '../ui/CustomedButton'
 
 interface Props {
 	client: MegalodonInterface | null
@@ -58,9 +59,9 @@ export default function Emoji({ client, add }: Props) {
 					)}
 				/>
 			)}
-			<Button variant="bordered" onPress={() => add('')} style={{ height: 30 }}>
-				<Text style={{ textAlign: 'center' }}>{t('composer.emoji.close')}</Text>
-			</Button>
+			<CustomedButton variant="bordered" onPress={() => add('')}>
+				{t('composer.emoji.close')}
+			</CustomedButton>
 		</View>
 	)
 }

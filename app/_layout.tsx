@@ -32,6 +32,9 @@ export default function RootLayout() {
 						<Stack.Screen name="index" options={{ headerShown: false, title: '' }} />
 						<Stack.Screen name="login" options={{ title: t('screen.login') }} />
 						<Stack.Screen name="acct" options={{ title: t('screen.acct') }} />
+						<Stack.Screen name="detail" options={{ title: t('screen.detail') }} />
+						<Stack.Screen name="post" options={{ title: t('screen.post') }} />
+						<Stack.Screen name="config" options={{ title: t('screen.config') }} />
 						<Stack.Screen name="user" options={{ title: '', headerShown: false }} />
 					</Stack>
 					<StatusBar style="auto" />

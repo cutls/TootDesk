@@ -1,0 +1,6 @@
+{
+	"ios": {
+		"NSPhotoLibraryUsageDescription": "このアプリは動画のアップロードのために写真ライブラリへのアクセスを必要とします。許可しない場合でも、画像のアップロードは可能です。",
+        "NSAppleMusicUsageDescription": "このアプリは、現在再生中のトラックを表示しその情報を投稿するためにApple Musicへのアクセスを必要とします。"
+	}
+}

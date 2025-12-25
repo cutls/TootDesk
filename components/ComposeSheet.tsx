@@ -1,9 +1,9 @@
 import type { Account } from '@/entities/account'
 import type { Poll as IPoll } from '@/entities/status'
+import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { getAcctById, getUsualAcct } from '@/utils/storage'
 import type { ActionProps, ComposeMode, IState } from '@/utils/type'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
-import { BottomSheet, Host } from '@expo/ui/swift-ui'
 import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
@@ -32,7 +32,7 @@ interface IOptional {
 	in_reply_to_id?: string
 	quoted_status_id?: string
 }
-export default function Navigator({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
+export default function ComposeSheet({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -65,6 +65,14 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 		setOptional((o) => ({ ...o, poll: poll || undefined }))
 		setMode('compose')
 	}
+	const clear = () => {
+		setText('')
+		setOptional({})
+		setCW('')
+		setUploaded([])
+		setVis('public')
+		clearComposeAction(useAcct?.id || '')
+	}
 	const post = async () => {
 		setMode('loading')
 		try {
@@ -85,6 +93,7 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 				}
 				await client?.postStatus(text, postData)
 			}
+			clear()
 			setIsOpened(false)
 		} finally {
 			setMode('compose')
@@ -153,69 +162,69 @@ export default function Navigator({ isOpened, setIsOpened, composeAction, clearC
 		if (isOpened) {
 			setMode('compose')
 		} else {
-			setText('')
-			setOptional({})
-			setCW('')
-			setUploaded([])
-			setVis('public')
-			clearComposeAction(useAcct?.id || '')
+			if (mode !== 'loading') {
+				if (text || optional.scheduled_at || optional.poll || optional.editTargetId || uploaded.length > 0 || cw) {
+					confirmDialog(t('composer.discard'), t('composer.discardConfirm'), CONTINUE, (s) => t(s)).then((res) => {
+						if (res === 1) clear()
+						if (res === 0) setIsOpened(true)
+					})
+				} else {
+					clear()
+				}
+			}
 		}
 	}, [isOpened])
 	if (!useAcct) return null
 	return (
-		<Host style={{ width, position: isOpened ? 'absolute' : undefined, zIndex: 1000 }}>
-			<BottomSheet isOpened={isOpened} onIsOpenedChange={(e) => setIsOpened(e)}>
-				<View style={{ padding: 20 }}>
-					{mode === 'compose' && (
-						<>
-							<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-								<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
-									<View style={styles.acctContainer}>
-										<View>
-											<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
-										</View>
-										<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
-											{useAcct.username}@{useAcct.domain}
-										</Text>
-									</View>
-								</Button>
-								<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 80 }}>
-									{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
-									{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
-									<Text>{maxChars - text.length}</Text>
+		<View style={{ padding: 20 }}>
+			{mode === 'compose' && (
+				<>
+					<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+						<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
+							<View style={styles.acctContainer}>
+								<View>
+									<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
 								</View>
+								<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
+									{useAcct.username}@{useAcct.domain}
+								</Text>
 							</View>
-							{composeAction?.type && (
-								<View style={{}}>
-									<Text>{t(`composer.${composeAction.type}`)}</Text>
-								</View>
-							)}
-						</>
-					)}
-					<Composer
-						isOpened={mode === 'compose' && isOpened}
-						client={client}
-						post={post}
-						visState={{ vis, setVis }}
-						acct={useAcct}
-						changeMode={changeMode}
-						textState={{ text, setText }}
-						cwState={{ cw, setCW }}
-						uploadedState={{ uploaded, setUploaded }}
-					/>
-					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
-					{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
-					{mode === 'menu' && <Menu client={client} npSet={{ setText, setUploaded }} changeMode={changeMode} />}
-					{mode === 'schedule' && <Schedule defaultSchedule={optional.scheduled_at || null} changeMode={changeMode} addSchedule={addSchedule} />}
-					{mode === 'poll' && <Poll defaultPoll={optional.poll || null} maxPollsOptions={maxPollsOptions} changeMode={changeMode} addPoll={addPoll} />}
-					{mode === 'loading' && (
-						<View style={{ width: '100%', height: 200, alignItems: 'center', justifyContent: 'center' }}>
-							<ActivityIndicator />
+						</Button>
+						<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 80 }}>
+							{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
+							{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
+							<Text>{maxChars - text.length}</Text>
+						</View>
+					</View>
+					{composeAction?.type && (
+						<View style={{}}>
+							<Text>{t(`composer.${composeAction.type}`)}</Text>
 						</View>
 					)}
+				</>
+			)}
+			<Composer
+				isOpened={mode === 'compose' && isOpened}
+				client={client}
+				post={post}
+				visState={{ vis, setVis }}
+				acct={useAcct}
+				changeMode={changeMode}
+				textState={{ text, setText }}
+				cwState={{ cw, setCW }}
+				uploadedState={{ uploaded, setUploaded }}
+			/>
+			{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
+			{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
+			{mode === 'menu' && <Menu client={client} npSet={{ setText, setUploaded }} changeMode={changeMode} />}
+			{mode === 'schedule' && <Schedule defaultSchedule={optional.scheduled_at || null} changeMode={changeMode} addSchedule={addSchedule} />}
+			{mode === 'poll' && <Poll defaultPoll={optional.poll || null} maxPollsOptions={maxPollsOptions} changeMode={changeMode} addPoll={addPoll} />}
+			{mode === 'loading' && (
+				<View style={{ width: '100%', height: 200, alignItems: 'center', justifyContent: 'center' }}>
+					<ActivityIndicator />
 				</View>
-			</BottomSheet>
-		</Host>
+			)}
+		</View>
 	)
 }
 

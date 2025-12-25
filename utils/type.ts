@@ -1,5 +1,4 @@
 import type { Entity } from '@cutls/megalodon'
-
 export type IState<T> = (value: React.SetStateAction<T>) => void
 export type ComposeMode = 'compose' | 'acct' | 'menu' | 'emoji' | 'schedule' | 'poll' | 'loading'
 export const colors = ['blue', 'green', 'indigo', 'orange', 'red', 'teal', 'yellow'] as const
@@ -20,4 +19,46 @@ export interface ActionProps {
 	addText?: string
 	status?: Entity.Status
 	visibility?: 'public' | 'unlisted' | 'private' | 'direct' | 'local'
+}
+
+
+
+export type ReceiveNotificationPayload = {
+	acctId: string
+	notification: Entity.Notification
+}
+
+export type ReceiveHomeStatusPayload = {
+	acctId: string
+	status: Entity.Status
+}
+
+export type ReceiveHomeStatusUpdatePayload = {
+	acctId: string
+	status: Entity.Status
+}
+
+export type DeleteHomeStatusPayload = {
+	acctId: string
+	statusId: string
+}
+
+export type ReceiveTimelineStatusPayload = {
+	tlId: string
+	status: Entity.Status
+}
+
+export type ReceiveTimelineStatusUpdatePayload = {
+	tlId: string
+	status: Entity.Status
+}
+
+export type DeleteTimelineStatusPayload = {
+	tlId: string
+	statusId: string
+}
+
+export type ReceiveTimelineConversationPayload = {
+	tlId: string
+	conversation: Entity.Conversation
 }

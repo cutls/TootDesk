@@ -3,6 +3,7 @@ import { Text } from '@/components/themed/Text'
 import { CustomedButton } from '@/components/ui/CustomedButton'
 import type { Account } from '@/entities/account'
 import { listAccts, saveAccts } from '@/utils/storage'
+import { capitalizeFirst } from '@/utils/string'
 import { staticStyles } from '@/utils/theme'
 import generator, { type Entity, getData, type MegalodonInterface } from '@cutls/megalodon'
 import { randomUUID } from 'expo-crypto'
@@ -194,11 +195,11 @@ export default function Index() {
 							</View>
 							<View style={styles.row}>
 								<Text style={styles.title}>{t('login.instance.sns')}</Text>
-								<Text style={styles.text}>{String(snsData?.softwareName).charAt(0).toUpperCase() + String(snsData?.softwareName).slice(1)}</Text>
+								<Text style={styles.text}>{capitalizeFirst(snsData?.softwareName || '')}</Text>
 							</View>
 							<View style={styles.row}>
 								<Text style={styles.title}>{t('login.instance.engine')}</Text>
-								<Text style={styles.text}>{String(snsData?.compatibleSns).charAt(0).toUpperCase() + String(snsData?.compatibleSns).slice(1)}</Text>
+								<Text style={styles.text}>{capitalizeFirst(snsData?.compatibleSns || '')}</Text>
 							</View>
 							<View style={styles.row}>
 								<Text style={styles.title}>{t('login.instance.version')}</Text>

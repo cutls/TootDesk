@@ -17,7 +17,6 @@ interface IProps {
 	acct: Account
 	columnWidth: number
 	config: IConfig
-	statusAction: (status: Entity.Status, type: 'reply' | 'quote' | 'edit') => void
 	//openFromOtherAccount: (status: Entity.Status) => void
 	filters: Array<Entity.Filter>
 	lang: 'ja' | 'en'
@@ -44,19 +43,21 @@ const Banner = ({ acctId, type, who, txtColor }: { acctId: string; type: string;
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	return (
-		<Link href={`/user?acctId=${acctId}&userId=${who?.id}`} push>
-			<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
-			<Link.Trigger>
-				<View style={{ flexDirection: 'row', marginTop: 5, marginLeft: 2, width: width - 10 }}>
-					<SymbolView name={icon(type)} type="monochrome" size={16} tintColor={txtColor} />
-					<Text style={{ marginLeft: 2 }}>{t(`timeline.notification.${type}.body`, { user: who?.display_name || who?.acct || '' })}</Text>
-				</View>
-			</Link.Trigger>
-		</Link>
+		<View style={{ padding: 5, paddingLeft: 10 }}>
+			<Link href={`/user?acctId=${acctId}&userId=${who?.id}`} push>
+				<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
+				<Link.Trigger>
+					<View style={{ flexDirection: 'row', marginTop: 5, marginLeft: 2, width: width - 10 }}>
+						<SymbolView name={icon(type)} type="monochrome" size={16} tintColor={txtColor} />
+						<Text style={{ marginLeft: 2 }}>{t(`timeline.notification.${type}.body`, { user: who?.display_name || who?.acct || '' })}</Text>
+					</View>
+				</Link.Trigger>
+			</Link>
+		</View>
 	)
 }
 export const Notification = (props: IProps) => {
-	const { status: notification, client, columnWidth, lang, updateStatus, acct, composeAction, statusAction, filters } = props
+	const { status: notification, client, columnWidth, lang, updateStatus, acct, composeAction, filters } = props
 	const { t } = useTranslation()
 	const router = useRouter()
 
@@ -76,7 +77,6 @@ export const Notification = (props: IProps) => {
 					acct={acct}
 					composeAction={composeAction}
 					config={{}}
-					statusAction={statusAction}
 					filters={filters}
 				/>
 			</>

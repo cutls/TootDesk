@@ -6443,6 +6443,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-translate-text@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "expo-translate-text@npm:0.1.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/8815c9b341417007922861ec071836d086e73cdbee2cd0468656e4c0962028455b5b4eabdf49d5bad2f59eb0c0c1f8772192e724be4f44aac8e574209d405f0e
+  languageName: node
+  linkType: hard
+
 "expo-updates-interface@npm:~2.0.0":
   version: 2.0.0
   resolution: "expo-updates-interface@npm:2.0.0"
@@ -11509,6 +11520,7 @@ __metadata:
     expo-status-bar: "npm:~3.0.8"
     expo-symbols: "npm:~1.0.7"
     expo-system-ui: "npm:~6.0.8"
+    expo-translate-text: "npm:^0.1.0"
     expo-updates: "npm:~29.0.15"
     expo-web-browser: "npm:~15.0.8"
     i18next: "npm:^25.7.1"

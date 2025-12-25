@@ -1,15 +1,26 @@
 import type { Account } from '@/entities/account'
 import type { Timeline as TimelineProps } from '@/entities/timeline'
+import { listenTimeline, listenTimelineWaiter, listenUser, listenUserWaiter } from '@/utils/socket'
 import { getAcctById } from '@/utils/storage'
+import { useConfigStore } from '@/utils/store/config'
 import { useFilterStore } from '@/utils/store/filter'
-import { getStatuses } from '@/utils/timeline'
+import { appendStatus, deleteStatus, getStatuses, updateStatuses } from '@/utils/timeline'
+import type {
+	DeleteHomeStatusPayload,
+	DeleteTimelineStatusPayload,
+	ReceiveHomeStatusPayload,
+	ReceiveHomeStatusUpdatePayload,
+	ReceiveTimelineStatusPayload,
+	ReceiveTimelineStatusUpdatePayload
+} from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import generator from '@cutls/megalodon'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
+import { useFocusEffect } from 'expo-router'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, RefreshControl, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, AppState, type AppStateStatus, PlatformColor, RefreshControl, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Status } from '../status/Status'
 import { Text } from '../themed/Text'
 interface IProps {
@@ -21,20 +32,23 @@ interface IProps {
 }
 export const Timeline = (props: IProps) => {
 	const { timeline, columnWidth, lang, relayRef, composeAction } = props
-	const { kind: type, listId, tagName, acctId } = timeline
+	const { id, kind: type, listId, tagName, acctId } = timeline
 	const targetId = type === 'list' ? listId : type === 'tag' ? tagName : null
 	const { t } = useTranslation()
 	const theme = useColorScheme()
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [acct, setAcct] = useState<Account | null>(null)
 	const { getFilters } = useFilterStore()
+	const { config } = useConfigStore()
 	const [filters, setFilters] = useState<Entity.Filter[]>([])
 
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
 	const [statuses, setStatuses] = useState<Entity.Status[]>([])
+	const [unread, setUnread] = useState<Entity.Status[]>([])
+	const [visibleIndex, setVisibleIndex] = useState(0)
 	const [isMore, setIsMore] = useState(false)
-	const [isLoading, setIsLoading] = useState(false)
+	const [isInitiated, setIsInitiated] = useState(false)
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [maxId, setMaxId] = useState<string | null>(null)
 	const isStreaming = false
@@ -42,6 +56,14 @@ export const Timeline = (props: IProps) => {
 		if (newStatus === null) setStatuses((prevStatuses) => prevStatuses.filter((s) => s.id !== deleteId))
 		if (newStatus) setStatuses((prevStatuses) => prevStatuses.map((s) => (s.id === newStatus.id ? newStatus : s)))
 	}
+	const flash = () => (relayRef as React.RefObject<FlashListRef<any> | null>)?.current?.flashScrollIndicators()
+	useEffect(() => {
+		if (unread.length === 0) return
+		if (((relayRef as React.RefObject<FlashListRef<any> | null>)?.current?.getFirstVisibleIndex() || 0) > 10) return
+		setStatuses((last) => [...unread, ...last])
+		setUnread([])
+		flash()
+	}, [unread])
 	const load = async (refresh: boolean) => {
 		try {
 			const getClient = async () => {
@@ -54,25 +76,102 @@ export const Timeline = (props: IProps) => {
 				return c
 			}
 			const useClient = client || (await getClient())
-			const isReset = isStreaming || !refresh
-			if (isReset) setStatuses([])
-			if (isReset) setIsLoading(true)
-			if (refresh) setIsRefreshing(true)
+			setIsRefreshing(true)
 			const option = {}
 			const res = await getStatuses(useClient, type, option, targetId)
-			if (isReset) setMaxId(res.maxId)
+			setMaxId(res.maxId)
 			setFilters(getFilters(acctId, type))
 			setStatuses(res.data)
+			if (refresh) return
+			if (type === 'home') {
+				const fn = async () => {
+					await listenUserWaiter(acctId)
+					listenUser<ReceiveHomeStatusPayload>(
+						'receive-home-status',
+						(ev) => {
+							if (ev.payload.acctId !== acctId) return
+							setUnread((last) => appendStatus(last, ev.payload.status))
+						},
+						config.timeline,
+						false //TTS
+					)
+
+					listenUser<ReceiveHomeStatusUpdatePayload>(
+						'receive-home-status-update',
+						(ev) => {
+							if (ev.payload.acctId !== acctId) return
+							setStatuses((last) => updateStatuses(last, ev.payload.status))
+						},
+						config.timeline,
+						false //TTS
+					)
+
+					listenUser<DeleteHomeStatusPayload>(
+						'delete-home-status',
+						(ev) => {
+							if (ev.payload.acctId !== acctId) return
+							setStatuses((last) => deleteStatus(last, ev.payload.statusId))
+						},
+						config.timeline,
+						false //TTS
+					)
+				}
+				fn()
+			} else {
+				const fn = async () => {
+					await listenTimelineWaiter(props.timeline.id)
+					listenTimeline<ReceiveTimelineStatusPayload>(
+						'receive-timeline-status',
+						(ev) => {
+							if (ev.payload.tlId !== timeline.id) return
+							setUnread((last) => appendStatus(last, ev.payload.status))
+						},
+						config.timeline,
+						false //TTS
+					)
+
+					listenTimeline<ReceiveTimelineStatusUpdatePayload>(
+						'receive-timeline-status-update',
+						(ev) => {
+							if (ev.payload.tlId !== timeline.id) return
+							setStatuses((last) => updateStatuses(last, ev.payload.status))
+						},
+						config.timeline,
+						false //TTS
+					)
+
+					listenTimeline<DeleteTimelineStatusPayload>(
+						'delete-timeline-status',
+						(ev) => {
+							if (ev.payload.tlId !== timeline.id) return
+							setStatuses((last) => deleteStatus(last, ev.payload.statusId))
+						},
+						config.timeline,
+						false //TTS
+					)
+				}
+				fn()
+			}
 		} catch (e) {
 			console.log(e)
 		} finally {
-			setIsLoading(false)
+			setIsInitiated(true)
 			setIsRefreshing(false)
 		}
 	}
 	useEffect(() => {
-		load(false)
+		const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
+			if (nextAppState === 'active') load(false)
+		}
+		const e = AppState.addEventListener('change', _handleAppStateChange)
+		return () => e.remove()
 	}, [])
+	useFocusEffect(
+		useCallback(() => {
+			load(false)
+			return () => {}
+		}, [])
+	)
 	const more = async () => {
 		setIsMore(true)
 		try {
@@ -104,12 +203,18 @@ export const Timeline = (props: IProps) => {
 					composeAction={composeAction}
 					config={{}}
 					lang={lang === 'ja' ? 'ja' : 'en'}
-					statusAction={(status: Entity.Status, type: 'reply' | 'quote' | 'edit') => console.log(status, type)}
 					filters={filters}
 				/>
 			)}
-			ListEmptyComponent={() => <View style={{ alignItems: 'center', marginTop: 100 }}>{isLoading ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}</View>}
-			onEndReached={() => more()}
+			ListEmptyComponent={() => <View style={{ alignItems: 'center', marginTop: 100 }}>{!isInitiated ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}</View>}
+			onEndReached={() => {
+				if (isMore) return
+				if (statuses.length >= 20) more()
+			}}
+			maintainVisibleContentPosition={{
+				autoscrollToTopThreshold: 0,
+				animateAutoScrollToBottom: false
+			}}
 			onEndReachedThreshold={0}
 			ListFooterComponent={() => (
 				<View style={{ width: columnWidth, justifyContent: 'center', alignItems: 'center', padding: 20, display: statuses.length === 0 ? 'none' : 'flex' }}>

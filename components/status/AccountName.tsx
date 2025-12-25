@@ -15,7 +15,7 @@ interface FromTootToAcctName {
 	showWithoutEllipsis?: boolean
 	width: number
 }
-export const AccountName = (props: FromTootToAcctName) => {
+export const AccountName = React.memo((props: FromTootToAcctName) => {
 	const { account, showWithoutEllipsis, width, fontSize = 20 } = props
 	const textProps = showWithoutEllipsis ? {} : { numberOfLines: 1 }
 	const theme = useColorScheme()
@@ -37,4 +37,4 @@ export const AccountName = (props: FromTootToAcctName) => {
 	) : (
 		<Text style={{ fontWeight: 'bold', fontSize }}>{account.username}</Text>
 	)
-}
+})

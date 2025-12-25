@@ -121,6 +121,7 @@ export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions
 						{t('composer.remove')}
 					</CustomedButton>
 				)}
+				<View style={{ height: 20 }} />
 			</View>
 		</View>
 	)

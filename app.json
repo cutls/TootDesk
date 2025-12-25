@@ -13,10 +13,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "top.thedesk.ios",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSAppleMusicUsageDescription": "This app requires access to Apple Music to display and control the currently playing track."
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
+    "locales": { "en": "./locales/bundle/en.json", "ja": "./locales/bundle/ja.json" },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

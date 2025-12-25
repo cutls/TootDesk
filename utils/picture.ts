@@ -4,8 +4,10 @@ import { Alert } from 'react-native'
 
 export const uploadCallback = async (callback: (result: Entity.Attachment | Entity.AsyncAttachment) => void, status: (v: number) => void, client: MegalodonInterface | null) => {
 	try {
+		const granted = await ImagePicker.requestMediaLibraryPermissionsAsync()
+		const mediaTypes: Array<'images' | 'videos'> = granted.status === 'granted' ? ['images', 'videos'] : ['images']
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ['images', 'videos'],
+			mediaTypes: mediaTypes,
 			allowsMultipleSelection: true,
 			quality: 1
 		})

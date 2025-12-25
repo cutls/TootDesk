@@ -14,7 +14,7 @@ interface FromTootToAcctName {
 	fontSize?: number
 	width: number
 }
-export const PollOption = (props: FromTootToAcctName) => {
+export const PollOption = React.memo((props: FromTootToAcctName) => {
 	const { text, emojis, width, fontSize = 20 } = props
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -31,4 +31,4 @@ export const PollOption = (props: FromTootToAcctName) => {
 			defaultViewProps={{ style: { width } }}
 		/>
 	)
-}
+})

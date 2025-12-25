@@ -9,8 +9,9 @@ import { AccountName } from './AccountName'
 
 import { emojify } from '@/utils/emojify'
 import { formatDistanceToNow } from 'date-fns'
+import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
+import HTML, { defaultHTMLElementModels, HTMLContentModel, type MixedStyleDeclaration } from 'react-native-render-html'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed
@@ -19,6 +20,7 @@ const renderers = {
 
 type IConfig = {}
 interface IProps {
+	acctId: string
 	status: Entity.Status
 	state: Entity.Status['quote_status_state']
 	columnWidth: number
@@ -26,9 +28,37 @@ interface IProps {
 	//openFromOtherAccount: (status: Entity.Status) => void
 	lang: 'ja' | 'en'
 }
+const QuoteHTML = React.memo(
+	({
+		status,
+		fontSize,
+		showGif,
+		tagStyle,
+		columnWidth,
+		left
+	}: {
+		status: Entity.Status
+		columnWidth: number
+		fontSize: number
+		showGif: boolean
+		tagStyle: Readonly<Record<string, MixedStyleDeclaration>>
+		left: number
+	}) => (
+		<HTML
+			source={{ html: `${emojify(status.content, status.emojis, fontSize * 0.8, showGif)}` }}
+			tagsStyles={tagStyle}
+			customHTMLElementModels={renderers}
+			contentWidth={columnWidth - left}
+			classesStyles={{ invisible: { fontSize: 0.01 }, 'quote-inline': { display: 'none' } }}
+			defaultTextProps={{ style: { fontSize: fontSize }, numberOfLines: 2 }}
+			defaultViewProps={{ style: { width: columnWidth - left } }}
+		/>
+	)
+)
 export const Quote = (props: IProps) => {
-	const { status, columnWidth, lang, state } = props
+	const { status, columnWidth, lang, state, acctId } = props
 	const { t } = useTranslation()
+	const router = useRouter()
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
@@ -37,7 +67,7 @@ export const Quote = (props: IProps) => {
 	const locale = lang === 'ja' ? ja : undefined
 	const fromNow = formatDistanceToNow(new Date(status.created_at), { addSuffix: true, locale })
 	const basic = status.account
-	const fontSize = 16
+	const fontSize = 14
 	const showGif = true
 	const left = 20
 	const daySize = lang === 'ja' ? 60 : 80
@@ -49,30 +79,22 @@ export const Quote = (props: IProps) => {
 		)
 	}
 	return (
-		<TouchableOpacity activeOpacity={0.7} style={{ display: 'flex', flexDirection: 'row', ...styles.container }}>
+		<TouchableOpacity onPress={() => router.push(`/detail?acctId=${acctId}&statusId=${status.id}`)} activeOpacity={0.7} style={{ display: 'flex', flexDirection: 'row', ...styles.container }}>
 			<View style={{ marginLeft: 5 }}>
 				<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
 					<Avatar src={basic.avatar} size={20} />
 					<AccountName account={basic} fontSize={14} width={columnWidth - left - 175} />
 					<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', width: 150, marginRight: 5 }}>
-						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: 150 - daySize, textAlign: 'right' }}>
+						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: 150 - daySize, textAlign: 'right', fontSize: 12 }}>
 							@{basic.acct}
 						</Text>
 						{basic.locked && <SymbolView name="lock" type="monochrome" tintColor={txtColor} size={16} />}
-						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: daySize, textAlign: 'right' }}>
+						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: daySize, textAlign: 'right', fontSize: 12 }}>
 							{fromNow}
 						</Text>
 					</View>
 				</View>
-				<HTML
-					source={{ html: `${emojify(status.content, status.emojis, fontSize * 0.8, showGif)}` }}
-					tagsStyles={tagStyle}
-					customHTMLElementModels={renderers}
-					contentWidth={columnWidth - left}
-					classesStyles={{ invisible: { fontSize: 0.01 }, 'quote-inline': { display: 'none' } }}
-					defaultTextProps={{ style: { fontSize: fontSize }, numberOfLines: 2 }}
-					defaultViewProps={{ style: { width: columnWidth - left } }}
-				/>
+				<QuoteHTML status={status} fontSize={fontSize} showGif={showGif} tagStyle={tagStyle} columnWidth={columnWidth} left={left} />
 			</View>
 		</TouchableOpacity>
 	)

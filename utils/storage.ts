@@ -44,6 +44,16 @@ export const removeTimelinesByAcctId = async (acctId: string) => {
 	const updatedTimelines = timelines.filter((t) => t.acctId !== acctId)
 	await saveTimelines(updatedTimelines)
 }
+export const getTimelineAccount = async (): Promise<Array<[Timeline, Account]>> => {
+	const timelines = await getTimelines()
+	const accounts = await listAccts()
+	const result: Array<[Timeline, Account]> = []
+	for (const timeline of timelines) {
+		const acct = accounts.find((a) => a.id === timeline.acctId)
+		if (acct) result.push([timeline, acct])
+	}
+	return result
+}
 
 export const cachedGetEmojis = async (acctId: string, client: MegalodonInterface) => {
 	const acct = await getAcctById(acctId)

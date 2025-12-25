@@ -1,0 +1,6 @@
+{
+	"ios": {
+		"NSPhotoLibraryUsageDescription": "Only for upload videos, this app requires access to your photo library. If you do not allow this, you can still upload images.",
+        "NSAppleMusicUsageDescription": "This app requires access to Apple Music to display and control the currently playing track."
+	}
+}

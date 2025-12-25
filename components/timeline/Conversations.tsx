@@ -1,11 +1,11 @@
 import type { Account } from '@/entities/account'
 import type { Timeline as TimelineProps } from '@/entities/timeline'
-import { listenUser, listenUserWaiter } from '@/utils/socket'
+import { listenTimeline, listenTimelineWaiter } from '@/utils/socket'
 import { getAcctById } from '@/utils/storage'
 import { useConfigStore } from '@/utils/store/config'
 import { useFilterStore } from '@/utils/store/filter'
-import { getNotifications } from '@/utils/timeline'
-import type { ReceiveNotificationPayload } from '@/utils/type'
+import { getConversations } from '@/utils/timeline'
+import type { ReceiveTimelineConversationPayload } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import generator from '@cutls/megalodon'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
@@ -14,7 +14,7 @@ import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, AppState, type AppStateStatus, PlatformColor, RefreshControl, TouchableOpacity, useColorScheme, View } from 'react-native'
-import { Notification } from '../status/Notification'
+import { Conversation } from '../status/Conversation'
 import { Text } from '../themed/Text'
 interface IProps {
 	timeline: TimelineProps
@@ -23,39 +23,31 @@ interface IProps {
 	relayRef?: React.Ref<FlashListRef<any>>
 	composeAction: (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => void
 }
-export const Notifications = (props: IProps) => {
+export const Conversations = (props: IProps) => {
 	const { timeline, columnWidth, lang, relayRef, composeAction } = props
 	const { acctId } = timeline
 	const { t } = useTranslation()
 	const theme = useColorScheme()
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [acct, setAcct] = useState<Account | null>(null)
-	const { config } = useConfigStore()
 
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
-	const [statuses, setStatuses] = useState<Entity.Notification[]>([])
-	const [unread, setUnread] = useState<Entity.Notification[]>([])
+	const [statuses, setStatuses] = useState<Entity.Conversation[]>([])
+	const [unread, setUnread] = useState<Entity.Conversation[]>([])
 	const [isMore, setIsMore] = useState(false)
 	const [isInitiated, setIsInitiated] = useState(false)
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [maxId, setMaxId] = useState<string | null>(null)
 
 	const { getFilters } = useFilterStore()
+	const { config } = useConfigStore()
 	const [filters, setFilters] = useState<Entity.Filter[]>([])
 	const isStreaming = false
 	const updateStatus = (newStatus: Entity.Status | null, deleteId?: string) => {
-		if (newStatus === null) setStatuses((prevStatuses) => prevStatuses.filter((s) => s.status?.id !== deleteId))
-		if (newStatus) setStatuses((prevStatuses) => prevStatuses.map((s) => (s.status?.id === newStatus.id ? { ...s, status: newStatus } : s)))
+		if (newStatus === null) setStatuses((prevStatuses) => prevStatuses.filter((s) => s.last_status?.id !== deleteId))
+		if (newStatus) setStatuses((prevStatuses) => prevStatuses.map((s) => (s.last_status?.id === newStatus.id ? { ...s, last_status: newStatus } : s)))
 	}
-	const flash = () => (relayRef as React.RefObject<FlashListRef<any> | null>)?.current?.flashScrollIndicators()
-	useEffect(() => {
-		if (unread.length === 0) return
-		if (((relayRef as React.RefObject<FlashListRef<any> | null>)?.current?.getFirstVisibleIndex() || 0) > 10) return
-		setStatuses((last) => [...unread, ...last])
-		setUnread([])
-		flash()
-	}, [unread])
 	const load = async (refresh: boolean) => {
 		try {
 			const getClient = async () => {
@@ -70,19 +62,17 @@ export const Notifications = (props: IProps) => {
 			const useClient = client || (await getClient())
 			setIsRefreshing(true)
 			const option = {}
-			const res = await getNotifications(useClient, option)
+			const res = await getConversations(useClient, option)
 			setMaxId(res[res.length - 1]?.id || null)
-			setFilters(getFilters(acctId, 'notifications'))
+			setFilters(getFilters(acctId, 'thread'))
 			setStatuses(res)
 			if (refresh) return
-			await listenUserWaiter(acctId)
-			listenUser<ReceiveNotificationPayload>(
-				'receive-notification',
+			await listenTimelineWaiter(timeline.id)
+			listenTimeline<ReceiveTimelineConversationPayload>(
+				'receive-timeline-conversation',
 				(ev) => {
-					setUnread((last) => {
-						if (last.find((n) => n.id === ev.payload.notification.id)) return last
-						return [ev.payload.notification].concat(last)
-					})
+					if (ev.payload.tlId !== timeline.id) return
+					setUnread((current) => prependConversation(current, ev.payload.conversation))
 				},
 				config.timeline,
 				false
@@ -90,7 +80,7 @@ export const Notifications = (props: IProps) => {
 		} catch (e) {
 			console.log(e)
 		} finally {
-			setIsInitiated(true)
+			setIsInitiated(false)
 			setIsRefreshing(false)
 		}
 	}
@@ -111,7 +101,7 @@ export const Notifications = (props: IProps) => {
 		setIsMore(true)
 		try {
 			if (!client) return
-			const res = await getNotifications(client, { max_id: maxId })
+			const res = await getConversations(client, { max_id: maxId })
 			setStatuses((p) => [...p, ...res])
 			setMaxId(res[res.length - 1]?.id || null)
 		} catch (e) {
@@ -128,9 +118,9 @@ export const Notifications = (props: IProps) => {
 			ref={relayRef}
 			refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => load(true)} />}
 			ItemSeparatorComponent={() => <View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: columnWidth - 10 }}></View>}
-			renderItem={({ item: status }) => (
-				<Notification
-					status={status}
+			renderItem={({ item: conversation }) => (
+				<Conversation
+					status={conversation}
 					client={client}
 					acct={acct}
 					columnWidth={columnWidth}
@@ -149,6 +139,7 @@ export const Notifications = (props: IProps) => {
 				autoscrollToTopThreshold: 0,
 				animateAutoScrollToBottom: false
 			}}
+			onEndReachedThreshold={0}
 			ListEmptyComponent={() => <View style={{ alignItems: 'center', marginTop: 100 }}>{!isInitiated ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}</View>}
 			ListFooterComponent={() => (
 				<View style={{ width: columnWidth, justifyContent: 'center', alignItems: 'center', padding: 20, display: statuses.length === 0 ? 'none' : 'flex' }}>
@@ -163,4 +154,20 @@ export const Notifications = (props: IProps) => {
 			)}
 		/>
 	)
+}
+
+const prependConversation = (conversations: Array<Entity.Conversation>, conversation: Entity.Conversation): Array<Entity.Conversation> => {
+	if (conversations.find((c) => c.id === conversation.id)) {
+		return updateConversation(conversations, conversation)
+	}
+	return [conversation, ...conversations]
+}
+
+const updateConversation = (conversations: Array<Entity.Conversation>, conversation: Entity.Conversation): Array<Entity.Conversation> => {
+	return conversations.map((c) => {
+		if (c.id === conversation.id) {
+			return conversation
+		}
+		return c
+	})
 }

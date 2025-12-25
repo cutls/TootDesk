@@ -1,7 +1,9 @@
 import type { Account } from '@/entities/account'
 import { useFilterStore } from '@/utils/store/filter'
+import { getAllMentions, getSourceText } from '@/utils/timeline'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
+import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, PlatformColor, TouchableOpacity, useColorScheme, View } from 'react-native'
@@ -16,6 +18,7 @@ interface IProps {
 }
 export const ProfileStatuses = (props: IProps) => {
 	const { t } = useTranslation()
+	const router = useRouter()
 	const { client, acct, columnWidth, targetId } = props
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -72,9 +75,13 @@ export const ProfileStatuses = (props: IProps) => {
 					columnWidth={columnWidth}
 					updateStatus={updateStatus}
 					config={{}}
-					composeAction={(client: MegalodonInterface, acct: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {}}
+					composeAction={async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {
+							const isMe = target.account.acct !== account.username ? `@${target.account.acct} ` : ''
+							if (type === 'reply') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=reply&addText=${encodeURIComponent(`${isMe}${getAllMentions(target)}`)}`)
+							if (type === 'quote') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=quote`)
+							if (type === 'edit') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=edit&addText=${encodeURIComponent(await getSourceText(target, client))}`)
+						}}
 					lang={props.lang === 'ja' ? 'ja' : 'en'}
-					statusAction={(status: Entity.Status, type: 'reply' | 'quote' | 'edit') => console.log(status, type)}
 					filters={filters}
 				/>
 			)}

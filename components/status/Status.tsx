@@ -1,6 +1,7 @@
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { ja } from 'date-fns/locale'
 import { SymbolView } from 'expo-symbols'
+import { onTranslateSheet } from 'expo-translate-text'
 import React, { useRef, useState } from 'react'
 import { ActionSheetIOS, ActivityIndicator, findNodeHandle, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import Avatar from '../Avatar'
@@ -9,7 +10,8 @@ import { AccountName } from './AccountName'
 
 import type { Account } from '@/entities/account'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
-import { formatDistanceToNow } from 'date-fns'
+import { stripTags } from '@/utils/string'
+import { calcFromNow } from '@/utils/timeline'
 import { Link, useRouter } from 'expo-router'
 import { openBrowserAsync } from 'expo-web-browser'
 import { useTranslation } from 'react-i18next'
@@ -26,7 +28,6 @@ interface IProps {
 	acct: Account
 	columnWidth: number
 	config: IConfig
-	statusAction: (status: Entity.Status, type: 'reply' | 'quote' | 'edit') => void
 	//openFromOtherAccount: (status: Entity.Status) => void
 	filters: Array<Entity.Filter>
 	lang: 'ja' | 'en'
@@ -40,16 +41,14 @@ const data = [
 	{ value: 'private', systemImage: 'person.2.fill' as const },
 	{ value: 'direct', systemImage: 'envelope.fill' as const }
 ]
-const actions = [{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const }]
+const actions = [
+	{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const },
+	{ title: 'timeline.action.translate', value: 'translate', systemImage: 'translate' as const }
+]
 const actionOnlyMe = [
 	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
 	{ title: 'timeline.action.delete', value: 'delete', systemImage: 'trash' as const, isDestructive: true }
 ]
-const shortenTime = (time: string, isJa: boolean) => {
-	const start = time.replace('約', '').replace('about', '')
-	const en = start.replace('days', 'd').replace('day', 'd').replace('hours', 'h').replace('hour', 'h').replace('minutes', 'm').replace('minute', 'm').replace('seconds', 's').trim()
-	return isJa ? `${en.replace(' ', '')}前` : en.trim()
-}
 export const Status = (props: IProps) => {
 	const { status: statusRaw, client, columnWidth, lang, updateStatus, acct, composeAction, filters } = props
 	const status = statusRaw.reblog ? statusRaw.reblog : statusRaw
@@ -64,7 +63,7 @@ export const Status = (props: IProps) => {
 	const styles = createStyles({ width: columnWidth })
 	const [isOpen, setIsOpen] = useState(false)
 	const locale = lang === 'ja' ? ja : undefined
-	const fromNow = shortenTime(formatDistanceToNow(new Date(status.created_at), { addSuffix: false, locale }), lang === 'ja')
+	const fromNow = calcFromNow(new Date(status.created_at), lang === 'ja')
 	const basic = status.account
 	const fontSize = 14
 	const showGif = true
@@ -114,6 +113,11 @@ export const Status = (props: IProps) => {
 			client.deleteStatus(status.id)
 			updateStatus(null, status.id)
 		}
+		if (d === 'translate') {
+			await onTranslateSheet({
+				input: stripTags(status.content)
+			})
+		}
 	}
 
 	const otherAction = isMe ? [...actions, ...actionOnlyMe] : actions
@@ -128,17 +132,19 @@ export const Status = (props: IProps) => {
 		)
 	}
 	return (
-		<View style={{ width: columnWidth, paddingHorizontal: 10, paddingVertical: 2 }}>
+		<View style={{ width: columnWidth, paddingHorizontal: 10, paddingBottom: 2, paddingTop: 5 }}>
 			{statusRaw.reblog && (
-				<Link href={`/user?acctId=${acct.id}&userId=${statusRaw.account.id}`} push>
-					<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
-					<Link.Trigger>
-						<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
-							<SymbolView name="repeat" type="monochrome" tintColor={PlatformColor('systemBlue')} size={fontSize * 1.2} />
-							<Text style={{ marginLeft: 5, color: PlatformColor('systemGray') }}>{t('timeline.status.rebloggedBy', { name: statusRaw.account.display_name || statusRaw.account.acct })}</Text>
-						</View>
-					</Link.Trigger>
-				</Link>
+				<View style={{ marginBottom: 5 }}>
+					<Link href={`/user?acctId=${acct.id}&userId=${statusRaw.account.id}`} push>
+						<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
+						<Link.Trigger>
+							<View style={{ display: 'flex', flexDirection: 'row' }}>
+								<SymbolView name="repeat" type="monochrome" tintColor={PlatformColor('systemBlue')} size={fontSize * 1.2} />
+								<Text style={{ marginLeft: 5, color: PlatformColor('systemGray') }}>{t('timeline.status.rebloggedBy', { name: statusRaw.account.display_name || statusRaw.account.acct })}</Text>
+							</View>
+						</Link.Trigger>
+					</Link>
+				</View>
 			)}
 			<View style={{ display: 'flex', flexDirection: 'row' }}>
 				<View style={{ width: avatarSize, alignItems: 'center' }}>
@@ -162,9 +168,11 @@ export const Status = (props: IProps) => {
 								@{basic.acct}
 							</Text>
 						</View>
-						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), textAlign: 'right', width: 50, fontSize: 10 }}>
-							{fromNow}
-						</Text>
+						<TouchableOpacity onPress={() => router.push(`/detail?acctId=${acct.id}&statusId=${status.id}`)} activeOpacity={0.7}>
+							<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), textAlign: 'right', width: 50, fontSize: 10 }}>
+								{fromNow}
+							</Text>
+						</TouchableOpacity>
 					</View>
 
 					{status.spoiler_text && (
@@ -185,7 +193,7 @@ export const Status = (props: IProps) => {
 						</View>
 					)}
 					{status.poll && <Poll client={client} updateStatus={updateStatus} emojis={status.emojis} status={status} columnWidth={columnWidth - left} config={{}} lang={lang} isMe={isMe} />}
-					{status.quote_status && <Quote status={status.quote_status} columnWidth={columnWidth - left} config={{}} lang={lang} state={status.quote_status_state} />}
+					{status.quote_status && <Quote acctId={acct.id} status={status.quote_status} columnWidth={columnWidth - left} config={{}} lang={lang} state={status.quote_status_state} />}
 					{status.card && <Card card={status.card} columnWidth={columnWidth - left} />}
 					<Attachment attachments={status.media_attachments} width={columnWidth - left} isSensitive={status.sensitive} />
 					<View style={{ display: 'flex', flexDirection: 'row', marginVertical: 10, paddingHorizontal: 10, justifyContent: 'space-between', width: columnWidth - left }}>

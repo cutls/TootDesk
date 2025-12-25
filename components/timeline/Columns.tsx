@@ -1,5 +1,6 @@
 import type { Account } from '@/entities/account'
 import { useTimelineStore } from '@/utils/store/timelines'
+import { getAllMentions, getSourceText } from '@/utils/timeline'
 import type { ActionProps, IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import type { FlashListRef } from '@shopify/flash-list'
@@ -9,6 +10,7 @@ import { useEffect, useRef } from 'react'
 import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import PagerView from 'react-native-pager-view'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Conversations } from '../timeline/Conversations'
 import { Notifications } from './Notifications'
 import { Timeline } from './Timeline'
 
@@ -19,19 +21,6 @@ interface IProps {
 		relayRef: React.Ref<FlashListRef<any>>
 		setComposeAction: IState<ActionProps | null>
 	}
-}
-const getAllMentions = (status: Entity.Status): string => {
-	const mentions: string[] = []
-	status.mentions.forEach((m) => {
-		mentions.push(`@${m.acct}`)
-	})
-	if (status.mentions.length) return `${mentions.join(' ')} `
-	return ''
-}
-const getSourceText = async (status: Entity.Status, client: MegalodonInterface | null) => {
-	if (!client) return ''
-	const r = await client.getStatusSource(status.id)
-	return r.data.text
 }
 export const Columns = ({ context }: IProps) => {
 	const { current, setCurrent, relayRef, setComposeAction } = context
@@ -57,6 +46,7 @@ export const Columns = ({ context }: IProps) => {
 					<View style={styles.page} key={timeline.id}>
 						{timeline.kind !== 'notifications' && timeline.kind !== 'direct' && <Timeline timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
 						{timeline.kind === 'notifications' && <Notifications timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
+						{timeline.kind === 'direct' && <Conversations timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
 					</View>
 				))}
 			</PagerView>
