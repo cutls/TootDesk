@@ -28,7 +28,7 @@ import { useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, type OpaqueColorValue, PlatformColor, Pressable, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, type OpaqueColorValue, PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const BasePerson = ({ relation: r, textColor }: { relation: Entity.Relationship; textColor: OpaqueColorValue }) => {
@@ -63,7 +63,7 @@ const GlassViewFallback = ({ isPreview, style, children }: { isPreview: boolean;
 export default function Index() {
 	const { t } = useTranslation()
 	const isPreview = useIsPreview()
-	const [scrolled, setScrolled] = useState(false)
+	const [scrollY, setScrollY] = useState(0)
 
 	const router = useRouter()
 	const params = useLocalSearchParams()
@@ -118,39 +118,12 @@ export default function Index() {
 	}
 	return (
 		<>
-			{scrolled && (
-				<View style={{ position: 'sticky', top: 0, left: 0, right: 0, alignItems: 'center', height: 100, justifyContent: 'center', zIndex: 5 }}>
-					<View
-						style={{
-							position: 'absolute',
-							paddingHorizontal: 10,
-							marginTop: 20,
-							zIndex: 2,
-							paddingTop: 20,
-							justifyContent: 'space-between',
-							flexDirection: 'row',
-							width: width
-						}}
-					>
-						<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 45 }}>
-							<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
-						</Button>
-						<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 45 }}>
-							{basic.acct}
-						</Button>
-						<View style={{ width: 45 }} />
-					</View>
-					<Image style={{ height: 100, width: width }} source={{ uri: basic.header }} />
-					<BlurView intensity={100} style={{ position: 'absolute', height: 100, width }}></BlurView>
-				</View>
-			)}
-			<ScrollView ref={ref} onScroll={(e) => setScrolled(e.nativeEvent.contentOffset.y > 300)} style={{}}>
+			<View style={{ position: 'sticky', top: 0, left: 0, right: 0, alignItems: 'center', height: 100, justifyContent: 'center', zIndex: 5 }}>
 				<View
 					style={{
 						position: 'absolute',
-						display: isPreview ? 'none' : undefined,
 						paddingHorizontal: 10,
-						marginTop: 25,
+						marginTop: 20,
 						zIndex: 2,
 						paddingTop: 20,
 						justifyContent: 'space-between',
@@ -158,31 +131,33 @@ export default function Index() {
 						width: width
 					}}
 				>
-					<Pressable onPress={() => router.back()}>
-						<GlassView style={{ width: 50, height: 50, padding: 10, borderRadius: 20, justifyContent: 'center', alignItems: 'center' }} tintColor="gray" glassEffectStyle="clear" isInteractive={true}>
-							<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} />
-						</GlassView>
-					</Pressable>
+					<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 60 }}>
+						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
+					</Button>
+					<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 60 }}>
+						{basic.acct}
+					</Button>
 					{relation && (
-						<Pressable onPress={() => setRSheet(true)}>
-							<GlassView
-								style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: 70, height: 50, padding: 10, borderRadius: 20 }}
-								tintColor="gray"
-								glassEffectStyle="clear"
-								isInteractive={true}
-							>
+						<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+							<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 45, height: 60 }}>
 								<BasePerson relation={relation} textColor={textColor} />
+							</Button>
+							<GlassView tintColor="gray" glassEffectStyle="regular" style={{ marginLeft: 5, marginTop: 25, padding: 5, borderRadius: 40 }}>
 								<Relation relation={relation} textColor={textColor} />
 							</GlassView>
-						</Pressable>
+						</View>
 					)}
 				</View>
-				<Image style={styles.header} source={{ uri: basic.header }} />
+				<Image style={{ height: 120, width: width, opacity: scrollY > 300 ? 1 : 0 }} source={{ uri: basic.header }} />
+				<BlurView intensity={scrollY > 300 ? 100 : 0} style={{ position: 'absolute', height: 120, width }}></BlurView>
+			</View>
+			<Image style={[styles.header, { height: Math.max(340, 300 - Math.min(0, scrollY)) }]} source={{ uri: basic.header }} />
+			<ScrollView ref={ref} onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+				<View style={styles.headerWrap} />
 				<GlassViewFallback isPreview={isPreview} style={styles.infoBar}>
 					<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>
 						<Avatar src={basic.avatar} size={80} />
 					</View>
-
 					<View style={{ marginLeft: 5 }}>
 						<AccountName account={basic} fontSize={24} width={width - 145} />
 						<TouchableOpacity style={{ display: 'flex', flexDirection: 'row', marginVertical: 5 }} onPress={() => Linking.openURL(basic.url)}>
@@ -220,7 +195,7 @@ export default function Index() {
 						</View>
 					</View>
 				</GlassViewFallback>
-				<View style={{ padding: 10 }}>
+				<View style={{ padding: 10, backgroundColor: isDark ? '#111' : '#fff' }}>
 					<ProfileText acctId={acct.id} client={client} account={basic} width={width - 20} fontSize={14} />
 					{basic.fields.map((field, idx) => (
 						<View
@@ -244,26 +219,26 @@ export default function Index() {
 						</View>
 					))}
 				</View>
-				<View style={{ borderWidth: 0.5, borderColor: PlatformColor('separator'), marginLeft: 5, width: width - 10, marginVertical: 10 }}></View>
 				<SegmentedControl
 					values={[t('user.posts'), t('user.follows'), t('user.followers')]}
 					selectedIndex={page}
 					onChange={(event) => {
 						setPage(event.nativeEvent.selectedSegmentIndex)
 					}}
+					style={{ backgroundColor: isDark ? '#111' : '#fff' }}
 				/>
 				{page === 0 && (
-					<View style={{ flex: 1 }}>
+					<View style={{ flex: 1, backgroundColor: isDark ? '#111' : '#fff' }}>
 						<ProfileStatuses lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
 					</View>
 				)}
 				{page === 1 && (
-					<View>
+					<View style={{ backgroundColor: isDark ? '#111' : '#fff' }}>
 						<ProfileUsers type="following" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
 					</View>
 				)}
 				{page === 2 && (
-					<View>
+					<View style={{ backgroundColor: isDark ? '#111' : '#fff' }}>
 						<ProfileUsers type="followers" lang={lang} targetId={basic.id} client={client} acct={acct} columnWidth={width} />
 					</View>
 				)}
@@ -274,9 +249,13 @@ export default function Index() {
 }
 const createStyles = ({ width }: { width: number }) =>
 	StyleSheet.create({
-		header: {
+		headerWrap: {
 			width: width,
 			height: 300
+		},
+		header: {
+			width: width,
+			position: 'absolute'
 		},
 		infoBar: {
 			position: 'absolute',

@@ -35,6 +35,7 @@ export default function RootLayout() {
 						<Stack.Screen name="detail" options={{ title: t('screen.detail') }} />
 						<Stack.Screen name="post" options={{ title: t('screen.post') }} />
 						<Stack.Screen name="config" options={{ title: t('screen.config') }} />
+						<Stack.Screen name="search" options={{ title: t('screen.search') }} />
 						<Stack.Screen name="user" options={{ title: '', headerShown: false }} />
 					</Stack>
 					<StatusBar style="auto" />

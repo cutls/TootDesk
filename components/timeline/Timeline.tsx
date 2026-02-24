@@ -46,7 +46,6 @@ export const Timeline = (props: IProps) => {
 	const txtColor = isDark ? 'white' : 'black'
 	const [statuses, setStatuses] = useState<Entity.Status[]>([])
 	const [unread, setUnread] = useState<Entity.Status[]>([])
-	const [visibleIndex, setVisibleIndex] = useState(0)
 	const [isMore, setIsMore] = useState(false)
 	const [isInitiated, setIsInitiated] = useState(false)
 	const [isRefreshing, setIsRefreshing] = useState(false)
@@ -119,7 +118,7 @@ export const Timeline = (props: IProps) => {
 				fn()
 			} else {
 				const fn = async () => {
-					await listenTimelineWaiter(props.timeline.id)
+					await listenTimelineWaiter(timeline.id)
 					listenTimeline<ReceiveTimelineStatusPayload>(
 						'receive-timeline-status',
 						(ev) => {

@@ -11,7 +11,7 @@ import { emojify } from '@/utils/emojify'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import HTML, { defaultHTMLElementModels, HTMLContentModel, type MixedStyleDeclaration } from 'react-native-render-html'
+import HTML, { defaultHTMLElementModels, HTMLContentModel } from 'react-native-render-html'
 const renderers = {
 	img: defaultHTMLElementModels.img.extend({
 		contentModel: HTMLContentModel.mixed
@@ -28,33 +28,22 @@ interface IProps {
 	//openFromOtherAccount: (status: Entity.Status) => void
 	lang: 'ja' | 'en'
 }
-const QuoteHTML = React.memo(
-	({
-		status,
-		fontSize,
-		showGif,
-		tagStyle,
-		columnWidth,
-		left
-	}: {
-		status: Entity.Status
-		columnWidth: number
-		fontSize: number
-		showGif: boolean
-		tagStyle: Readonly<Record<string, MixedStyleDeclaration>>
-		left: number
-	}) => (
-		<HTML
-			source={{ html: `${emojify(status.content, status.emojis, fontSize * 0.8, showGif)}` }}
-			tagsStyles={tagStyle}
-			customHTMLElementModels={renderers}
-			contentWidth={columnWidth - left}
-			classesStyles={{ invisible: { fontSize: 0.01 }, 'quote-inline': { display: 'none' } }}
-			defaultTextProps={{ style: { fontSize: fontSize }, numberOfLines: 2 }}
-			defaultViewProps={{ style: { width: columnWidth - left } }}
-		/>
-	)
-)
+const QuoteHTML = React.memo(({ status, fontSize, showGif, txtColor, columnWidth }: { status: Entity.Status; columnWidth: number; fontSize: number; showGif: boolean; txtColor: string }) => (
+	<HTML
+		source={{ html: `${emojify(status.content, status.emojis, fontSize * 0.8, showGif)}` }}
+		tagsStyles={{ p: { color: txtColor }, a: { color: PlatformColor('link') } }}
+		customHTMLElementModels={renderers}
+		contentWidth={columnWidth}
+		classesStyles={{
+			invisible: { color: PlatformColor('link') },
+			ellipsis: { color: PlatformColor('link') },
+			'quote-inline': { display: 'none' },
+			mention: { color: PlatformColor('link') },
+			hashtag: { color: PlatformColor('link') }
+		}}
+		baseStyle={{ color: txtColor }}
+	/>
+))
 export const Quote = (props: IProps) => {
 	const { status, columnWidth, lang, state, acctId } = props
 	const { t } = useTranslation()
@@ -94,7 +83,7 @@ export const Quote = (props: IProps) => {
 						</Text>
 					</View>
 				</View>
-				<QuoteHTML status={status} fontSize={fontSize} showGif={showGif} tagStyle={tagStyle} columnWidth={columnWidth} left={left} />
+				<QuoteHTML status={status} fontSize={fontSize} showGif={showGif} txtColor={txtColor} columnWidth={columnWidth} />
 			</View>
 		</TouchableOpacity>
 	)

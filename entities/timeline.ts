@@ -10,7 +10,7 @@ export type Timeline = {
 	mediaOnly?: boolean
 	isMisskeyAntenna?: boolean
 }
-export const colorList = ['blue', 'green', 'indigo', 'orange', 'red', 'teal', 'yellow'] as const
+export const colorList = ['blue', 'green', 'indigo', 'orange', 'red'] as const
 export type Color = (typeof colorList)[number]
 export type TimelineKind = 'home' | 'notifications' | 'local' | 'public' | 'favourites' | 'list' | 'bookmarks' | 'direct' | 'tag'
 export const columnWidthSet = ['xs', 'sm', 'md', 'lg'] as const

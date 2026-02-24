@@ -228,15 +228,9 @@ export default function Index() {
 						</CustomedButton>
 					</View>
 				)
-			) : isLoading ? (
-				<View style={{ marginTop: 20 }}>
-					<ActivityIndicator />
-				</View>
-			) : (
-				<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => preLogin()}>
+			) : <CustomedButton isLoading={isLoading} isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => preLogin()}>
 					{t('screen.login')}
-				</CustomedButton>
-			)}
+				</CustomedButton>}
 		</KeyboardAvoidingView>
 	)
 }

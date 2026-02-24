@@ -197,19 +197,19 @@ export const allUnsubscribe = async () => {
 			if (ch.stream !== 'user') str.unsubscribe(ch.stream)
 		}
 	}
-	if (streamingState.length === 0) return
+	if (!streamingState || streamingState.length === 0) return
 	for (const streaming of streamingState) streaming[1]?.removeAllListeners()
 	globalThis.streamings = []
 }
 export const allClose = async () => {
 	const streamingState = globalThis.streamings
 	console.log('allClosed', streamingState)
-	if (streamingState.length === 0) return
+	if (!streamingState || streamingState.length === 0) return
 	for (const streaming of streamingState) streaming[1]?.removeAllListeners()
 	for (const streaming of streamingState) streaming[1]?.stop()
 	globalThis.streamings = []
 	const userStreamingState = globalThis.userStreamings
-	if (userStreamingState.length === 0) return
+	if (!userStreamingState || userStreamingState.length === 0) return
 	for (const streaming of userStreamingState) streaming[1]?.removeAllListeners()
 	for (const streaming of userStreamingState) streaming[1]?.stop()
 	globalThis.userStreamings = []

@@ -1,11 +1,11 @@
 import type { Poll as IPoll } from '@/entities/status'
-import { staticStyles } from '@/utils/theme'
 import type { ComposeMode } from '@/utils/type'
 import { Button as SwiftButton } from '@expo/ui/swift-ui'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, Switch, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, Switch, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
+import { TextInputMulti } from '../themed/TextInputMulti'
 import { Button } from '../ui/Button'
 import { CustomedButton } from '../ui/CustomedButton'
 import { Dropdown } from '../ui/Dropdown'
@@ -25,19 +25,7 @@ const expiresList = [
 	{ title: 'composer.poll.3d', value: '259200' },
 	{ title: 'composer.poll.7d', value: '604800' }
 ]
-const TextInputMulti = ({ onBlur, placeholder, isDark, defaultValue }: { onBlur: (value: string) => void; placeholder: string; isDark: boolean; defaultValue: string }) => {
-	const [value, setValue] = useState(defaultValue)
-	return (
-		<TextInput
-			value={value}
-			onChangeText={(t) => setValue(t)}
-			onBlur={() => onBlur(value)}
-			style={[staticStyles.input, { flexGrow: 1 }]}
-			placeholder={placeholder}
-			placeholderTextColor={isDark ? 'lightgray' : 'gray'}
-		/>
-	)
-}
+
 export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()

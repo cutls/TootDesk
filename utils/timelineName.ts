@@ -1,4 +1,6 @@
+import type { TimelineKind } from '@/entities/timeline'
 import generator from '@cutls/megalodon'
+import type { SFSymbol } from 'expo-symbols'
 import { getAcctById } from './storage'
 
 export const makeTimelineNameWithAcctId = async (kind: string, kindLocalized: string, acctId: string): Promise<string> => {
@@ -18,4 +20,16 @@ export const makeListTimelineNameWithAcctId = async (kind: string, kindLocalized
 	} catch {
 		return 'List'
 	}
+}
+export const icon = (kind: TimelineKind): SFSymbol => {
+	if (kind === 'home') return 'house.fill'
+	if (kind === 'notifications') return 'bell.fill'
+	if (kind === 'local') return 'person.2.fill'
+	if (kind === 'public') return 'globe'
+	if (kind === 'list') return 'list.bullet'
+	if (kind === 'bookmarks') return 'bookmark.fill'
+	if (kind === 'direct') return 'envelope.fill'
+	if (kind === 'favourites') return 'star.fill'
+	if (kind === 'tag') return 'tag.fill'
+	return 'rectangle.stack.person.crop'
 }

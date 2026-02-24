@@ -13,7 +13,8 @@
         "acct": "Account Manager",
 		"detail": "Detail",
 		"post": "Post",
-		"config": "Preferences"
+		"config": "Preferences",
+		"search": "Search"
     },
     "login": {
         "failed": "Login failed",
@@ -236,5 +237,22 @@
         "follows": "Following",
         "posts": "Posts",
 		"joinedAt": "Joined on {{absolute}} ({{relative}})"
-    }
+    },
+	"search": {
+		"trend": "Trend",
+		"trendTag": "Trending Tag",
+		"trendUser": "Trending User",
+		"trendPost": "Trending Post",
+		"tag": "Tag",
+		"user": "User",
+		"post": "Post",
+		"placeholder": "Search for users, tags, or posts",
+		"search": "Search"
+	},
+	"navigation": {
+		"config": {
+			"color": "Color of Timeline",
+			"name": "Name of Timeline"
+		}
+	}
 }

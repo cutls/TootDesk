@@ -1,4 +1,3 @@
-import { Text } from '@/components/themed/Text'
 import { CustomedButton } from '@/components/ui/CustomedButton'
 import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
@@ -19,8 +18,8 @@ export default function Index() {
 	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
 	return (
 		<ScrollView style={{ padding: 20 }}>
-			<CustomedButton isGlass={true} isPrimary={true} onPress={() => router.push('/acct')}>
-				<Text>{t('screen.acct')}</Text>
+			<CustomedButton isGlass={true} isPrimary={true} onPress={() => router.push('/acct')} systemImage="person">
+				{t('screen.acct')}
 			</CustomedButton>
 		</ScrollView>
 	)

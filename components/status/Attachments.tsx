@@ -43,6 +43,7 @@ export const Attachment = (props: IProps) => {
 			</TouchableOpacity>
 		)
 	}
+	const getImageIndex = (id: string) => attachments.filter((a) => a.type === 'image').findIndex((a) => a.id === id)
 	return (
 		<Galeria urls={attachments.filter((a) => a.type === 'image').map((a) => a.url)}>
 			<View style={{ display: 'flex', flexDirection: 'row', marginVertical: 5, gap: 5 }}>
@@ -58,7 +59,7 @@ export const Attachment = (props: IProps) => {
 						)
 					}
 					return (
-						<Galeria.Image index={index} key={a.id}>
+						<Galeria.Image index={getImageIndex(a.id)} key={a.id}>
 							<Image source={getPreviewUrl(a)} style={{ height, width: width / attachments.length - 5, ...styles.common }} />
 						</Galeria.Image>
 					)

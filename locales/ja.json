@@ -13,7 +13,8 @@
 		"acct": "アカウントマネージャー",
 		"detail": "詳細",
 		"post": "投稿",
-		"config": "設定"
+		"config": "設定",
+		"search": "検索"
 	},
 	"login": {
 		"failed": "ログインに失敗しました",
@@ -236,5 +237,22 @@
 		"follows": "フォロー",
 		"posts": "投稿",
 		"joinedAt": "{{absolute}}({{relative}})から参加"
+	},
+	"search": {
+		"trend": "トレンド",
+		"trendTag": "トレンドタグ",
+		"trendUser": "トレンドユーザー",
+		"trendPost": "トレンド投稿",
+		"tag": "タグ",
+		"user": "ユーザー",
+		"post": "投稿",
+		"placeholder": "ユーザー、タグ、投稿を検索",
+		"search": "検索"
+	},
+	"navigation": {
+		"config": {
+			"color": "タイムラインの色",
+			"name": "タイムラインの名前"
+		}
 	}
 }
