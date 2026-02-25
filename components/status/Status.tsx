@@ -9,6 +9,7 @@ import { Text } from '../themed/Text'
 import { AccountName } from './AccountName'
 
 import type { Account } from '@/entities/account'
+import type { Settings } from '@/entities/settings'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { stripTags } from '@/utils/string'
 import { calcFromNow } from '@/utils/timeline'
@@ -22,7 +23,7 @@ import { RenderHTML } from './HTML'
 import { Poll } from './Poll'
 import { Quote } from './Quote'
 
-type IConfig = {}
+type IConfig = Settings['timeline']
 interface IProps {
 	status: Entity.Status
 	client: MegalodonInterface
@@ -46,8 +47,7 @@ const actions = [
 	{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const },
 	{ title: 'timeline.action.translate', value: 'translate', systemImage: 'translate' as const },
 	{ title: 'timeline.action.copyUrl', value: 'copyUrl', systemImage: 'copy' as const },
-	{ title: 'timeline.action.openInBrowser', value: 'openInBrowser', systemImage: 'safari' as const },
-	
+	{ title: 'timeline.action.openInBrowser', value: 'openInBrowser', systemImage: 'safari' as const }
 ]
 const actionOnlyMe = [
 	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
@@ -70,11 +70,12 @@ export const Status = (props: IProps) => {
 	const fromNow = calcFromNow(new Date(status.created_at), lang === 'ja')
 	const basic = status.account
 	const fontSize = 14
-	const showGif = true
+	const showGif = props.config.animation === 'yes'
 	const showCount = true
 	const avatarSize = 45
 	const left = avatarSize + 25
 	const [isFiltered, setIsFiltered] = useState(filters.some((f) => status.content.includes(f.phrase) || status.spoiler_text.includes(f.phrase)))
+	const isCW = status.spoiler_text.length > 0 || (props.config.maxLength > 0 ? status.content.length > props.config.maxLength : false)
 	const action = async (type: 'bt' | 'fav' | 'bookmark') => {
 		setIsProcessing(true)
 		try {
@@ -198,9 +199,9 @@ export const Status = (props: IProps) => {
 						</TouchableOpacity>
 					</View>
 
-					{status.spoiler_text && (
+					{isCW && (
 						<View style={styles.cwWrap}>
-							<Text style={{ fontSize: fontSize, marginRight: 2, width: columnWidth - 180 }}>{status.spoiler_text}</Text>
+							<Text style={{ fontSize: fontSize, marginRight: 2, width: columnWidth - 180 }}>{status.spoiler_text || status.content.slice(0, 20)}</Text>
 							<TouchableOpacity
 								activeOpacity={0.7}
 								onPress={() => setIsOpen(!isOpen)}
@@ -210,15 +211,15 @@ export const Status = (props: IProps) => {
 							</TouchableOpacity>
 						</View>
 					)}
-					{(!status.spoiler_text || isOpen) && (
+					{(!isCW || isOpen) && (
 						<View style={{ display: 'flex', marginTop: 5 }}>
 							<RenderHTML status={status} fontSize={fontSize} showGif={showGif} txtColor={txtColor} columnWidth={columnWidth} left={left} handleLink={handleLink} />
 						</View>
 					)}
 					{status.poll && <Poll client={client} updateStatus={updateStatus} emojis={status.emojis} status={status} columnWidth={columnWidth - left} config={{}} lang={lang} isMe={isMe} />}
-					{status.quote_status && <Quote acctId={acct.id} status={status.quote_status} columnWidth={columnWidth - left} config={{}} lang={lang} state={status.quote_status_state} />}
+					{status.quote_status && <Quote config={props.config} acctId={acct.id} status={status.quote_status} columnWidth={columnWidth - left} lang={lang} state={status.quote_status_state} />}
 					{status.card && <Card card={status.card} columnWidth={columnWidth - left} />}
-					<Attachment attachments={status.media_attachments} width={columnWidth - left} isSensitive={status.sensitive} />
+					<Attachment attachments={status.media_attachments} width={columnWidth - left} isSensitive={status.sensitive} config={props.config} />
 					<View style={{ display: 'flex', flexDirection: 'row', marginVertical: 10, paddingHorizontal: 10, justifyContent: 'space-between', width: columnWidth - left }}>
 						<TouchableOpacity style={styles.action} onPress={() => composeAction(client, acct, 'reply', status)}>
 							<SymbolView name="arrowshape.turn.up.left" type="monochrome" tintColor={txtColor} size={fontSize * 1.2} />

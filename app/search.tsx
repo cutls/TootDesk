@@ -5,6 +5,7 @@ import { Text } from '@/components/themed/Text'
 import { IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
+import { useConfigStore } from '@/utils/store/config'
 import { staticStyles } from '@/utils/theme'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
@@ -24,6 +25,8 @@ export default function Index() {
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const params = useLocalSearchParams()
+
+	const { config } = useConfigStore()
 	const { acctId: acctIdDefault } = params as Record<'acctId', string>
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
@@ -169,7 +172,7 @@ export default function Index() {
 							client={client}
 							lang={lang}
 							columnWidth={width - 30}
-							config={{}}
+							config={config.timeline}
 							filters={[]}
 							updateStatus={() => {}}
 							composeAction={async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {

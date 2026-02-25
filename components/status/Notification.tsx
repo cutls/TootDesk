@@ -5,6 +5,7 @@ import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } 
 import { Text } from '../themed/Text'
 
 import type { Account } from '@/entities/account'
+import { useConfigStore } from '@/utils/store/config'
 import { Link, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { User } from '../profile/User'
@@ -60,6 +61,7 @@ export const Notification = (props: IProps) => {
 	const { status: notification, client, columnWidth, lang, updateStatus, acct, composeAction, filters } = props
 	const { t } = useTranslation()
 	const router = useRouter()
+	const { config } = useConfigStore()
 
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -76,7 +78,7 @@ export const Notification = (props: IProps) => {
 					updateStatus={updateStatus}
 					acct={acct}
 					composeAction={composeAction}
-					config={{}}
+					config={config.timeline}
 					filters={filters}
 				/>
 			</>

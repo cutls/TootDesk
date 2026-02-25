@@ -6,6 +6,7 @@ import { CustomButton, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Timeline } from '@/entities/timeline'
 import { getAcctById, getTimelines, saveTimelines } from '@/utils/storage'
+import { useConfigStore } from '@/utils/store/config'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import { makeTagTimelineNameWithAcctId } from '@/utils/timelineName'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
@@ -23,6 +24,8 @@ export default function Index() {
 
 	const router = useRouter()
 	const navigation = useNavigation()
+
+	const { config } = useConfigStore()
 
 	const params = useLocalSearchParams()
 	const { acctId, q } = params as Record<'acctId' | 'q', string>
@@ -118,7 +121,7 @@ export default function Index() {
 							client={client}
 							lang={lang}
 							columnWidth={width}
-							config={{}}
+							config={config.timeline}
 							filters={[]}
 							updateStatus={() => {}}
 							composeAction={async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {

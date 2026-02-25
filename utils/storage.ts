@@ -1,4 +1,5 @@
 import { mockAccount, type Account } from '@/entities/account'
+import type { Settings } from '@/entities/settings'
 import type { Timeline } from '@/entities/timeline'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Storage from 'expo-sqlite/kv-store'
@@ -89,4 +90,14 @@ export const getSpotifyToken = async (): Promise<{ accessToken: string; refreshT
 
 export const allReset = async () => {
 	await Storage.clear()
+}
+
+export const getSettings = async (): Promise<Settings | null> => {
+	const value = await Storage.getItem('settings')
+	if (!value) return null
+	return JSON.parse(value) as Settings
+}
+
+export const saveSettings = async (settings: Settings): Promise<void> => {
+	await Storage.setItem('settings', JSON.stringify(settings))
 }

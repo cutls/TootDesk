@@ -200,7 +200,7 @@ export const Timeline = (props: IProps) => {
 					columnWidth={columnWidth}
 					updateStatus={updateStatus}
 					composeAction={composeAction}
-					config={{}}
+					config={config.timeline}
 					lang={lang === 'ja' ? 'ja' : 'en'}
 					filters={filters}
 				/>

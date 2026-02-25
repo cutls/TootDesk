@@ -1,4 +1,5 @@
 import type { Account } from '@/entities/account'
+import { useConfigStore } from '@/utils/store/config'
 import { useFilterStore } from '@/utils/store/filter'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
@@ -19,6 +20,8 @@ interface IProps {
 export const ProfileStatuses = (props: IProps) => {
 	const { t } = useTranslation()
 	const router = useRouter()
+
+	const { config } = useConfigStore()
 	const { client, acct, columnWidth, targetId } = props
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
@@ -74,27 +77,27 @@ export const ProfileStatuses = (props: IProps) => {
 					acct={acct}
 					columnWidth={columnWidth}
 					updateStatus={updateStatus}
-					config={{}}
+					config={config.timeline}
 					composeAction={async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {
-							const isMe = target.account.acct !== account.username ? `@${target.account.acct} ` : ''
-							if (type === 'reply') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=reply&addText=${encodeURIComponent(`${isMe}${getAllMentions(target)}`)}`)
-							if (type === 'quote') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=quote`)
-							if (type === 'edit') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=edit&addText=${encodeURIComponent(await getSourceText(target, client))}`)
-						}}
+						const isMe = target.account.acct !== account.username ? `@${target.account.acct} ` : ''
+						if (type === 'reply') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=reply&addText=${encodeURIComponent(`${isMe}${getAllMentions(target)}`)}`)
+						if (type === 'quote') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=quote`)
+						if (type === 'edit') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=edit&addText=${encodeURIComponent(await getSourceText(target, client))}`)
+					}}
 					lang={props.lang === 'ja' ? 'ja' : 'en'}
 					filters={filters}
 				/>
 			)}
-			ListEmptyComponent={() => (
-				<View style={{ alignItems: 'center', marginTop: 100 }}>
-					{isLoading ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}
-				</View>
-			)}
+			ListEmptyComponent={() => <View style={{ alignItems: 'center', marginTop: 100 }}>{isLoading ? <ActivityIndicator /> : <Text>{t('empty')}</Text>}</View>}
 			ListFooterComponent={() => (
 				<View style={{ width: columnWidth, justifyContent: 'center', alignItems: 'center', padding: 20, display: statuses.length === 0 ? 'none' : 'flex' }}>
-					{isMore ? <ActivityIndicator /> : <TouchableOpacity activeOpacity={0.7} onPress={() => more()} style={{ padding: 10, borderRadius: 5, borderWidth: 1, borderColor: PlatformColor('separator') }}>
-						<Text>{t('timeline.more')}</Text>
-					</TouchableOpacity>}
+					{isMore ? (
+						<ActivityIndicator />
+					) : (
+						<TouchableOpacity activeOpacity={0.7} onPress={() => more()} style={{ padding: 10, borderRadius: 5, borderWidth: 1, borderColor: PlatformColor('separator') }}>
+							<Text>{t('timeline.more')}</Text>
+						</TouchableOpacity>
+					)}
 				</View>
 			)}
 		/>

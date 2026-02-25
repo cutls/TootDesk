@@ -43,8 +43,8 @@ export const defaultSetting: Settings = {
 	timeline: {
 		time: 'relative',
 		animation: 'yes',
-		maxImageHeight: 200,
-		maxLength: 0,
+		maxImageHeight: 100,
+		maxLength: 500,
 		notification: 'yes',
 		ttsProvider: 'system',
 		ttsPort: 50080,

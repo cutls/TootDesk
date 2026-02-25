@@ -259,12 +259,31 @@
 		}
 	},
 	"config": {
+		"save": "Save",
 		"timeline": {
 			"title": "Timeline",
 			"maxImageHeight": {
 				"label": "Image Thumbnail Height on Timeline",
-				"hint": "Set to 0 to disable cropping"
+				"hint": ""
+			},
+			"maxLength": {
+				"label": "Collapse Post After",
+				"hint": "Characters before collapsing. Set to 0 to never collapse"
+			},
+			"animation": {
+				"label": "Animate Icons & Custom Emoji",
+				"hint": "Play animated versions of icons and custom emoji"
+			},
+			"cropImage": {
+				"label": "Image Display Mode",
+				"hint": "How images are fitted in the thumbnail",
+				"cover": "Crop",
+				"contain": "Fit"
 			}
+		},
+		"unsavedChanges": {
+			"title": "Unsaved Changes",
+			"message": "You have unsaved changes. Do you want to discard them?"
 		}
 	}
 }

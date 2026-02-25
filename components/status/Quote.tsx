@@ -7,6 +7,7 @@ import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
 import { AccountName } from './AccountName'
 
+import type { Settings } from '@/entities/settings'
 import { emojify } from '@/utils/emojify'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'expo-router'
@@ -18,7 +19,7 @@ const renderers = {
 	})
 }
 
-type IConfig = {}
+type IConfig = Settings['timeline']
 interface IProps {
 	acctId: string
 	status: Entity.Status
@@ -57,7 +58,7 @@ export const Quote = (props: IProps) => {
 	const fromNow = formatDistanceToNow(new Date(status.created_at), { addSuffix: true, locale })
 	const basic = status.account
 	const fontSize = 14
-	const showGif = true
+	const showGif = props.config.animation === 'yes'
 	const left = 20
 	const daySize = lang === 'ja' ? 60 : 80
 	if (state !== 'accepted') {
@@ -71,7 +72,7 @@ export const Quote = (props: IProps) => {
 		<TouchableOpacity onPress={() => router.push(`/detail?acctId=${acctId}&statusId=${status.id}`)} activeOpacity={0.7} style={{ display: 'flex', flexDirection: 'row', ...styles.container }}>
 			<View style={{ marginLeft: 5 }}>
 				<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-					<Avatar src={basic.avatar} size={20} />
+					<Avatar src={showGif ? basic.avatar : basic.avatar_static} size={20} />
 					<AccountName account={basic} fontSize={14} width={columnWidth - left - 175} />
 					<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', width: 150, marginRight: 5 }}>
 						<Text numberOfLines={1} style={{ color: PlatformColor('systemGray'), width: 150 - daySize, textAlign: 'right', fontSize: 12 }}>

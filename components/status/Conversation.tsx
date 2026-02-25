@@ -3,13 +3,14 @@ import React from 'react'
 import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 
 import type { Account } from '@/entities/account'
+import type { Settings } from '@/entities/settings'
 import { Link, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
 import { Status } from './Status'
 
-type IConfig = {}
+type IConfig = Settings['timeline']
 interface IProps {
 	status: Entity.Conversation
 	client: MegalodonInterface
@@ -23,14 +24,14 @@ interface IProps {
 	composeAction: (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => void
 }
 export const Conversation = (props: IProps) => {
-	const { status: conversation, client, columnWidth, lang, updateStatus, acct, composeAction, filters } = props
+	const { status: conversation, client, columnWidth, lang, updateStatus, acct, composeAction, filters, config } = props
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const router = useRouter()
-
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'
 	const txtColor = isDark ? 'white' : 'black'
+	const showAnimation = config.animation === 'yes'
 	if (conversation.last_status) {
 		return (
 			<>
@@ -41,7 +42,7 @@ export const Conversation = (props: IProps) => {
 							<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
 							<Link.Trigger>
 								<View style={{ flexDirection: 'row' }}>
-									<Avatar size={16} src={conversation.accounts[0].avatar} />
+									<Avatar size={16} src={showAnimation ? conversation.accounts[0].avatar : conversation.accounts[0].avatar_static} />
 									<Text style={{ marginLeft: 2 }}>{conversation.accounts[0].display_name || conversation.accounts[0].acct || ''}</Text>
 								</View>
 							</Link.Trigger>
@@ -57,7 +58,7 @@ export const Conversation = (props: IProps) => {
 					updateStatus={updateStatus}
 					acct={acct}
 					composeAction={composeAction}
-					config={{}}
+					config={config}
 					filters={filters}
 				/>
 			</>

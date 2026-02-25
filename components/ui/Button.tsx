@@ -41,7 +41,11 @@ export function Button({ systemImage, isLoading, isPrimary, onPress, color, styl
 					<SymbolView name={systemImage} type="monochrome" tintColor={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} size={20} style={{ marginRight: 5 }} />
 				)}
 				{isLoading && <ActivityIndicator size="small" color={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} style={{ width: width }} />}
-				{!isLoading && <Text numberOfLines={1} style={[{ textAlign: 'center', fontSize: 18, color: isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black' }]}>{children}</Text>}
+				{!isLoading && (
+					<Text numberOfLines={1} style={[{ textAlign: 'center', fontSize: 18, color: isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black' }]}>
+						{children}
+					</Text>
+				)}
 			</GlassView>
 		</Pressable>
 	)

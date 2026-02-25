@@ -3,6 +3,7 @@ import { Status } from '@/components/status/Status'
 import { Text } from '@/components/themed/Text'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
+import { useConfigStore } from '@/utils/store/config'
 import { stripTags } from '@/utils/string'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
@@ -19,6 +20,8 @@ interface StatusExtended extends Entity.Status {
 }
 const SimpleStatus = ({ status, acctId, isBefore }: { status: Entity.Status; acctId: string; isBefore: boolean }) => {
 	const { width } = useWindowDimensions()
+	const { config } = useConfigStore()
+	const isAnimation = config.timeline.animation === 'yes'
 	const beforeBorder = { borderBottomWidth: 1, borderBottomColor: PlatformColor('separator') }
 	const afterBorder = { borderTopWidth: 1, borderTopColor: PlatformColor('separator') }
 	return (
@@ -26,7 +29,7 @@ const SimpleStatus = ({ status, acctId, isBefore }: { status: Entity.Status; acc
 			<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
 			<Link.Trigger>
 				<View style={{ flexDirection: 'row', padding: 5, width, ...(isBefore ? beforeBorder : afterBorder) }}>
-					<Avatar size={40} src={status.account.avatar_static} />
+					<Avatar size={40} src={isAnimation ? status.account.avatar : status.account.avatar_static} />
 					<View style={{ width: width - 50, marginLeft: 5 }}>
 						<Text>{status.account.display_name}</Text>
 						<Text numberOfLines={1}>{stripTags(status.content)}</Text>
@@ -43,6 +46,7 @@ export default function Index() {
 
 	const router = useRouter()
 	const params = useLocalSearchParams()
+	const { config } = useConfigStore()
 	const { acctId, statusId } = params as Record<'acctId' | 'statusId', string>
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -93,7 +97,7 @@ export default function Index() {
 							client={client}
 							lang={lang}
 							columnWidth={width}
-							config={{}}
+							config={config.timeline}
 							filters={[]}
 							updateStatus={() => {}}
 							composeAction={async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {
