@@ -4,15 +4,16 @@ type LocaleType = 'ja' | 'en'
 type FormBoolean = 'yes' | 'no'
 export type Settings = {
 	appearance: {
-		font_size: number
+		fontSize: number
 		language: LocaleType
-		color_theme: ThemeType
+		colorTheme: ThemeType
 		font: string
 	}
 	timeline: {
 		time: 'relative' | 'absolute' | '12h'
 		animation: FormBoolean
-		max_length: number
+		maxLength: number
+		maxImageHeight: number
 		notification: FormBoolean
 		ttsProvider: 'system' | 'bouyomi'
 		ttsPort: number
@@ -34,15 +35,16 @@ export type ThemeType = 'dark' | 'light' | 'high-contrast'
 
 export const defaultSetting: Settings = {
 	appearance: {
-		font_size: 14,
+		fontSize: 14,
 		language: 'en',
-		color_theme: 'dark',
+		colorTheme: 'dark',
 		font: 'sans-serif'
 	},
 	timeline: {
 		time: 'relative',
 		animation: 'yes',
-		max_length: 0,
+		maxImageHeight: 200,
+		maxLength: 0,
 		notification: 'yes',
 		ttsProvider: 'system',
 		ttsPort: 50080,
