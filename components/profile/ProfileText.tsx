@@ -68,7 +68,7 @@ export const ProfileText = (props: ProfileTextProps) => {
 				defaultViewProps={{ style: { width } }}
 				renderersProps={{
 					a: {
-						onPress: (e, href) => handleLink(href)
+						onPress: (e, href, attr) => handleLink(href)
 					}
 				}}
 			/>

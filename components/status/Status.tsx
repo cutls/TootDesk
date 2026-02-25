@@ -89,6 +89,17 @@ export const Status = (props: IProps) => {
 	}
 	const handleLink = (url: string) => {
 		const mentionCheck = status.mentions.find((m) => m.url === url)
+		const last = url.match(/\/([^/]+)$/)
+		if (last && last[1]) {
+			const tagCheck = status.tags.find((m) => {
+				const mLast = m.url.match(/\/([^/]+)$/)
+				return mLast && decodeURIComponent(mLast[1]).toLowerCase() === decodeURIComponent(last[1]).toLowerCase()
+			})
+			if (tagCheck) {
+				router.push(`/tag?acctId=${acct.id}&q=${tagCheck.name}`)
+				return
+			}
+		}
 		if (mentionCheck) {
 			router.push(`/user?acctId=${acct.id}&userId=${mentionCheck.id}`)
 		} else {

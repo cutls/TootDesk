@@ -14,7 +14,8 @@
 		"detail": "Detail",
 		"post": "Post",
 		"config": "Preferences",
-		"search": "Search"
+		"search": "Search",
+		"tag": "Tag"
     },
     "login": {
         "failed": "Login failed",

@@ -1,49 +1,25 @@
-import Avatar from '@/components/Avatar'
 import { Status } from '@/components/status/Status'
 import { Text } from '@/components/themed/Text'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
-import { stripTags } from '@/utils/string'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
 import * as Localization from 'expo-localization'
-import { Link, useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
+import { useIsPreview, useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, FlatList, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, FlatList, PlatformColor, RefreshControl, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-interface StatusExtended extends Entity.Status {
-	isBefore?: boolean
-	isMain?: boolean
-}
-const SimpleStatus = ({ status, acctId, isBefore }: { status: Entity.Status; acctId: string; isBefore: boolean }) => {
-	const { width } = useWindowDimensions()
-	const beforeBorder = { borderBottomWidth: 1, borderBottomColor: PlatformColor('separator') }
-	const afterBorder = { borderTopWidth: 1, borderTopColor: PlatformColor('separator') }
-	return (
-		<Link href={`/detail?acctId=${acctId}&statusId=${status.id}`} push>
-			<Link.Preview style={{ backgroundColor: PlatformColor('systemBackground') }} />
-			<Link.Trigger>
-				<View style={{ flexDirection: 'row', padding: 5, width, ...(isBefore ? beforeBorder : afterBorder) }}>
-					<Avatar size={40} src={status.account.avatar_static} />
-					<View style={{ width: width - 50, marginLeft: 5 }}>
-						<Text>{status.account.display_name}</Text>
-						<Text numberOfLines={1}>{stripTags(status.content)}</Text>
-					</View>
-				</View>
-			</Link.Trigger>
-		</Link>
-	)
-}
 export default function Index() {
 	const { t } = useTranslation()
 	const isPreview = useIsPreview()
-	const [scrolled, setScrolled] = useState(false)
 
 	const router = useRouter()
+    const navigation = useNavigation()
+
 	const params = useLocalSearchParams()
-	const { acctId, statusId } = params as Record<'acctId' | 'statusId', string>
+	const { acctId, q } = params as Record<'acctId' | 'q', string>
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
@@ -51,30 +27,36 @@ export default function Index() {
 	const textColor = PlatformColor('label')
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [isRefreshing, setIsRefreshing] = useState(false)
+	const [isMoreLoading, setIsMoreLoading] = useState(false)
 	const [acct, setAcct] = useState<Account | null>(null)
-	const [statuses, setStatuses] = useState<StatusExtended[]>([])
+	const [statuses, setStatuses] = useState<Entity.Status[]>([])
 	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
-	useEffect(() => {
-		const fn = async () => {
-			setIsLoading(true)
-			try {
-				const acct = await getAcctById(acctId)
-				if (!acct) throw new Error('Invalid account id')
-				setAcct(acct)
-				const https = `https://${acct.domain}`
-				const client = generator(acct.sns, https, acct.accessToken)
-				setClient(client)
-				const d = await client.getStatus(statusId)
-				const statusExtended: StatusExtended = { ...d.data, isMain: true }
-				const context = await client.getStatusContext(statusId)
-				setStatuses([...context.data.ancestors.map((t) => ({ ...t, isBefore: true })), statusExtended, ...context.data.descendants])
 
-			} finally {
-				setIsLoading(false)
-			}
+	const load = async (more?: boolean) => {
+		if (!more) setIsLoading(true)
+		if (!more) setIsRefreshing(true)
+		if (more) setIsMoreLoading(true)
+
+		try {
+			const acct = await getAcctById(acctId)
+			if (!acct) throw new Error('Invalid account id')
+			setAcct(acct)
+			const https = `https://${acct.domain}`
+			const client = generator(acct.sns, https, acct.accessToken)
+			setClient(client)
+			const d = await client.getTagTimeline(q, { max_id: more ? statuses[statuses.length - 1]?.id : undefined })
+			setStatuses(more ? [...statuses, ...d.data] : d.data)
+		} finally {
+			setIsLoading(false)
+			setIsRefreshing(false)
+			setIsMoreLoading(false)
 		}
-		fn()
-	}, [acctId, statusId])
+	}
+	useEffect(() => {
+		load()
+        navigation.setOptions({ title: `#${q}` })
+	}, [acctId, q])
 	if (isLoading || !statuses.length || !client || !acct) {
 		return (
 			<SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -85,8 +67,8 @@ export default function Index() {
 	return (
 		<View>
 			<FlatList
-				renderItem={({ item }) =>
-					item.isMain ? (
+				renderItem={({ item, index }) => (
+					<>
 						<Status
 							status={item}
 							acct={acct}
@@ -103,12 +85,22 @@ export default function Index() {
 								if (type === 'edit') router.push(`/post?acctId=${account.id}&targetId=${target.id}&statusId=${target.id}&mode=edit&addText=${encodeURIComponent(await getSourceText(target, client))}`)
 							}}
 						/>
-					) : (
-						<SimpleStatus isBefore={item.isBefore || false} acctId={acctId} status={item} />
-					)
-				}
+						{statuses.length === index + 1 && (
+							<View style={{ width: width, justifyContent: 'center', alignItems: 'center', padding: 20, display: statuses.length === 0 ? 'none' : 'flex' }}>
+								{isMoreLoading ? (
+									<ActivityIndicator />
+								) : (
+									<TouchableOpacity activeOpacity={0.7} onPress={() => load(true)} style={{ padding: 10, borderRadius: 5, borderWidth: 1, borderColor: PlatformColor('separator') }}>
+										<Text>{t('timeline.more')}</Text>
+									</TouchableOpacity>
+								)}
+							</View>
+						)}
+					</>
+				)}
 				data={statuses}
 				keyExtractor={(item) => item.id}
+				refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => load(true)} />}
 			/>
 		</View>
 	)

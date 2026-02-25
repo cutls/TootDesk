@@ -14,7 +14,8 @@
 		"detail": "詳細",
 		"post": "投稿",
 		"config": "設定",
-		"search": "検索"
+		"search": "検索",
+		"tag": "タグ"
 	},
 	"login": {
 		"failed": "ログインに失敗しました",

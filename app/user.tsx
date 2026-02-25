@@ -134,7 +134,7 @@ export default function Index() {
 					<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 60 }}>
 						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
 					</Button>
-					<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 60 }}>
+					<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 60, opacity: scrollY > 300 ? 100 : 0 }}>
 						{basic.acct}
 					</Button>
 					{relation && (
