@@ -142,7 +142,9 @@
 			"edit": "Edit",
 			"delete": "Delete",
 			"deleteConfirm": "Are you sure you want to delete this post?",
-			"translate": "Translate"
+			"translate": "Translate",
+			"copyUrl": "Copy link to post",
+			"openInBrowser": "Open in browser"
 		},
 		"kind": {
 			"home": "Home",

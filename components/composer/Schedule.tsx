@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
-import { CustomedButton } from '../ui/CustomedButton'
+import { Button } from '../ui/Button'
 
 interface Props {
 	changeMode: (m: ComposeMode) => void
@@ -29,16 +29,16 @@ export default function Schedule({ changeMode, addSchedule, defaultSchedule }: P
 				<Text style={{ color: 'white' }}>{t('composer.schedule.invalid')}</Text>
 			</View>
 			<View>
-				<CustomedButton isPrimary={true} onPress={() => addSchedule(isInvalid ? null : date)}>
+				<Button isPrimary={true} onPress={() => addSchedule(isInvalid ? null : date)} style={{ height: 50 }} width={width - 40} isDark={isDark}>
 					{t('ok')}
-				</CustomedButton>
-				<CustomedButton style={{ marginTop: 10 }} onPress={() => changeMode('compose')}>
+				</Button>
+				<Button style={{ marginTop: 10, height: 50 }} onPress={() => changeMode('compose')} width={width - 40} isDark={isDark}>
 					{t('cancel')}
-				</CustomedButton>
+				</Button>
 				{defaultSchedule && (
-					<CustomedButton color="red" style={{ marginTop: 10 }} onPress={() => addSchedule(null)}>
+					<Button color="red" style={{ marginTop: 10, height: 50 }} onPress={() => addSchedule(null)} width={width - 40}  isDark={isDark}>
 						{t('composer.remove')}
-					</CustomedButton>
+					</Button>
 				)}
 			</View>
 			<View style={{ height: 20 }} />

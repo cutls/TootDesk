@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState, type RefObject } from 'react'
 import { PlatformColor, Pressable, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from './themed/Text'
 import TimelineConfig from './TimelineConfig'
-import { Button } from './ui/Button'
+import { IconButton } from './ui/Button'
 
 interface Props {
 	openComposer: () => void
@@ -73,6 +73,7 @@ export default function Navigator({ openComposer, openAddTimeline, context }: Pr
 	const colorToSystem = (color: string | null | undefined) => (color ? PlatformColor(`system${capitalizeFirst(color)}`) : undefined)
 	const getColor = (acctId: string) => colorToSystem(allAcctData.find((a) => a.id === acctId)?.color) || 'transparent'
 	return (
+		<>
 		<GlassView style={styles.containerStyle}>
 			<View style={{ width: width - 100, height: '100%', paddingLeft: 8 }}>
 				<View style={styles.infoBar}>
@@ -116,11 +117,11 @@ export default function Navigator({ openComposer, openAddTimeline, context }: Pr
 					</ScrollView>
 				</View>
 			</View>
-			<Button onPress={() => openComposer()} style={{ width: 60, height: 60, margin: 5, marginTop: 20 }} variant="glassProminent" color="teal">
-				<SymbolView name="square.and.pencil" type="monochrome" tintColor="white" />
-			</Button>
-			{currentTimeline && <TimelineConfig isOpened={isTimelineConfigOpened} setIsOpened={setIsTimelineConfigOpened} timeline={currentTimeline} />}
+			<IconButton onPress={() => openComposer()} style={{ width: 60, height: 60, margin: 5, marginTop: 20 }} isPrimary={true} color="teal" systemImage="square.and.pencil" width={60} isDark={isDark} />
+			
 		</GlassView>
+		{currentTimeline && <TimelineConfig isOpened={isTimelineConfigOpened} setIsOpened={setIsTimelineConfigOpened} timeline={currentTimeline} />}
+		</>
 	)
 }
 const createStyles = ({ width }: { width: number }) =>
@@ -128,7 +129,6 @@ const createStyles = ({ width }: { width: number }) =>
 		containerStyle: {
 			position: 'absolute',
 			bottom: 25,
-			zIndex: 2,
 			left: 10,
 			height: 100,
 			width: width - 20,

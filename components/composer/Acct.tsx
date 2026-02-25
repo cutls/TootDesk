@@ -2,10 +2,9 @@ import type { Account } from '@/entities/account'
 import { listAccts } from '@/utils/storage'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
-import { Button } from '../ui/Button'
 
 interface Props {
 	change: (acct: Account) => void
@@ -28,7 +27,7 @@ export default function Acct({ change }: Props) {
 	return (
 		<View style={{ minHeight: 200 }}>
 			{acct.map((a) => (
-				<Button key={a.id} onPress={() => change(a)}>
+				<TouchableOpacity activeOpacity={0.7} key={a.id} onPress={() => change(a)}>
 					<View style={styles.container}>
 						<View>
 							<Avatar src={a.avatar || a.favicon} color={a.color} fallback={a.sns} size={40} />
@@ -42,7 +41,7 @@ export default function Acct({ change }: Props) {
 							</Text>
 						</View>
 					</View>
-				</Button>
+				</TouchableOpacity>
 			))}
 		</View>
 	)

@@ -13,7 +13,7 @@ import { RequestingRequested } from '@/components/relations/RequestingRequested'
 import RelationSheet from '@/components/RelationSheet'
 import { AccountName } from '@/components/status/AccountName'
 import { Text } from '@/components/themed/Text'
-import { Button } from '@/components/ui/Button'
+import { Button, CustomButton, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
 import { calcFromNow } from '@/utils/timeline'
@@ -125,26 +125,22 @@ export default function Index() {
 						paddingHorizontal: 10,
 						marginTop: 20,
 						zIndex: 2,
-						paddingTop: 20,
+						paddingTop: 50,
 						justifyContent: 'space-between',
 						flexDirection: 'row',
 						width: width
 					}}
 				>
-					<Button variant="glass" onPress={() => router.back()} style={{ width: 45, height: 60 }}>
-						<SymbolView name="chevron.left" type="monochrome" tintColor={textColor} size={1} />
-					</Button>
-					<Button variant="glass" onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 60, opacity: scrollY > 300 ? 100 : 0 }}>
+					<IconButton onPress={() => router.back()} style={{ width: 45, height: 45 }} systemImage="chevron.left" width={45} isDark={isDark} />
+					<Button onPress={() => ref.current?.scrollTo(0)} style={{ width: 200, height: 45, opacity: scrollY > 300 ? 100 : 0, padding: 10 }} width={200} isDark={isDark}>
 						{basic.acct}
 					</Button>
 					{relation && (
 						<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-							<Button variant="glass" onPress={() => setRSheet(true)} style={{ width: 45, height: 60 }}>
+							<CustomButton onPress={() => setRSheet(true)} style={{ width: 45, height: 45, marginRight: 2 }}>
 								<BasePerson relation={relation} textColor={textColor} />
-							</Button>
-							<GlassView tintColor="gray" glassEffectStyle="regular" style={{ marginLeft: 5, marginTop: 25, padding: 5, borderRadius: 40 }}>
-								<Relation relation={relation} textColor={textColor} />
-							</GlassView>
+							</CustomButton>
+							<Relation relation={relation} textColor={textColor} />
 						</View>
 					)}
 				</View>

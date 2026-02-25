@@ -36,6 +36,7 @@ export default function Post() {
 	}, [type, acctId, targetId, addText, statusId, visibility])
 	return (
 		<ComposeSheet
+			isInSheet={false}
 			isOpened={true}
 			setIsOpened={(r) => {
 				if (!r) router.back()

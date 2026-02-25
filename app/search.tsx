@@ -2,7 +2,7 @@ import { Tag } from '@/components/profile/Tag'
 import { User } from '@/components/profile/User'
 import { Status } from '@/components/status/Status'
 import { Text } from '@/components/themed/Text'
-import { Button } from '@/components/ui/Button'
+import { IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { getAcctById } from '@/utils/storage'
 import { staticStyles } from '@/utils/theme'
@@ -119,9 +119,13 @@ export default function Index() {
 					onSubmitEditing={() => (q ? search() : trend())}
 					returnKeyType="search"
 				/>
-				<Button variant="glass" onPress={() => isShowTrend ? search() : trend()} style={{ width: 45, height: 45, marginLeft: 5 }}>
-					<SymbolView name={isShowTrend ? 'magnifyingglass' : 'xmark'} type="monochrome" tintColor={textColor} size={1} />
-				</Button>
+				<IconButton
+					systemImage={isShowTrend ? 'magnifyingglass' : 'xmark'}
+					onPress={() => (isShowTrend ? search() : trend())}
+					style={{ width: 45, height: 45, marginLeft: 5 }}
+					width={45}
+					isDark={isDark}
+				/>
 			</View>
 			<View style={styles.horizontal}>
 				<SymbolView style={styles.icon} name="number" type="monochrome" tintColor={textColor} size={24} />

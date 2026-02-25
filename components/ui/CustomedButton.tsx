@@ -1,10 +1,9 @@
 import type { ButtonProps, HostProps } from '@expo/ui/swift-ui'
-import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { SymbolView } from 'expo-symbols'
 import type React from 'react'
 import { ActivityIndicator, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
-import { Button } from './Button'
+import { ButtonSwiftUI } from './Button'
 
 interface Props extends ButtonProps {
 	style?: HostProps['style']
@@ -25,13 +24,13 @@ export function CustomedButton({ isPrimary, color, width: requestedWidth, isLoad
 	const variant = props.isGlass ? useVariantGlass : useVariantNotGlass
 
 	return (
-		<Button variant={variant} disabled={isLoading} onPress={() => (isLoading || !props.onPress) ? {} : props.onPress()} color={isPrimary ? color : undefined} modifiers={[ignoreSafeArea({ regions: 'all' })]} style={[styles.btn, props.style]}>
+		<ButtonSwiftUI variant={variant} disabled={isLoading} onPress={() => (isLoading || !props.onPress) ? {} : props.onPress()} color={isPrimary ? color : undefined} style={[styles.btn, props.style]}>
 			<View style={{ justifyContent: 'center', height: 40, flexDirection: 'row', alignItems: 'center', width: width - 65 }}>
 				{systemImage && !isLoading && <SymbolView name={systemImage} type="monochrome" tintColor={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} size={20} style={{ marginRight: 5 }} />}
 				{isLoading && <ActivityIndicator size="small" color={isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black'} style={{ width: width - 65 }} />}
 				{!isLoading && <Text style={[{ textAlign: 'center', fontSize: 18, fontWeight: 'bold', color: isPrimary ? 'white' : color ? color : isDark ? 'white' : 'black' }]}>{props.children}</Text>}
 			</View>
-		</Button>
+		</ButtonSwiftUI>
 	)
 }
 const createStyles = ({ width }: { width: number }) =>

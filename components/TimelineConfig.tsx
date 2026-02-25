@@ -5,22 +5,23 @@ import { useTimelineStore } from '@/utils/store/timelines'
 import { icon, makeTimelineNameWithAcctId } from '@/utils/timelineName'
 import type { IState } from '@/utils/type'
 import type { MegalodonInterface } from '@cutls/megalodon'
-import { BottomSheet, Host } from '@expo/ui/swift-ui'
-import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import RNBottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
 import { GlassView } from 'expo-glass-effect'
 import { SymbolView } from 'expo-symbols'
-import React, { useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from './themed/Text'
 import { TextInputMulti } from './themed/TextInputMulti'
-import { Button } from './ui/Button'
+import { IconButton } from './ui/Button'
 
 interface Props {
 	isOpened: boolean
 	setIsOpened: IState<boolean>
 	timeline: Timeline
 }
+const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
 export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
@@ -32,6 +33,7 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 	const { setTimelines } = useTimelineStore()
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [defaultName, setDefaultName] = useState(timeline.name)
+	const bottomSheetRef = useRef<RNBottomSheet>(null)
 	useEffect(() => {
 		const fn = async () => {
 			const name = await makeTimelineNameWithAcctId(timeline.kind, t(`timeline.kind.${timeline.kind}`), timeline.acctId)
@@ -55,9 +57,19 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 		await saveTimelines(updatedTls)
 		setTimelines(updatedTls)
 	}
+	if (!isOpened) return
 	return (
-		<Host style={{ width, position: isOpened ? 'absolute' : undefined, zIndex: 1000 }}>
-			<BottomSheet modifiers={[ignoreSafeArea({ regions: 'keyboard' })]} isOpened={isOpened} onIsOpenedChange={(e) => setIsOpened(e)}>
+		<RNBottomSheet
+			handleComponent={null}
+			detached={true}
+			ref={bottomSheetRef}
+			onChange={(e) => setIsOpened(e !== -1)}
+			style={{ zIndex: 5 }}
+			backgroundComponent={GlassViewCustom}
+			enableBlurKeyboardOnGesture={true}
+			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
+		>
+			<BottomSheetView style={styles.contentContainer}>
 				<View style={{ padding: 20 }}>
 					<Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>{t('navigation.config.color')}</Text>
 					<View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, flexShrink: 1, alignItems: 'center' }}>
@@ -66,20 +78,18 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 							<SymbolView name={icon(timeline.kind)} type="monochrome" tintColor="white" size={25} />
 						</GlassView>
 						{colorList.map((color) => (
-							<Button
+							<IconButton
 								key={color}
 								style={createColorBtn(colorToSystemColor(color))}
 								onPress={() => updateColor(timeline.id, color)}
 								systemImage={color === timeline.color ? 'checkmark' : undefined}
 								color="white"
-								modifiers={[ignoreSafeArea({ regions: 'all' })]}
+								width={30}
+								isDark={isDark}
 							>
-								{color === timeline.color ? null : <View />}
-							</Button>
+							</IconButton>
 						))}
-						{timeline.color && (
-							<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} style={createColorBtn(`systemGray4`)} onPress={() => updateColor(timeline.id, null)} systemImage="xmark" color="white" />
-						)}
+						{timeline.color && <IconButton width={30} isDark={isDark} style={createColorBtn(`systemGray4`)} onPress={() => updateColor(timeline.id, null)} systemImage="xmark" color="white" />}
 					</View>
 					<View style={{ height: 10 }} />
 					<Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>{t('navigation.config.name')}</Text>
@@ -97,8 +107,8 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 					/>
 					<View style={{ height: 10 }} />
 				</View>
-			</BottomSheet>
-		</Host>
+			</BottomSheetView>
+		</RNBottomSheet>
 	)
 }
 
@@ -111,5 +121,9 @@ const createStyles = ({ width }: { width: number }) =>
 			alignItems: 'center',
 			justifyContent: 'center',
 			marginHorizontal: 3
+		},
+		contentContainer: {
+			backgroundColor: 'transparent',
+			zIndex: 5
 		}
 	})

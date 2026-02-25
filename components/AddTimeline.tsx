@@ -6,18 +6,19 @@ import { useTimelineStore } from '@/utils/store/timelines'
 import { makeListTimelineNameWithAcctId, makeTimelineNameWithAcctId } from '@/utils/timelineName'
 import type { IState } from '@/utils/type'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
-import { BottomSheet, Host, Label, List } from '@expo/ui/swift-ui'
-import { frame, ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import { Host, Label, List } from '@expo/ui/swift-ui'
+import { frame } from '@expo/ui/swift-ui/modifiers'
+import RNBottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
+import { getColorIOS } from 'expo-color-to-hex'
 import { randomUUID } from 'expo-crypto'
-import { SymbolView } from 'expo-symbols'
+import { GlassView } from 'expo-glass-effect'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FlatList, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import { Text } from './themed/Text'
-import { Button } from './ui/Button'
-import { CustomedButton } from './ui/CustomedButton'
+import { Button, CustomButton, IconButton } from './ui/Button'
 
 interface Props {
 	isOpened: boolean
@@ -28,6 +29,7 @@ interface Props {
 		setCurrent: IState<number>
 	}
 }
+const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
 export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
@@ -41,6 +43,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 	const { timelines, setTimelines } = useTimelineStore()
 	const [mode, setMode] = useState('select')
 	const [lists, setLists] = useState<Array<Entity.List>>([])
+	const bottomSheetRef = React.useRef<RNBottomSheet>(null)
 	const loadClient = async (acct: Account) => {
 		const https = `https://${acct.domain}`
 		const client = generator(acct.sns, https, acct.accessToken)
@@ -122,15 +125,25 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 		setTimelines(updatedTimelines)
 	}
 
-	if (!useAcct) return null
+	if (!useAcct || !isOpened) return null
 	return (
-		<Host style={{ width, position: isOpened ? 'absolute' : undefined, zIndex: 1000 }}>
-			<BottomSheet isOpened={isOpened} onIsOpenedChange={(e) => setIsOpened(e)}>
+		<RNBottomSheet
+			handleComponent={null}
+			keyboardBlurBehavior="none"
+			detached={true}
+			ref={bottomSheetRef}
+			onChange={(e) => setIsOpened(e !== -1)}
+			style={{ zIndex: 5 }}
+			backgroundComponent={GlassViewCustom}
+			enableBlurKeyboardOnGesture={true}
+			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
+		>
+			<BottomSheetView style={styles.contentContainer}>
 				<View style={{ padding: 20 }}>
 					{mode === 'select' && (
 						<>
 							<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-								<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} variant="bordered" onPress={() => setMode('acct')} style={{ flexGrow: 1 }}>
+								<CustomButton onPress={() => setMode('acct')} style={{ flexGrow: 1, padding: 10 }}>
 									<View style={styles.acctContainer}>
 										<View>
 											<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
@@ -139,38 +152,34 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 											{useAcct.username}@{useAcct.domain}
 										</Text>
 									</View>
-								</Button>
+								</CustomButton>
 								<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 50 }}>
-									<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} style={{ width: 45, height: 45 }} variant="bordered" onPress={() => setMode('sort')}>
-										<View style={styles.acctContainer}>
-											<SymbolView name="list.bullet" type="monochrome" tintColor={textColor} size={20} />
-										</View>
-									</Button>
+									<IconButton style={{ width: 45, height: 45 }} onPress={() => setMode('sort')} systemImage="list.bullet" isDark={isDark} width={45} />
 								</View>
 							</View>
 							<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-								<CustomedButton width={width / 2 + 15} systemImage="house.fill" onPress={() => add('home')}>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20 }} systemImage="house.fill" onPress={() => add('home')}>
 									{t('timeline.kind.home')}
-								</CustomedButton>
-								<CustomedButton width={width / 2 + 15} style={{ marginLeft: 5 }} systemImage="person.2.fill" onPress={() => add('local')}>
+								</Button>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20, marginLeft: 5 }} systemImage="person.2.fill" onPress={() => add('local')}>
 									{t('timeline.kind.local')}
-								</CustomedButton>
+								</Button>
 							</View>
 							<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-								<CustomedButton width={width / 2 + 15} systemImage="globe" onPress={() => add('public')}>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20 }} systemImage="globe" onPress={() => add('public')}>
 									{t('timeline.kind.public')}
-								</CustomedButton>
-								<CustomedButton width={width / 2 + 15} style={{ marginLeft: 5 }} systemImage="bell.fill" onPress={() => add('notifications')}>
+								</Button>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20, marginLeft: 5 }} systemImage="bell.fill" onPress={() => add('notifications')}>
 									{t('timeline.kind.notifications')}
-								</CustomedButton>
+								</Button>
 							</View>
 							<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-								<CustomedButton width={width / 2 + 15} systemImage="bookmark.fill" onPress={() => add('bookmarks')}>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20 }} systemImage="bookmark.fill" onPress={() => add('bookmarks')}>
 									{t('timeline.kind.bookmarks')}
-								</CustomedButton>
-								<CustomedButton width={width / 2 + 15} style={{ marginLeft: 5 }} systemImage="envelope.fill" onPress={() => add('direct')}>
+								</Button>
+								<Button width={width / 2 + 15} isDark={isDark} style={{ height: 50, width: width / 2 - 20, marginLeft: 5 }} systemImage="envelope.fill" onPress={() => add('direct')}>
 									{t('timeline.kind.direct')}
-								</CustomedButton>
+								</Button>
 							</View>
 							<Text style={{ marginTop: 10, marginBottom: 5, fontWeight: 'bold', fontSize: 20 }}>{t('timeline.kind.list')}</Text>
 							<FlatList
@@ -180,7 +189,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 								keyExtractor={(item, index) => `${item.id}-${index}`}
 								ListEmptyComponent={<Text>{t('empty')}</Text>}
 								renderItem={({ item: list }) => (
-									<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} onPress={() => addList(list.id, list.is_misskey_antenna || false)} style={styles.listItem}>
+									<Button width={0} isDark={isDark} style={styles.listItem} onPress={() => addList(list.id, list.is_misskey_antenna || false)}>
 										<Text style={{ fontWeight: 'bold', fontSize: 18, paddingHorizontal: 10, paddingVertical: 2 }}>
 											{list.title}
 											{list.is_misskey_antenna && ' (Misskey Antenna)'}
@@ -193,7 +202,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 					)}
 					{mode === 'sort' && (
 						<View style={{ height: 400, width: '100%' }}>
-							<Host style={{ flex: 1 }}>
+							<Host style={{ flex: 1, backgroundColor: 'transparent' }}>
 								<List
 									scrollEnabled={true}
 									editModeEnabled={true}
@@ -211,15 +220,15 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 									))}
 								</List>
 							</Host>
-							<CustomedButton isPrimary={true} width={width} style={{ marginVertical: 10 }} onPress={() => setMode('select')}>
+							<Button isPrimary={true} color={getColorIOS('systemBlue') || 'blue'} width={width} style={{ marginVertical: 10, height: 50 }} onPress={() => setMode('select')} isDark={isDark}>
 								{t('ok')}
-							</CustomedButton>
+							</Button>
 						</View>
 					)}
 					{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
 				</View>
-			</BottomSheet>
-		</Host>
+			</BottomSheetView>
+		</RNBottomSheet>
 	)
 }
 
@@ -228,8 +237,7 @@ const createStyles = ({ width }: { width: number }) =>
 		acctContainer: {
 			flexDirection: 'row',
 			alignItems: 'center',
-			paddingBottom: 10,
-			height: 40
+			height: 30
 		},
 		username: {
 			fontSize: 16,
@@ -243,6 +251,11 @@ const createStyles = ({ width }: { width: number }) =>
 			alignItems: 'center',
 			justifyContent: 'center',
 			borderRadius: 10,
-			padding: 10
+			paddingHorizontal: 20
+		},
+		contentContainer: {
+			backgroundColor: 'transparent',
+			padding: 10,
+			zIndex: 5
 		}
 	})

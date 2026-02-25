@@ -2,13 +2,12 @@ import type { Account } from '@/entities/account'
 import type { Poll as IPoll } from '@/entities/status'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { getAcctById, getUsualAcct } from '@/utils/storage'
-import type { ActionProps, ComposeMode, IState } from '@/utils/type'
+import type { ActionProps, ComposeMode } from '@/utils/type'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
-import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import Composer from './composer/Composer'
@@ -17,13 +16,13 @@ import Menu from './composer/Menu'
 import Poll from './composer/Poll'
 import Schedule from './composer/Schedule'
 import { Text } from './themed/Text'
-import { Button } from './ui/Button'
+import { IconButton } from './ui/Button'
 
 interface Props {
-	isOpened: boolean
-	setIsOpened: IState<boolean>
+	close: () => void
 	composeAction: ActionProps | null
 	clearComposeAction: (acctId: string) => void
+	isInSheet: boolean
 }
 interface IOptional {
 	scheduled_at?: string
@@ -32,7 +31,7 @@ interface IOptional {
 	in_reply_to_id?: string
 	quoted_status_id?: string
 }
-export default function ComposeSheet({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
+export default function ComposeSheet({ close, composeAction, clearComposeAction, isInSheet }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowDimensions()
 	const styles = createStyles({ width })
@@ -94,7 +93,7 @@ export default function ComposeSheet({ isOpened, setIsOpened, composeAction, cle
 				await client?.postStatus(text, postData)
 			}
 			clear()
-			setIsOpened(false)
+			close()
 		} finally {
 			setMode('compose')
 		}
@@ -126,7 +125,6 @@ export default function ComposeSheet({ isOpened, setIsOpened, composeAction, cle
 		const fn = async () => {
 			const accts = await getAcctById(composeAction?.acctId || '')
 			if (accts) setUseAcct(accts)
-			if (composeAction?.type) setIsOpened(true)
 			if (composeAction?.addText) setText(composeAction.addText)
 			if (composeAction?.type === 'reply') setOptional((o) => ({ ...o, in_reply_to_id: composeAction.targetId }))
 			if (composeAction?.type === 'quote') setOptional((o) => ({ ...o, quoted_status_id: composeAction.targetId }))
@@ -158,29 +156,26 @@ export default function ComposeSheet({ isOpened, setIsOpened, composeAction, cle
 		}
 		fn()
 	}, [composeAction])
-	useEffect(() => {
-		if (isOpened) {
-			setMode('compose')
-		} else {
-			if (mode !== 'loading') {
-				if (text || optional.scheduled_at || optional.poll || optional.editTargetId || uploaded.length > 0 || cw) {
-					confirmDialog(t('composer.discard'), t('composer.discardConfirm'), CONTINUE, (s) => t(s)).then((res) => {
-						if (res === 1) clear()
-						if (res === 0) setIsOpened(true)
-					})
-				} else {
-					clear()
-				}
+	const closeCk = () => {
+		if (mode !== 'loading') {
+			if (text || optional.scheduled_at || optional.poll || optional.editTargetId || uploaded.length > 0 || cw) {
+				confirmDialog(t('composer.discard'), t('composer.discardConfirm'), CONTINUE, (s) => t(s)).then((res) => {
+					if (res === 1) clear()
+					if (res === 1) close()
+				})
+			} else {
+				clear()
+				close()
 			}
 		}
-	}, [isOpened])
+	}
 	if (!useAcct) return null
 	return (
-		<View style={{ padding: 20 }}>
+		<View style={{ padding: 10 }}>
 			{mode === 'compose' && (
 				<>
-					<View style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-						<Button modifiers={[ignoreSafeArea({ regions: 'all' })]} variant="bordered" onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
+					<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+						<TouchableOpacity activeOpacity={0.7} onPress={() => changeMode('acct')} style={{ flexGrow: 1 }}>
 							<View style={styles.acctContainer}>
 								<View>
 									<Avatar src={useAcct.avatar || useAcct.favicon} fallback={useAcct.sns} size={20} />
@@ -189,11 +184,12 @@ export default function ComposeSheet({ isOpened, setIsOpened, composeAction, cle
 									{useAcct.username}@{useAcct.domain}
 								</Text>
 							</View>
-						</Button>
-						<View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 5, width: 80 }}>
+						</TouchableOpacity>
+						<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 5, marginLeft: 5 }}>
 							{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
 							{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
 							<Text>{maxChars - text.length}</Text>
+							<IconButton onPress={() => closeCk()} systemImage="xmark" style={{ width: 40, height: 40 }} width={40} isDark={isDark} />
 						</View>
 					</View>
 					{composeAction?.type && (
@@ -203,17 +199,19 @@ export default function ComposeSheet({ isOpened, setIsOpened, composeAction, cle
 					)}
 				</>
 			)}
-			<Composer
-				isOpened={mode === 'compose' && isOpened}
-				client={client}
-				post={post}
-				visState={{ vis, setVis }}
-				acct={useAcct}
-				changeMode={changeMode}
-				textState={{ text, setText }}
-				cwState={{ cw, setCW }}
-				uploadedState={{ uploaded, setUploaded }}
-			/>
+			{mode === 'compose' && (
+				<Composer
+					client={client}
+					post={post}
+					visState={{ vis, setVis }}
+					acct={useAcct}
+					changeMode={changeMode}
+					textState={{ text, setText }}
+					cwState={{ cw, setCW }}
+					uploadedState={{ uploaded, setUploaded }}
+					isInSheet={isInSheet}
+				/>
+			)}
 			{mode === 'acct' && <Acct change={(r) => setUseAcct(r)} />}
 			{mode === 'emoji' && <Emoji client={client} add={(r) => addEmoji(r)} />}
 			{mode === 'menu' && <Menu client={client} npSet={{ setText, setUploaded }} changeMode={changeMode} />}

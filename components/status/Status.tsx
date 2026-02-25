@@ -12,6 +12,7 @@ import type { Account } from '@/entities/account'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { stripTags } from '@/utils/string'
 import { calcFromNow } from '@/utils/timeline'
+import * as Clipboard from 'expo-clipboard'
 import { Link, useRouter } from 'expo-router'
 import { openBrowserAsync } from 'expo-web-browser'
 import { useTranslation } from 'react-i18next'
@@ -43,7 +44,10 @@ const data = [
 ]
 const actions = [
 	{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const },
-	{ title: 'timeline.action.translate', value: 'translate', systemImage: 'translate' as const }
+	{ title: 'timeline.action.translate', value: 'translate', systemImage: 'translate' as const },
+	{ title: 'timeline.action.copyUrl', value: 'copyUrl', systemImage: 'copy' as const },
+	{ title: 'timeline.action.openInBrowser', value: 'openInBrowser', systemImage: 'safari' as const },
+	
 ]
 const actionOnlyMe = [
 	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
@@ -128,6 +132,14 @@ export const Status = (props: IProps) => {
 			await onTranslateSheet({
 				input: stripTags(status.content)
 			})
+		}
+		if (d === 'copyUrl') {
+			const url = status.url || ''
+			Clipboard.setUrlAsync(url)
+		}
+		if (d === 'openInBrowser') {
+			const url = status.url || ''
+			openBrowserAsync(url)
 		}
 	}
 

@@ -1,13 +1,11 @@
 import type { Poll as IPoll } from '@/entities/status'
 import type { ComposeMode } from '@/utils/type'
-import { Button as SwiftButton } from '@expo/ui/swift-ui'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PlatformColor, StyleSheet, Switch, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { TextInputMulti } from '../themed/TextInputMulti'
 import { Button } from '../ui/Button'
-import { CustomedButton } from '../ui/CustomedButton'
 import { Dropdown } from '../ui/Dropdown'
 
 interface Props {
@@ -64,24 +62,25 @@ export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions
 					/>
 					<Button
 						style={{ width: 50, height: 50 }}
+						width={50}
+						isDark={isDark}
 						disabled={options.length === 2}
 						onPress={() => setOptions((o) => o.filter((_a, i) => i !== idx))}
 						color="red"
-						variant="bordered"
 						systemImage="xmark"
 					></Button>
 				</View>
 			))}
 			<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-				<Button style={{ width: 100, height: 50 }} onPress={() => setOptionMenu(!optionMenu)} variant="bordered">
+				<Button width={100} isDark={isDark} style={{ width: 100, height: 50 }} onPress={() => setOptionMenu(!optionMenu)}>
 					{t('composer.poll.config')}
 				</Button>
 				<Dropdown data={expiresList} onSelect={(v) => setExpires(parseInt(v, 10))} modifiers={[]} style={{ width: 100, height: 50 }}>
-					<SwiftButton variant="bordered" systemImage="clock">
+					<Button width={100} systemImage="clock" isDark={isDark} style={{ width: 100, height: 50 }}>
 						{t(expiresList.find((s) => s.value === expires.toString())?.title || '')}
-					</SwiftButton>
+					</Button>
 				</Dropdown>
-				<Button style={{ width: 100, height: 50 }} disabled={options.length === maxPollsOptions} onPress={() => setOptions((o) => [...o, ''])} variant="bordered" systemImage="plus">
+				<Button width={100} isDark={isDark} style={{ width: 100, height: 50 }} disabled={options.length === maxPollsOptions} onPress={() => setOptions((o) => [...o, ''])} systemImage="plus">
 					{t('composer.poll.addOption')}
 				</Button>
 			</View>
@@ -98,16 +97,16 @@ export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions
 				</View>
 			)}
 			<View>
-				<CustomedButton isPrimary={true} onPress={() => makeAddPoll()}>
+				<Button width={width - 40} style={{ height: 50 }} isDark={isDark} isPrimary={true} onPress={() => makeAddPoll()}>
 					{t('ok')}
-				</CustomedButton>
-				<CustomedButton style={{ marginTop: 10 }} onPress={() => changeMode('compose')}>
+				</Button>
+				<Button width={width - 40} isDark={isDark} style={{ marginTop: 10, height: 50 }} onPress={() => changeMode('compose')}>
 					{t('cancel')}
-				</CustomedButton>
+				</Button>
 				{defaultPoll && (
-					<CustomedButton style={{ marginTop: 10 }} color="red" onPress={() => addPoll(null)}>
+					<Button width={width - 40} isDark={isDark} style={{ marginTop: 10, height: 50 }} color="red" onPress={() => addPoll(null)}>
 						{t('composer.remove')}
-					</CustomedButton>
+					</Button>
 				)}
 				<View style={{ height: 20 }} />
 			</View>

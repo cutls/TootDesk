@@ -9,7 +9,7 @@ export const TextInputMulti = ({ onBlur, placeholder, isDark, defaultValue }: { 
             value={value}
             onChangeText={(t) => setValue(t)}
             onBlur={() => onBlur(value)}
-            style={[staticStyles.input, { flexGrow: 1 }]}
+            style={[staticStyles.input, { flexGrow: 1, color: isDark ? 'white' : 'black', textAlignVertical: 'top' }]}
             placeholder={placeholder}
             placeholderTextColor={isDark ? 'lightgray' : 'gray'}
         />

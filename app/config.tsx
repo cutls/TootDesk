@@ -1,4 +1,5 @@
-import { CustomedButton } from '@/components/ui/CustomedButton'
+import { Button } from '@/components/ui/Button'
+import { getColorIOS } from 'expo-color-to-hex'
 import * as Localization from 'expo-localization'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
@@ -18,9 +19,9 @@ export default function Index() {
 	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
 	return (
 		<ScrollView style={{ padding: 20 }}>
-			<CustomedButton isGlass={true} isPrimary={true} onPress={() => router.push('/acct')} systemImage="person">
+			<Button isPrimary={true} color={getColorIOS('systemBlue') || 'blue'} onPress={() => router.push('/acct')} style={{ padding: 10 }} systemImage="person" width={width - 20} isDark={isDark}>
 				{t('screen.acct')}
-			</CustomedButton>
+			</Button>
 		</ScrollView>
 	)
 }

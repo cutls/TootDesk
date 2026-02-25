@@ -1,10 +1,11 @@
 import Avatar from '@/components/Avatar'
 import { Text } from '@/components/themed/Text'
-import { Button } from '@/components/ui/Button'
+import { Button, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Color } from '@/entities/timeline'
 import { listAccts, removeAcct, removeTimelinesByAcctId, updateAcct } from '@/utils/storage'
 import { colors, getTextColor } from '@/utils/type'
+import { getColorIOS } from 'expo-color-to-hex'
 import { GlassView } from 'expo-glass-effect'
 import { useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
@@ -80,12 +81,12 @@ export default function Index() {
 									</TouchableOpacity>
 								)}
 							</View>
-							<Button variant="borderedProminent" color={PlatformColor('systemRed')} onPress={() => removeAcctId(a.id)} style={{ width: 50, height: 50 }} systemImage="trash"></Button>
+							<IconButton color={getColorIOS('systemRed') || 'red'} onPress={() => removeAcctId(a.id)} style={{ width: 50, height: 50 }} systemImage="trash" width={50} isDark={isDark} />
 						</View>
 					</GlassView>
 				)}
 			/>
-			<Button variant="glassProminent" systemImage="plus" onPress={() => router.push('/login')} style={{ marginVertical: 20, width: 200, height: 50 }}>
+			<Button systemImage="plus" onPress={() => router.push('/login')} style={{ marginVertical: 20, width: 200, height: 50 }} width={200} isDark={isDark}>
 				{t('add')}
 			</Button>
 		</View>

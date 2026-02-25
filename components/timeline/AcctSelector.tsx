@@ -1,26 +1,25 @@
-import type { ActionProps, IState } from '@/utils/type'
+import type { Account } from '@/entities/account'
+import type React from 'react'
+import { useRef } from 'react'
+import { StyleSheet } from 'react-native'
+
 import RNBottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
 import { GlassView } from 'expo-glass-effect'
-import React from 'react'
-import { PlatformColor, StyleSheet, useWindowDimensions } from 'react-native'
-import ComposeSheet from './ComposeSheet'
+import Acct from '../composer/Acct'
 
 interface Props {
+	change: (acct: Account) => void
 	isOpened: boolean
-	setIsOpened: IState<boolean>
-	composeAction: ActionProps | null
-	clearComposeAction: (acctId: string) => void
+	setIsOpened: (v: boolean) => void
 }
+
 const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
-export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
-	const { width } = useWindowDimensions()
-	const textColor = PlatformColor('label')
-	const bottomSheetRef = React.useRef<RNBottomSheet>(null)
-	if (!isOpened) return null
+export default function AcctSelector({ change, isOpened, setIsOpened }: Props) {
+	const bottomSheetRef = useRef<RNBottomSheet>(null)
+	if (!isOpened) return
 	return (
 		<RNBottomSheet
 			handleComponent={null}
-			snapPoints={[350]}
 			keyboardBlurBehavior="none"
 			detached={true}
 			ref={bottomSheetRef}
@@ -28,11 +27,16 @@ export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction,
 			style={{ zIndex: 5 }}
 			backgroundComponent={GlassViewCustom}
 			enableBlurKeyboardOnGesture={true}
-			enableDynamicSizing={false}
 			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
 		>
 			<BottomSheetView style={styles.contentContainer}>
-				<ComposeSheet isInSheet={true} close={() => bottomSheetRef.current?.close()} composeAction={composeAction} clearComposeAction={clearComposeAction} />
+				<Acct
+					change={(r) => {
+						bottomSheetRef.current?.close()
+                        setIsOpened(false)
+						change(r)
+					}}
+				/>
 			</BottomSheetView>
 		</RNBottomSheet>
 	)

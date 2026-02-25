@@ -187,7 +187,9 @@
 			"edit": "編集",
 			"delete": "削除",
 			"deleteConfirm": "この投稿を削除してもよろしいですか？",
-			"translate": "翻訳"
+			"translate": "翻訳",
+			"copyUrl": "リンクをコピー",
+			"openInBrowser": "ブラウザで開く"
 		},
 		"kind": {
 			"home": "ホーム",

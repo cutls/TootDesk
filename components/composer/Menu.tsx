@@ -4,9 +4,9 @@ import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Fontisto from '@expo/vector-icons/Fontisto'
 import React, { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
 import { Text } from '../themed/Text'
-import { CustomedButton } from '../ui/CustomedButton'
+import { Button, CustomButton } from '../ui/Button'
 
 interface Props {
 	changeMode: (m: ComposeMode) => void
@@ -36,21 +36,21 @@ export default function Menu({ changeMode, npSet, client }: Props) {
 		<View style={{ minHeight: 320 }}>
 			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
 				<Text style={{ fontWeight: 'bold', fontSize: 18 }}>NowPlaying</Text>
-				<CustomedButton width={150} onPress={() => np('apple')} style={{ marginVertical: 5 }}>
+				<CustomButton onPress={() => np('apple')} style={{ marginVertical: 5, width: 100, height: 50 }}>
 					<Fontisto name="applemusic" size={24} color={isDark ? 'white' : 'black'} />
-				</CustomedButton>
-				<CustomedButton isLoading={isSpotifyLoading} width={150} onPress={() => np('spotify')} style={{ marginVertical: 5 }}>
-					<Fontisto name="spotify" size={24} color={isDark ? 'white' : 'black'} />
-				</CustomedButton>
+				</CustomButton>
+				<CustomButton onPress={() => np('spotify')} style={{ marginVertical: 5, width: 100, height: 50 }}>
+					{isSpotifyLoading ? <ActivityIndicator /> : <Fontisto name="spotify" size={24} color={isDark ? 'white' : 'black'} />}
+				</CustomButton>
 			</View>
 			<View style={{ height: 5 }} />
-			<CustomedButton onPress={() => changeMode('poll')}>{t('composer.menu.poll')}</CustomedButton>
-			<CustomedButton onPress={() => changeMode('schedule')} style={{ marginVertical: 10 }}>
+			<Button width={width - 40} isDark={isDark} onPress={() => changeMode('poll')} style={{ height: 50 }}>{t('composer.menu.poll')}</Button>
+			<Button width={width - 40} isDark={isDark} onPress={() => changeMode('schedule')} style={{ marginVertical: 10, height: 50 }}>
 				{t('composer.menu.schedule')}
-			</CustomedButton>
-			<CustomedButton isPrimary={true} onPress={() => changeMode('compose')}>
+			</Button>
+			<Button isPrimary={true} width={width - 40} isDark={isDark} onPress={() => changeMode('compose')} style={{ height: 50 }}>
 				{t('composer.menu.return')}
-			</CustomedButton>
+			</Button>
 		</View>
 	)
 }

@@ -1,6 +1,6 @@
 import { RenderSimpleHTML } from '@/components/status/HTML'
 import { Text } from '@/components/themed/Text'
-import { CustomedButton } from '@/components/ui/CustomedButton'
+import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { listAccts, saveAccts } from '@/utils/storage'
 import { capitalizeFirst } from '@/utils/string'
@@ -223,14 +223,14 @@ export default function Index() {
 								<Text style={[]}>{t('login.instance.misskey_io')}</Text>
 							</View>)}
 						</ScrollView>
-						<CustomedButton isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => login()}>
+						<Button color="teal" isPrimary={true} style={{width: width - 40, height: 45, ...styles.link}} onPress={() => login()} width={width} isDark={isDark}>
 							{t('continue')}
-						</CustomedButton>
+						</Button>
 					</View>
 				)
-			) : <CustomedButton isLoading={isLoading} isGlass={true} color="teal" isPrimary={true} style={styles.link} onPress={() => preLogin()}>
+			) : <Button isLoading={isLoading} color="teal" isPrimary={true} style={{width: width - 40, height: 45, ...styles.link}} onPress={() => preLogin()} width={width} isDark={isDark}>
 					{t('screen.login')}
-				</CustomedButton>}
+				</Button>}
 		</KeyboardAvoidingView>
 	)
 }
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
 	},
 	link: {
 		marginTop: 15,
-		paddingVertical: 15
+		paddingVertical: 0
 	},
 	row: {
 		flexDirection: 'row',
