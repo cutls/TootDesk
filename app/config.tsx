@@ -88,7 +88,7 @@ export default function Index() {
 			<Button onPress={() => router.push('/acct')} style={{ padding: 10 }} systemImage="person" width={width - 20} isDark={isDark}>
 				{t('screen.acct')}
 			</Button>
-			<Button isPrimary={true} color={getColorIOS('systemBlue') || 'blue'} onPress={handleSave} style={{ padding: 10 }} systemImage="checkmark" width={width - 20} isDark={isDark}>
+			<Button isPrimary={true} onPress={handleSave} style={{ padding: 10 }} systemImage="checkmark" width={width - 20} isDark={isDark}>
 				{t('config.save')}
 			</Button>
 

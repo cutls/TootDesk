@@ -1,11 +1,12 @@
 import { staticStyles } from "@/utils/theme";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { useState } from "react";
-import { TextInput } from "react-native";
 
-export const TextInputMulti = ({ onBlur, placeholder, isDark, defaultValue }: { onBlur: (value: string) => void; placeholder: string; isDark: boolean; defaultValue: string }) => {
+export const TextInputMulti = ({ onBlur, placeholder, isDark, defaultValue, ref }: { onBlur: (value: string) => void; placeholder: string; isDark: boolean; defaultValue: string; ref?: any }) => {
     const [value, setValue] = useState(defaultValue)
     return (
-        <TextInput
+        <BottomSheetTextInput
+            ref={ref}
             value={value}
             onChangeText={(t) => setValue(t)}
             onBlur={() => onBlur(value)}

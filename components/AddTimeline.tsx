@@ -9,7 +9,6 @@ import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodo
 import { Host, Label, List } from '@expo/ui/swift-ui'
 import { frame } from '@expo/ui/swift-ui/modifiers'
 import RNBottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
-import { getColorIOS } from 'expo-color-to-hex'
 import { randomUUID } from 'expo-crypto'
 import { GlassView } from 'expo-glass-effect'
 import React, { useEffect, useState } from 'react'
@@ -220,7 +219,7 @@ export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 									))}
 								</List>
 							</Host>
-							<Button isPrimary={true} color={getColorIOS('systemBlue') || 'blue'} width={width} style={{ marginVertical: 10, height: 50 }} onPress={() => setMode('select')} isDark={isDark}>
+							<Button isPrimary={true} width={width} style={{ marginVertical: 10, height: 50 }} onPress={() => setMode('select')} isDark={isDark}>
 								{t('ok')}
 							</Button>
 						</View>

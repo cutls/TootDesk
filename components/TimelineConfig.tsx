@@ -34,6 +34,7 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 	const [client, setClient] = useState<MegalodonInterface | null>(null)
 	const [defaultName, setDefaultName] = useState(timeline.name)
 	const bottomSheetRef = useRef<RNBottomSheet>(null)
+	const keyboardRef = useRef(null)
 	useEffect(() => {
 		const fn = async () => {
 			const name = await makeTimelineNameWithAcctId(timeline.kind, t(`timeline.kind.${timeline.kind}`), timeline.acctId)
@@ -57,16 +58,22 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 		await saveTimelines(updatedTls)
 		setTimelines(updatedTls)
 	}
+	// useEffect(() => {
+	// 	(keyboardRef.current as any)?.focus()
+	// }, [isOpened])
 	if (!isOpened) return
 	return (
 		<RNBottomSheet
 			handleComponent={null}
+			keyboardBlurBehavior="none"
 			detached={true}
 			ref={bottomSheetRef}
 			onChange={(e) => setIsOpened(e !== -1)}
 			style={{ zIndex: 5 }}
 			backgroundComponent={GlassViewCustom}
 			enableBlurKeyboardOnGesture={true}
+			enablePanDownToClose={true}
+			enableDynamicSizing={true}
 			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
 		>
 			<BottomSheetView style={styles.contentContainer}>
@@ -95,6 +102,7 @@ export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Prop
 					<Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>{t('navigation.config.name')}</Text>
 					<TextInputMulti
 						defaultValue={timeline.name}
+						ref={keyboardRef}
 						onBlur={async (input) => {
 							const tls = await getTimelines()
 							const name = input || defaultName

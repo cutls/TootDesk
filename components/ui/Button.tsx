@@ -1,5 +1,6 @@
 import { Host, Button as SwiftButton, type HostProps, type ButtonProps as SwiftUIButtonProps } from '@expo/ui/swift-ui'
 import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
+import { getColorIOS } from 'expo-color-to-hex'
 import { GlassView } from 'expo-glass-effect'
 import { SymbolView, type SymbolViewProps } from 'expo-symbols'
 import type React from 'react'
@@ -18,7 +19,7 @@ export function ButtonSwiftUI({ style, ...props }: SwiftUIProps) {
 	)
 }
 interface ButtonProps {
-	color?: string | OpaqueColorValue
+	color?: string
 	isPrimary?: boolean
 	width: number
 	isLoading?: boolean
@@ -34,7 +35,7 @@ export function Button({ systemImage, isLoading, isPrimary, onPress, color, styl
 		<Pressable onPress={onPress} disabled={disabled}>
 			<GlassView
 				style={{ justifyContent: 'center', flexDirection: 'row', alignItems: 'center', borderRadius: 20, ...style }}
-				tintColor={isPrimary ? color?.toString() : undefined}
+				tintColor={isPrimary ? (color || getColorIOS('systemBlue') || 'blue') : undefined}
 				isInteractive={!disabled}
 			>
 				{systemImage && !isLoading && (

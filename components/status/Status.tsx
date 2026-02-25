@@ -75,7 +75,9 @@ export const Status = (props: IProps) => {
 	const avatarSize = 45
 	const left = avatarSize + 25
 	const [isFiltered, setIsFiltered] = useState(filters.some((f) => status.content.includes(f.phrase) || status.spoiler_text.includes(f.phrase)))
-	const isCW = status.spoiler_text.length > 0 || (props.config.maxLength > 0 ? status.content.length > props.config.maxLength : false)
+	const isCWA = status.spoiler_text.length > 0
+	const isCWB = (props.config.maxLength > 0 ? stripTags(status.content).length > props.config.maxLength : false)
+	const isCW = isCWA || isCWB
 	const action = async (type: 'bt' | 'fav' | 'bookmark') => {
 		setIsProcessing(true)
 		try {
@@ -200,8 +202,8 @@ export const Status = (props: IProps) => {
 					</View>
 
 					{isCW && (
-						<View style={styles.cwWrap}>
-							<Text style={{ fontSize: fontSize, marginRight: 2, width: columnWidth - 180 }}>{status.spoiler_text || status.content.slice(0, 20)}</Text>
+						<View style={[styles.cwWrap, { borderColor: isCWA ? PlatformColor('systemYellow') : PlatformColor('systemBlue') }]}>
+							<Text style={{ fontSize: fontSize, marginRight: 2, width: columnWidth - 180 }}>{status.spoiler_text || stripTags(status.content).slice(0, 20)}</Text>
 							<TouchableOpacity
 								activeOpacity={0.7}
 								onPress={() => setIsOpen(!isOpen)}
@@ -255,7 +257,6 @@ const createStyles = ({ width }: { width: number }) =>
 			alignItems: 'center',
 			justifyContent: 'space-between',
 			borderWidth: 1,
-			borderColor: PlatformColor('systemYellow'),
 			padding: 5,
 			marginVertical: 5,
 			borderRadius: 5,
