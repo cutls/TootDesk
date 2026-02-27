@@ -20,6 +20,7 @@ import { Text } from './themed/Text'
 import { IconButton } from './ui/Button'
 
 interface Props {
+	isOpened: boolean
 	open: () => void
 	close: () => void
 	composeAction: ActionProps | null
@@ -33,7 +34,7 @@ interface IOptional {
 	in_reply_to_id?: string
 	quoted_status_id?: string
 }
-export default function ComposeSheet({ close, open, composeAction, clearComposeAction, isInSheet }: Props) {
+export default function ComposeSheet({ isOpened, close, open, composeAction, clearComposeAction, isInSheet }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowSize()
 	const styles = createStyles({ width })
@@ -141,7 +142,6 @@ export default function ComposeSheet({ close, open, composeAction, clearComposeA
 				const priv = status.visibility
 				if (['public', 'unlisted', 'private', 'direct'].includes(priv || '')) setVis((priv as any) || 'public')
 				if (status.spoiler_text) setCW(status.spoiler_text)
-				console.log(status.media_attachments)
 				if (status.media_attachments && status.media_attachments.length > 0) setUploaded(status.media_attachments)
 				setOptional((o) => {
 					const newOptional: IOptional = { ...o }
@@ -206,6 +206,7 @@ export default function ComposeSheet({ close, open, composeAction, clearComposeA
 			)}
 			{mode === 'compose' && (
 				<Composer
+					isOpened={isOpened}
 					client={client}
 					post={post}
 					visState={{ vis, setVis }}

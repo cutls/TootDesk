@@ -34,6 +34,7 @@ export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction,
 		>
 			<BottomSheetView style={styles.contentContainer}>
 				<ComposeSheet
+					isOpened={isOpened}
 					isInSheet={true}
 					open={() => {
 						setIsOpened(true)

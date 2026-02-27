@@ -40,7 +40,7 @@ export default function Post() {
 		fn()
 	}, [type, acctId, targetId, addText, statusId, visibility])
 	return (
-		<ComposeSheet isInSheet={false} open={() => console.log('open')} close={() => router.back()} composeAction={composeAction} clearComposeAction={(acctId: string) => setComposeAction({ acctId })} />
+		<ComposeSheet isOpened={true} isInSheet={false} open={() => console.log('open')} close={() => router.back()} composeAction={composeAction} clearComposeAction={(acctId: string) => setComposeAction({ acctId })} />
 	)
 }
 const createStyles = ({ width }: { width: number }) => StyleSheet.create({})

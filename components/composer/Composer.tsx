@@ -25,6 +25,7 @@ interface Props {
 	post: () => void
 	client: MegalodonInterface | null
 	isInSheet: boolean
+	isOpened: boolean
 }
 interface Suggested {
 	type: 'emoji' | 'acct' | 'tag'
@@ -40,7 +41,7 @@ const data = [
 	{ title: 'composer.vis.direct', value: 'direct', systemImage: 'envelope.fill' as const }
 ]
 const TextInputCustom = (props: React.ComponentProps<typeof TextInput> & { isInSheet: boolean; ref?: any }) => (props.isInSheet ? <BottomSheetTextInput {...props} /> : <TextInput {...props} />)
-export default function Composer({ acct, post, changeMode, textState, cwState, uploadedState, visState, client, isInSheet }: Props) {
+export default function Composer({ acct, post, changeMode, textState, cwState, uploadedState, visState, client, isInSheet, isOpened }: Props) {
 	const { text, setText } = textState
 	const { cw, setCW } = cwState
 	const { vis, setVis } = visState
@@ -96,8 +97,9 @@ export default function Composer({ acct, post, changeMode, textState, cwState, u
 		return null
 	}
 	useEffect(() => {
-		textInput.current?.focus()
-	}, [])
+		if (isOpened) setTimeout(() => textInput.current?.focus(), 700)
+		if (!isOpened) textInput.current?.blur()
+	}, [isOpened])
 	useEffect(() => {
 		const main = async () => {
 			//setSuggestLoading(true)
