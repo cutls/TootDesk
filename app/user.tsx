@@ -15,6 +15,7 @@ import { AccountName } from '@/components/status/AccountName'
 import { Text } from '@/components/themed/Text'
 import { Button, CustomButton, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getAcctById } from '@/utils/storage'
 import { calcFromNow } from '@/utils/timeline'
 import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodon'
@@ -28,7 +29,7 @@ import { useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, type OpaqueColorValue, PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, type OpaqueColorValue, PlatformColor, ScrollView, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const BasePerson = ({ relation: r, textColor }: { relation: Entity.Relationship; textColor: OpaqueColorValue }) => {
@@ -68,7 +69,9 @@ export default function Index() {
 	const router = useRouter()
 	const params = useLocalSearchParams()
 	const { acctId, userId } = params as Record<'acctId' | 'userId', string>
-	const { width } = useWindowDimensions()
+	
+	const { width, deviceWidth } = useWindowSize()
+	const padding = (deviceWidth - width) / 2
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
@@ -147,8 +150,8 @@ export default function Index() {
 				<Image style={{ height: 120, width: width, opacity: scrollY > 300 ? 1 : 0 }} source={{ uri: basic.header }} />
 				<BlurView intensity={scrollY > 300 ? 100 : 0} style={{ position: 'absolute', height: 120, width }}></BlurView>
 			</View>
-			<Image style={[styles.header, { height: Math.max(340, 300 - Math.min(0, scrollY)) }]} source={{ uri: basic.header }} />
-			<ScrollView ref={ref} onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+			<Image style={[styles.header, { height: Math.max(340, 300 - Math.min(0, scrollY)), marginLeft: padding }]} source={{ uri: basic.header }} />
+			<ScrollView ref={ref} onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)} style={{ position: 'absolute', width, top: 0, left: padding, right: 0, bottom: 0 }}>
 				<View style={styles.headerWrap} />
 				<GlassViewFallback isPreview={isPreview} style={styles.infoBar}>
 					<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>

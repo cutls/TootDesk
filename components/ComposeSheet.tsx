@@ -1,5 +1,6 @@
 import type { Account } from '@/entities/account'
 import type { Poll as IPoll } from '@/entities/status'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { getAcctById, getUsualAcct } from '@/utils/storage'
 import type { ActionProps, ComposeMode } from '@/utils/type'
@@ -7,7 +8,7 @@ import generator, { type Entity, type MegalodonInterface } from '@cutls/megalodo
 import { SymbolView } from 'expo-symbols'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import Composer from './composer/Composer'
@@ -33,7 +34,7 @@ interface IOptional {
 }
 export default function ComposeSheet({ close, composeAction, clearComposeAction, isInSheet }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const [mode, setMode] = useState<ComposeMode>('compose')
 	const [useAcct, setUseAcct] = useState<Account | null>(null)

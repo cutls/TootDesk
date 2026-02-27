@@ -1,4 +1,5 @@
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { uploadCallback } from '@/utils/picture'
 import { suggest } from '@/utils/suggest'
@@ -6,10 +7,11 @@ import type { ComposeMode, IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import { getColorIOS } from 'expo-color-to-hex'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, FlatList, InputAccessoryView, PlatformColor, StyleSheet, TextInput, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, FlatList, InputAccessoryView, PlatformColor, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button, IconButton } from '../ui/Button'
 import { Dropdown } from '../ui/Dropdown'
@@ -44,7 +46,7 @@ export default function Composer({ acct, post, changeMode, textState, cwState, u
 	const { vis, setVis } = visState
 	const { uploaded, setUploaded } = uploadedState
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
@@ -167,7 +169,7 @@ export default function Composer({ acct, post, changeMode, textState, cwState, u
 			)}
 			<View style={{ display: 'flex', justifyContent: 'space-between', marginVertical: 5, paddingBottom: 10, flexDirection: 'row', gap: 2 }}>
 				<IconButton style={{ width: 40, height: 40 }} width={40} isDark={isDark} systemImage="line.3.horizontal" onPress={() => changeMode('menu')} />
-				<Button style={{ width: 40, height: 40 }} width={40} color={isCW ? PlatformColor('systemYellow') : undefined} isDark={isDark} onPress={() => setIsCW(!isCW)}>
+				<Button style={{ width: 40, height: 40 }} width={40} color={isCW ? (getColorIOS('systemYellow') || undefined) : undefined} isDark={isDark} onPress={() => setIsCW(!isCW)}>
 					CW
 				</Button>
 				<IconButton style={{ width: 40, height: 40 }} width={40} isDark={isDark} systemImage="face.smiling" onPress={() => changeMode('emoji')} />

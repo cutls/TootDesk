@@ -1,9 +1,10 @@
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import React from 'react'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 
 import type { Account } from '@/entities/account'
 import type { Settings } from '@/entities/settings'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { Link, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import Avatar from '../Avatar'
@@ -26,7 +27,7 @@ interface IProps {
 export const Conversation = (props: IProps) => {
 	const { status: conversation, client, columnWidth, lang, updateStatus, acct, composeAction, filters, config } = props
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const router = useRouter()
 	const theme = useColorScheme()
 	const isDark = theme === 'dark'

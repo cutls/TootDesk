@@ -1,4 +1,6 @@
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
+import { useConfigStore } from '@/utils/store/config'
 import { useTimelineStore } from '@/utils/store/timelines'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
 import type { ActionProps, IState } from '@/utils/type'
@@ -7,7 +9,7 @@ import type { FlashListRef } from '@shopify/flash-list'
 import * as Localization from 'expo-localization'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
-import { StyleSheet, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, ScrollView, StyleSheet, View } from 'react-native'
 import PagerView from 'react-native-pager-view'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Conversations } from '../timeline/Conversations'
@@ -25,8 +27,10 @@ interface IProps {
 export const Columns = ({ context }: IProps) => {
 	const { current, setCurrent, relayRef, setComposeAction } = context
 	const { timelines } = useTimelineStore()
-	const { width, height } = useWindowDimensions()
-	const ref = useRef<PagerView>(null)
+	const { width, height, deviceWidth } = useWindowSize()
+	const { config } = useConfigStore()
+	const refPager = useRef<PagerView>(null)
+	const refScroll = useRef<ScrollView>(null)
 	const lang = Localization.getLocales()[0]?.languageTag === 'ja-JP' ? 'ja' : 'en'
 	const action = async (client: MegalodonInterface, account: Account, type: 'quote' | 'reply' | 'edit', target: Entity.Status) => {
 		const isMe = target.account.acct !== account.username ? `@${target.account.acct} ` : ''
@@ -34,28 +38,54 @@ export const Columns = ({ context }: IProps) => {
 		if (type === 'quote') setComposeAction({ type: 'quote', acctId: '1', targetId: target.id })
 		if (type === 'edit') setComposeAction({ type: 'edit', acctId: '1', targetId: target.id, addText: await getSourceText(target, client), status: target })
 	}
+	const columnWidth = config.timeline.widthInTablet || 350
 	useEffect(() => {
-		ref.current?.setPage(current)
+		if (refPager.current) refPager.current.setPage(current)
+		if (refScroll.current) {
+			refScroll.current.scrollTo({ x: current * columnWidth, animated: true })
+		}
 	}, [current])
 
-	const styles = createStyles({ width, height })
+	const styles = createStyles({ width, height, deviceWidth })
 	return (
 		<SafeAreaView style={[styles.container]}>
-			<PagerView ref={ref} style={{ height: '100%', width: '100%' }} initialPage={0} onPageSelected={(a) => setCurrent(a.nativeEvent.position)}>
-				{timelines.map((timeline, index) => (
-					<View style={styles.page} key={timeline.id}>
-						{timeline.kind !== 'notifications' && timeline.kind !== 'direct' && <Timeline timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
-						{timeline.kind === 'notifications' && <Notifications timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
-						{timeline.kind === 'direct' && <Conversations timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
-					</View>
-				))}
-			</PagerView>
+			{deviceWidth <= 550 ? (
+				<PagerView ref={refPager} style={{ height: '100%', width: '100%' }} initialPage={0} onPageSelected={(a) => setCurrent(a.nativeEvent.position)}>
+					{timelines.map((timeline, index) => (
+						<View style={styles.page} key={timeline.id}>
+							{timeline.kind !== 'notifications' && timeline.kind !== 'direct' && (
+								<Timeline timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />
+							)}
+							{timeline.kind === 'notifications' && <Notifications timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
+							{timeline.kind === 'direct' && <Conversations timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={width} lang={lang} />}
+						</View>
+					))}
+				</PagerView>
+			) : (
+				<ScrollView ref={refScroll} horizontal={true} style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'row' }} onScrollBeginDrag={(e) => setCurrent(Math.max(0, Math.floor(e.nativeEvent.contentOffset.x / columnWidth)))}>
+					{timelines.map((timeline, index) => (
+						<View style={styles.page} key={timeline.id}>
+							{timeline.kind !== 'notifications' && timeline.kind !== 'direct' && (
+								<Timeline timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={columnWidth} lang={lang} />
+							)}
+							{timeline.kind === 'notifications' && (
+								<Notifications timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={columnWidth} lang={lang} />
+							)}
+							{timeline.kind === 'direct' && (
+								<Conversations timeline={timeline} relayRef={current === index ? relayRef : undefined} composeAction={action} columnWidth={columnWidth} lang={lang} />
+							)}
+						</View>
+					))}
+				</ScrollView>
+			)}
 		</SafeAreaView>
 	)
 }
 
-const createStyles = ({ width, height }: { width: number; height: number }) =>
+const createStyles = ({ width, height, deviceWidth }: { width: number; height: number; deviceWidth: number }) =>
 	StyleSheet.create({
-		container: {},
-		page: {}
+		container: {
+			width: deviceWidth
+		},
+		page: deviceWidth >= 550 ? { borderRightWidth: 1, borderRightColor: PlatformColor('separator') } : {}
 	})

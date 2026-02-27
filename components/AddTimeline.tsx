@@ -1,5 +1,6 @@
 import type { Account } from '@/entities/account'
 import type { Timeline, TimelineKind } from '@/entities/timeline'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { confirmDialog, TIMELINE_ADD_DUPLICATED } from '@/utils/alert'
 import { getTimelines, getUsualAcct, saveTimelines } from '@/utils/storage'
 import { useTimelineStore } from '@/utils/store/timelines'
@@ -13,7 +14,7 @@ import { randomUUID } from 'expo-crypto'
 import { GlassView } from 'expo-glass-effect'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FlatList, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { FlatList, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import Avatar from './Avatar'
 import Acct from './composer/Acct'
 import { Text } from './themed/Text'
@@ -31,7 +32,7 @@ interface Props {
 const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
 export default function AddTimeline({ isOpened, setIsOpened, context }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const [useAcct, setUseAcct] = useState<Account | null>(null)
 	const colorScheme = useColorScheme()

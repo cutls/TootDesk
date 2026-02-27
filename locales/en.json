@@ -15,7 +15,8 @@
 		"post": "Post",
 		"config": "Preferences",
 		"search": "Search",
-		"tag": "Tag"
+		"tag": "Tag",
+		"onOtherAcct": "React from other accounts"
     },
     "login": {
         "failed": "Login failed",
@@ -143,8 +144,11 @@
 			"delete": "Delete",
 			"deleteConfirm": "Are you sure you want to delete this post?",
 			"translate": "Translate",
+			"onOtherAcct": "React from other accounts",
 			"copyUrl": "Copy link to post",
-			"openInBrowser": "Open in browser"
+			"openInBrowser": "Open in browser",
+			"copyText": "Copy text",
+			"copied": "Copied to clipboard"
 		},
 		"kind": {
 			"home": "Home",
@@ -279,6 +283,21 @@
 				"hint": "How images are fitted in the thumbnail",
 				"cover": "Crop",
 				"contain": "Fit"
+			},
+			"widthInTablet": {
+				"label": "Width in Tablet Mode",
+				"hint": "Timeline column width in tablet layout (100–800)"
+			}
+		},
+		"nowPlaying": {
+			"title": "Now Playing",
+			"attachArtwork": {
+				"label": "Attach Artwork",
+				"hint": "Attach album artwork to the post"
+			},
+			"template": {
+				"label": "Post template text",
+				"hint": "Template for the Now Playing post. You can use {song}(song name), {artist}(artist name), {album}(album name), {url}(if available), and {Source}(AppleMusic or Spotify) as placeholders."
 			}
 		},
 		"unsavedChanges": {

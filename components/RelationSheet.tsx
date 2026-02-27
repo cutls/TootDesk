@@ -1,10 +1,11 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import type { IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { BottomSheet, Host } from '@expo/ui/swift-ui'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, StyleSheet, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, View } from 'react-native'
 import { Text } from './themed/Text'
 import { CustomedButton } from './ui/CustomedButton'
 
@@ -18,7 +19,7 @@ interface Props {
 	locked: boolean
 }
 export default function RelationSheet({ isOpened, setIsOpened, client, relation, update, targetId, locked }: Props) {
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const { t } = useTranslation()
 	const styles = createStyles({ width })
 	const [isLoading, setIsLoading] = useState(false)

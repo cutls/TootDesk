@@ -1,9 +1,10 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { FlashList } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
 
@@ -14,7 +15,7 @@ interface Props {
 const column = 8
 const margin = 2
 export default function Emoji({ client, add }: Props) {
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const styles = createStyles({ width })
@@ -38,7 +39,7 @@ export default function Emoji({ client, add }: Props) {
 		fn()
 	}, [])
 	return (
-		<View>
+		<View style={styles.wrap}>
 			{isLoading ? (
 				<View style={styles.container}>
 					<ActivityIndicator />
@@ -55,9 +56,10 @@ export default function Emoji({ client, add }: Props) {
 					}
 					renderItem={({ item }) => (
 						<TouchableOpacity activeOpacity={0.7} onPress={() => add(item.shortcode)} style={{ width: perWidth, height: perWidth }}>
-							<Image source={{ uri: item.url }} style={{ width: perWidth, height: perWidth, margin }} />
+							<Image source={{ uri: item.url }} style={{ width: perWidth, height: perWidth, margin }} contentFit="contain" />
 						</TouchableOpacity>
 					)}
+					style={{ height: 250}}
 				/>
 			)}
 			<Button onPress={() => add('')} style={{ width: width - 40, height: 50, marginTop: 10 }} width={width - 40} isDark={isDark}>
@@ -68,9 +70,13 @@ export default function Emoji({ client, add }: Props) {
 }
 const createStyles = ({ width }: { width: number }) =>
 	StyleSheet.create({
+		wrap: {
+			flexDirection: 'column',
+			justifyContent: 'space-around'
+		},
 		container: {
 			width: '100%',
-			height: 500,
+			height: 250,
 			alignItems: 'center',
 			justifyContent: 'center'
 		}

@@ -1,8 +1,9 @@
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { listAccts } from '@/utils/storage'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
 
@@ -11,7 +12,7 @@ interface Props {
 }
 export default function Acct({ change }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'

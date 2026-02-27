@@ -1,7 +1,8 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { ButtonProps, HostProps } from '@expo/ui/swift-ui'
 import { SymbolView } from 'expo-symbols'
 import type React from 'react'
-import { ActivityIndicator, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { ButtonSwiftUI } from './Button'
 
@@ -14,7 +15,7 @@ interface Props extends ButtonProps {
 	isLoading?: boolean
 }
 export function CustomedButton({ isPrimary, color, width: requestedWidth, isLoading, systemImage, ...props }: Props) {
-	const { width: screenWidth } = useWindowDimensions()
+	const { width: screenWidth } = useWindowSize()
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
 	const width = requestedWidth || screenWidth

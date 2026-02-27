@@ -3,6 +3,7 @@ import { Text } from '@/components/themed/Text'
 import { Button, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Color } from '@/entities/timeline'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { listAccts, removeAcct, removeTimelinesByAcctId, updateAcct } from '@/utils/storage'
 import { colors, getTextColor } from '@/utils/type'
 import { getColorIOS } from 'expo-color-to-hex'
@@ -11,12 +12,12 @@ import { useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FlatList, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { FlatList, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 export default function Index() {
 	const { t } = useTranslation()
 
 	const router = useRouter()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'

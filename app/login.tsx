@@ -2,6 +2,7 @@ import { RenderSimpleHTML } from '@/components/status/HTML'
 import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { listAccts, saveAccts } from '@/utils/storage'
 import { capitalizeFirst } from '@/utils/string'
 import { staticStyles } from '@/utils/theme'
@@ -13,7 +14,7 @@ import { useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Alert, PlatformColor, ScrollView, StyleSheet, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, Alert, PlatformColor, ScrollView, StyleSheet, TextInput, useColorScheme, View } from 'react-native'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import semver from 'semver'
 
@@ -71,7 +72,7 @@ interface GetData {
 export default function Index() {
 	const { t } = useTranslation()
 
-	const { width } = useWindowDimensions()
+	const { width, deviceWidth } = useWindowSize()
 	const appIcon = require('../assets/images/icon.png')
 	const mastodon = require('../assets/images/sns/mastodon.svg')
 	const misskey = require('../assets/images/sns/misskey.png')
@@ -111,7 +112,7 @@ export default function Index() {
 			const isMisskey = sns === 'misskey'
 			const scopes = isMisskey ? misskeyPremission : ['read', 'write', 'follow']
 			const redirectUrl = Linking.createURL('login')
-			const app = await client.registerApp('TheDesk(mobile)', { scopes, redirect_uris: !isMisskey ? redirectUrl : 'urn:ietf:wg:oauth:2.0:oob', website: 'https://thedesk.top' })
+			const app = await client.registerApp('TheDesk(mobile)', { scopes, redirect_uris: redirectUrl, website: 'https://thedesk.top' })
 			if (!app || !app.url) throw new Error('Cannot register app.')
 			const a = await WebBrowser.openAuthSessionAsync(app.url)
 			if (a.type === 'success') {
@@ -166,8 +167,9 @@ export default function Index() {
 	}
 
 	const localImage = snsData?.compatibleSns === 'mastodon' ? mastodon : snsData?.compatibleSns === 'misskey' ? misskey : snsData?.compatibleSns === 'pleroma' ? pleroma : appIcon
+	const padding = (deviceWidth - width) / 2 + 20
 	return (
-		<KeyboardAvoidingView style={styles.container}>
+		<KeyboardAvoidingView style={[styles.container, { paddingHorizontal: padding }]}>
 			<TextInput
 				value={domain}
 				onChangeText={(t) => changeDomain(t)}
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
 		flex: 0,
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 20
+		paddingVertical: 20
 	},
 	link: {
 		marginTop: 15,

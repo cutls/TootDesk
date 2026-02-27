@@ -1,10 +1,12 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { nowplaying, NowPlayingContext } from '@/utils/nowplaying'
+import { useConfigStore } from '@/utils/store/config'
 import type { ComposeMode, IState } from '@/utils/type'
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Fontisto from '@expo/vector-icons/Fontisto'
 import React, { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button, CustomButton } from '../ui/Button'
 
@@ -15,7 +17,8 @@ interface Props {
 }
 export default function Menu({ changeMode, npSet, client }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { config } = useConfigStore()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
@@ -26,7 +29,7 @@ export default function Menu({ changeMode, npSet, client }: Props) {
 		if (!client) return
 		npSet.setUploaded([])
 		if (type === 'spotify') setIsSpotifyLoading(true)
-		const data = await nowplaying(client, type, playing)
+		const data = await nowplaying(client, type, playing, config.nowPlaying)
 		if (type === 'spotify') setIsSpotifyLoading(false)
 		npSet.setText(data.text)
 		if (data.image) npSet.setUploaded((u) => [...u, data.image])

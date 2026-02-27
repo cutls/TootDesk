@@ -4,6 +4,7 @@ import { Status } from '@/components/status/Status'
 import { Text } from '@/components/themed/Text'
 import { IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getAcctById } from '@/utils/storage'
 import { useConfigStore } from '@/utils/store/config'
 import { staticStyles } from '@/utils/theme'
@@ -14,14 +15,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, FlatList, PlatformColor, ScrollView, StyleSheet, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, FlatList, PlatformColor, ScrollView, StyleSheet, TextInput, useColorScheme, View } from 'react-native'
 
 export default function Index() {
 	const { t } = useTranslation()
 	const [scrolled, setScrolled] = useState(false)
 
 	const router = useRouter()
-	const { width } = useWindowDimensions()
+	const { width, deviceWidth } = useWindowSize()
+	const padding = (deviceWidth - width) / 2 + 10
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const params = useLocalSearchParams()
@@ -110,7 +112,7 @@ export default function Index() {
 		fn()
 	}, [acctId])
 	return (
-		<ScrollView style={{ padding: 10 }}>
+		<ScrollView style={{ paddingHorizontal: padding, paddingVertical: 10 }}>
 			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
 				<TextInput
 					value={q}

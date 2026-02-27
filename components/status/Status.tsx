@@ -3,7 +3,7 @@ import { ja } from 'date-fns/locale'
 import { SymbolView } from 'expo-symbols'
 import { onTranslateSheet } from 'expo-translate-text'
 import React, { useRef, useState } from 'react'
-import { ActionSheetIOS, ActivityIndicator, findNodeHandle, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, PlatformColor, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import Avatar from '../Avatar'
 import { Text } from '../themed/Text'
 import { AccountName } from './AccountName'
@@ -13,10 +13,12 @@ import type { Settings } from '@/entities/settings'
 import { confirmDialog, CONTINUE } from '@/utils/alert'
 import { stripTags } from '@/utils/string'
 import { calcFromNow } from '@/utils/timeline'
+import { ignoreSafeArea } from '@expo/ui/swift-ui/modifiers'
 import * as Clipboard from 'expo-clipboard'
 import { Link, useRouter } from 'expo-router'
 import { openBrowserAsync } from 'expo-web-browser'
 import { useTranslation } from 'react-i18next'
+import { Dropdown } from '../ui/Dropdown'
 import { Attachment } from './Attachments'
 import { Card } from './Card'
 import { RenderHTML } from './HTML'
@@ -46,8 +48,10 @@ const data = [
 const actions = [
 	{ title: 'timeline.action.quote', value: 'quote', systemImage: 'quote.bubble' as const },
 	{ title: 'timeline.action.translate', value: 'translate', systemImage: 'translate' as const },
-	{ title: 'timeline.action.copyUrl', value: 'copyUrl', systemImage: 'copy' as const },
-	{ title: 'timeline.action.openInBrowser', value: 'openInBrowser', systemImage: 'safari' as const }
+	{ title: 'timeline.action.onOtherAcct', value: 'onOtherAcct', systemImage: 'person.and.arrow.left.and.arrow.right.outward' as const },
+	{ title: 'timeline.action.copyUrl', value: 'copyUrl', systemImage: 'link' as const },
+	{ title: 'timeline.action.openInBrowser', value: 'openInBrowser', systemImage: 'safari' as const },
+	{ title: 'timeline.action.copyText', value: 'copyText', systemImage: 'doc.on.doc' as const }
 ]
 const actionOnlyMe = [
 	{ title: 'timeline.action.edit', value: 'edit', systemImage: 'pencil' as const },
@@ -76,7 +80,7 @@ export const Status = (props: IProps) => {
 	const left = avatarSize + 25
 	const [isFiltered, setIsFiltered] = useState(filters.some((f) => status.content.includes(f.phrase) || status.spoiler_text.includes(f.phrase)))
 	const isCWA = status.spoiler_text.length > 0
-	const isCWB = (props.config.maxLength > 0 ? stripTags(status.content).length > props.config.maxLength : false)
+	const isCWB = props.config.maxLength > 0 ? stripTags(status.content).length > props.config.maxLength : false
 	const isCW = isCWA || isCWB
 	const action = async (type: 'bt' | 'fav' | 'bookmark') => {
 		setIsProcessing(true)
@@ -113,17 +117,7 @@ export const Status = (props: IProps) => {
 			openBrowserAsync(url)
 		}
 	}
-	const dropdown = async () => {
-		const d = await new Promise<string>((resolve) =>
-			ActionSheetIOS.showActionSheetWithOptions(
-				{
-					options: otherAction.map((a) => t(a.title)),
-					anchor: findNodeHandle(dropdownRef.current) || undefined,
-					destructiveButtonIndex: otherAction.findIndex((a) => a.value === 'delete') || undefined
-				},
-				(i) => resolve(otherAction[i].value)
-			)
-		)
+	const dropdown = async (d: string) => {
 		if (d === 'quote') composeAction(client, acct, 'quote', status)
 		if (d === 'edit') composeAction(client, acct, 'edit', status)
 		if (d === 'delete') {
@@ -136,6 +130,7 @@ export const Status = (props: IProps) => {
 				input: stripTags(status.content)
 			})
 		}
+		if (d === 'onOtherAcct') router.push(`/onOtherAcct?acctId=${acct.id}&statusId=${status.id}`)
 		if (d === 'copyUrl') {
 			const url = status.url || ''
 			Clipboard.setUrlAsync(url)
@@ -144,6 +139,7 @@ export const Status = (props: IProps) => {
 			const url = status.url || ''
 			openBrowserAsync(url)
 		}
+		if (d === 'copyText') router.push(`/copy?acctId=${acct.id}&statusId=${status.id}`)
 	}
 
 	const otherAction = isMe ? [...actions, ...actionOnlyMe] : actions
@@ -238,9 +234,9 @@ export const Status = (props: IProps) => {
 						<TouchableOpacity style={styles.action} onPress={() => action('bookmark')}>
 							<SymbolView name={status.bookmarked ? 'bookmark.fill' : 'bookmark'} type="monochrome" tintColor={status.bookmarked ? PlatformColor('systemRed') : txtColor} size={fontSize * 1.2} />
 						</TouchableOpacity>
-						<TouchableOpacity ref={dropdownRef} style={styles.action} onPress={() => dropdown()}>
-							<SymbolView name="ellipsis" type="monochrome" tintColor={txtColor} size={fontSize * 1.2} />
-						</TouchableOpacity>
+						<Dropdown data={otherAction} onSelect={(title) => dropdown(title)} modifiers={[ignoreSafeArea({ regions: 'all' })]}>
+							<SymbolView name="ellipsis" tintColor={txtColor} type="monochrome" size={fontSize * 1.2} />
+						</Dropdown>
 					</View>
 				</View>
 			</View>

@@ -1,6 +1,7 @@
 import AddTimeline from '@/components/AddTimeline'
 import ComposeSheetBase from '@/components/ComposeSheetBase'
 import { Columns } from '@/components/timeline/Columns'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getTimelines, listAccts } from '@/utils/storage'
 import { useFilterStore } from '@/utils/store/filter'
 import type { ActionProps } from '@/utils/type'
@@ -8,11 +9,11 @@ import generator from '@cutls/megalodon'
 import type { FlashListRef } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import { StyleSheet, useWindowDimensions, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Navigator from '../components/Navigator'
 
 export default function Index() {
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const [isComposeOpened, setIsComposeOpened] = useState(false)
 	const [isAddTLOpened, setIsAddTLOpened] = useState(false)
 	const [current, setCurrent] = useState(0)

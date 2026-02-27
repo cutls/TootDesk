@@ -1,5 +1,6 @@
 import type { Account } from '@/entities/account'
 import { colorList, type Color, type Timeline } from '@/entities/timeline'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getTimelines, saveTimelines } from '@/utils/storage'
 import { useTimelineStore } from '@/utils/store/timelines'
 import { icon, makeTimelineNameWithAcctId } from '@/utils/timelineName'
@@ -11,7 +12,7 @@ import { SymbolView } from 'expo-symbols'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from './themed/Text'
 import { TextInputMulti } from './themed/TextInputMulti'
 import { IconButton } from './ui/Button'
@@ -24,7 +25,7 @@ interface Props {
 const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
 export default function TimelineConfig({ isOpened, setIsOpened, timeline }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const [useAcct, setUseAcct] = useState<Account | null>(null)
 	const colorScheme = useColorScheme()

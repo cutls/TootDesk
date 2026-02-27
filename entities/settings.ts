@@ -14,20 +14,18 @@ export type Settings = {
 		animation: FormBoolean
 		maxLength: number
 		maxImageHeight: number
-		notification: FormBoolean
-		ttsProvider: 'system' | 'bouyomi'
-		ttsPort: number
 		cropImage: 'cover' | 'contain'
-		ttsPitch: number
-		ttsRate: number
-		ttsVolume: number
-		ttsVoice: string
+		widthInTablet: number
 	}
 	compose: {
 		floating: FormBoolean
 		btnPosition: 'left' | 'right'
 		afterPost: 'close' | 'stay'
 		secondaryToot: 'no' | 'public' | 'unlisted' | 'private' | 'direct'
+	},
+	nowPlaying: {
+		attachArtwork: FormBoolean
+		template: string
 	}
 }
 
@@ -45,19 +43,17 @@ export const defaultSetting: Settings = {
 		animation: 'yes',
 		maxImageHeight: 100,
 		maxLength: 500,
-		notification: 'yes',
-		ttsProvider: 'system',
-		ttsPort: 50080,
 		cropImage: 'cover',
-		ttsPitch: 1,
-		ttsRate: 1,
-		ttsVolume: 100,
-		ttsVoice: ''
+		widthInTablet: 350
 	},
 	compose: {
 		floating: 'yes',
 		btnPosition: 'right',
 		afterPost: 'close',
 		secondaryToot: 'no'
+	},
+	nowPlaying: {
+		attachArtwork: 'yes',
+		template: '#NowPlaying {song} / {album} / {artist}\n{url} #{Source}WithTheDesk'
 	}
 }

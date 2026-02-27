@@ -1,3 +1,4 @@
+import type { Settings } from '@/entities/settings'
 import type { MegalodonInterface } from '@cutls/megalodon'
 import type { NowPlayingState } from '@edualm/react-native-now-playing'
 import axios from 'axios'
@@ -12,12 +13,12 @@ const apiGateway = 'https://ep9jquu2w4.execute-api.ap-northeast-1.amazonaws.com/
 type PlayingSource = NowPlayingState | null
 
 const template = '#NowPlaying {song} / {album} / {artist}\n{url} #{Source}WithTheDesk'
-export const nowplaying = async (client: MegalodonInterface, source: 'apple' | 'spotify', playing: PlayingSource) => {
+export const nowplaying = async (client: MegalodonInterface, source: 'apple' | 'spotify', playing: PlayingSource, config: Settings['nowPlaying']) => {
 	if (source === 'apple') {
 		const state = playing
 		if (!state || !state.item) return { text: '', image: null }
 		const item = state.item
-		let result = template
+		let result = config.template || template
 		result = result.replace('{song}', item.title ?? 'Unknown Title')
 		result = result.replace('{album}', item.album ?? 'Unknown Album')
 		result = result.replace('{artist}', item.artist ?? 'Unknown Artist')
@@ -25,6 +26,7 @@ export const nowplaying = async (client: MegalodonInterface, source: 'apple' | '
 		result = result.replace('{Source}', 'AppleMusic')
 		const b64 = state.item.artwork
 		try {
+			if (config.attachArtwork !== 'yes') return { text: result, image: null }
 			if (!b64) throw new Error('No artwork found')
 			const r = await ImageManipulator.manipulateAsync(`data:image/png;base64,${b64}`, [], { format: ImageManipulator.SaveFormat.JPEG, compress: 0.8 })
 			const image = await client.uploadMedia({
@@ -44,7 +46,7 @@ export const nowplaying = async (client: MegalodonInterface, source: 'apple' | '
 			if (tokenData) {
 				const unixTime = Date.now()
 				if (parseInt(tokenData.expires, 10) > unixTime / 1000) {
-					return await spotify(tokenData.accessToken, client)
+					return await spotify(tokenData.accessToken, client, config)
 				} else {
 					// refresh token
 					const api = await fetch(`${apiGateway}?state=refresh&refreshToken=${tokenData.refreshToken}`, {
@@ -55,10 +57,10 @@ export const nowplaying = async (client: MegalodonInterface, source: 'apple' | '
 					const json = await api.json()
 					const { accessToken, refreshToken, expiresIn } = json
 					saveSpotifyToken(accessToken, refreshToken, expiresIn)
-					return await spotify(accessToken, client)
+					return await spotify(accessToken, client, config)
 				}
 			} else {
-				return await spotifyAuth(client)
+				return await spotifyAuth(client, config)
 			}
 		} catch (e: any) {
 			Alert.alert('Spotify', `Reason: ${e.message || e.toString()}`)
@@ -66,7 +68,7 @@ export const nowplaying = async (client: MegalodonInterface, source: 'apple' | '
 	}
 	return { text: '', image: null }
 }
-async function spotify(accessToken: string, client: MegalodonInterface) {
+async function spotify(accessToken: string, client: MegalodonInterface, config: Settings['nowPlaying']) {
 	const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
 		headers: {
 			Authorization: `Bearer ${accessToken}`
@@ -82,7 +84,7 @@ async function spotify(accessToken: string, client: MegalodonInterface) {
 		return { text: '', image: null }
 	}
 	const item = json.item
-	let result = template
+	let result = config.template || template
 	const regExp1 = /{song}/g
 	result = result.replace(regExp1, item.name)
 	const regExp2 = /{album}/g
@@ -94,6 +96,7 @@ async function spotify(accessToken: string, client: MegalodonInterface) {
 	result = result.replace('{Source}', 'Spotify')
 	const img = item.album.images[0].url
 	try {
+		if (config.attachArtwork !== 'yes') return { text: result, image: null }
 		if (!img) throw new Error('No artwork found')
 		const blobr = await axios.get(img, { responseType: 'arraybuffer' })
 		const blob = blobr.data
@@ -110,7 +113,7 @@ async function spotify(accessToken: string, client: MegalodonInterface) {
 		return { text: result, image: null }
 	}
 }
-async function spotifyAuth(client: MegalodonInterface) {
+async function spotifyAuth(client: MegalodonInterface, config: Settings['nowPlaying']) {
 	try {
 		const a = await WebBrowser.openAuthSessionAsync(`${apiGateway}?state=connectTootdesk`)
 		if (a.type === 'success') {
@@ -126,7 +129,7 @@ async function spotifyAuth(client: MegalodonInterface) {
 			const { accessToken, refreshToken } = json
 			if (!accessToken || !refreshToken) throw new Error('No tokens received.')
 			saveSpotifyToken(accessToken, refreshToken, 3600)
-			return await spotify(accessToken, client)
+			return await spotify(accessToken, client, config)
 		} else {
 			throw new Error('User cancelled login.')
 		}

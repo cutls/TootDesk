@@ -15,7 +15,8 @@
 		"post": "投稿",
 		"config": "設定",
 		"search": "検索",
-		"tag": "タグ"
+		"tag": "タグ",
+		"onOtherAcct": "他のアカウントから操作"
 	},
 	"login": {
 		"failed": "ログインに失敗しました",
@@ -188,8 +189,11 @@
 			"delete": "削除",
 			"deleteConfirm": "この投稿を削除してもよろしいですか？",
 			"translate": "翻訳",
+			"onOtherAcct": "他のアカウントから操作",
 			"copyUrl": "リンクをコピー",
-			"openInBrowser": "ブラウザで開く"
+			"openInBrowser": "ブラウザで開く",
+			"copyText": "テキストをコピー",
+			"copied": "クリップボードにコピーしました"
 		},
 		"kind": {
 			"home": "ホーム",
@@ -279,6 +283,21 @@
 				"hint": "サムネイル内の画像のフィット方法",
 				"cover": "クロップ",
 				"contain": "フィット"
+			},
+			"widthInTablet": {
+				"label": "タブレットモードでの横幅",
+				"hint": "タブレット表示時のタイムライン横幅(100〜800)"
+			}
+		},
+		"nowPlaying": {
+			"title": "NowPlaying",
+			"attachArtwork": {
+				"label": "アートワークを添付する",
+				"hint": "投稿にアルバムアートワークを添付します"
+			},
+			"template": {
+				"label": "投稿テンプレート",
+				"hint": "{song}(曲名)、{artist}(歌手名)、{album}(アルバム名)、{url}(利用可能な場合)、{Source}(AppleMusicまたはSpotify)が使用できます。"
 			}
 		},
 		"unsavedChanges": {

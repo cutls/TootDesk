@@ -5,6 +5,7 @@ import AcctSelector from '@/components/timeline/AcctSelector'
 import { CustomButton, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Timeline } from '@/entities/timeline'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getAcctById, getTimelines, saveTimelines } from '@/utils/storage'
 import { useConfigStore } from '@/utils/store/config'
 import { getAllMentions, getSourceText } from '@/utils/timeline'
@@ -15,7 +16,7 @@ import * as Localization from 'expo-localization'
 import { useIsPreview, useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, FlatList, PlatformColor, RefreshControl, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, FlatList, PlatformColor, RefreshControl, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Index() {
@@ -29,7 +30,9 @@ export default function Index() {
 
 	const params = useLocalSearchParams()
 	const { acctId, q } = params as Record<'acctId' | 'q', string>
-	const { width } = useWindowDimensions()
+	
+	const { width, deviceWidth } = useWindowSize()
+	const padding = (deviceWidth - width) / 2 + 10
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'
@@ -96,9 +99,9 @@ export default function Index() {
 		)
 	}
 	return (
-		<View>
+		<View style={{ paddingHorizontal: padding, paddingVertical: 10 }}>
 			<View style={styles.horizontal}>
-				<CustomButton onPress={() => setIsOpened(true)} style={{ margin: 5, padding: 5, width: width - 70 }}>
+				<CustomButton onPress={() => setIsOpened(true)} style={{ margin: 5, padding: 5, width: width - 75 }}>
 					<View style={styles.acctContainer}>
 						<View>
 							<Avatar src={acct.avatar || acct.favicon} fallback={acct.sns} size={20} />
@@ -156,7 +159,7 @@ const createStyles = ({ width }: { width: number }) =>
 		horizontal: {
 			flexDirection: 'row',
 			alignItems: 'center',
-			padding: 10,
+			marginBottom: 10,
 			width: width
 		},
 		acctContainer: {

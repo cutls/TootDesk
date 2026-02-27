@@ -1,10 +1,11 @@
 import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import { type SFSymbol, SymbolView } from 'expo-symbols'
 import React from 'react'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { useConfigStore } from '@/utils/store/config'
 import { Link, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -42,7 +43,7 @@ const icon = (type: string): SFSymbol => {
 }
 const Banner = ({ acctId, type, who, txtColor }: { acctId: string; type: string; who: Entity.Account | null; txtColor: string }) => {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	return (
 		<View style={{ padding: 5, paddingLeft: 10 }}>
 			<Link href={`/user?acctId=${acctId}&userId=${who?.id}`} push>

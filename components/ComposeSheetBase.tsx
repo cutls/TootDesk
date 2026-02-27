@@ -1,8 +1,9 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { ActionProps, IState } from '@/utils/type'
 import RNBottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
 import { GlassView } from 'expo-glass-effect'
 import React from 'react'
-import { PlatformColor, StyleSheet, useWindowDimensions } from 'react-native'
+import { PlatformColor, StyleSheet } from 'react-native'
 import ComposeSheet from './ComposeSheet'
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 }
 const GlassViewCustom = (props: React.ComponentProps<typeof GlassView>) => <GlassView {...props} style={[props.style, { borderRadius: 20 }]} />
 export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction, clearComposeAction }: Props) {
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const textColor = PlatformColor('label')
 	const bottomSheetRef = React.useRef<RNBottomSheet>(null)
 	if (!isOpened) return null

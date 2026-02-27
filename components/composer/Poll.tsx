@@ -1,8 +1,9 @@
 import type { Poll as IPoll } from '@/entities/status'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { ComposeMode } from '@/utils/type'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, Switch, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, Switch, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { TextInputMulti } from '../themed/TextInputMulti'
 import { Button } from '../ui/Button'
@@ -26,7 +27,7 @@ const expiresList = [
 
 export default function Poll({ changeMode, addPoll, defaultPoll, maxPollsOptions }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'

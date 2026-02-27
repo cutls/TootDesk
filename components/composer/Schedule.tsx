@@ -1,9 +1,10 @@
+import { useWindowSize } from '@/hooks/useWindowSize'
 import type { ComposeMode } from '@/utils/type'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { addMinutes, compareAsc, parseISO } from 'date-fns'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button } from '../ui/Button'
 
@@ -14,7 +15,7 @@ interface Props {
 }
 export default function Schedule({ changeMode, addSchedule, defaultSchedule }: Props) {
 	const { t } = useTranslation()
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'

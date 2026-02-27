@@ -2,6 +2,7 @@ import Avatar from '@/components/Avatar'
 import { Status } from '@/components/status/Status'
 import { Text } from '@/components/themed/Text'
 import type { Account } from '@/entities/account'
+import { useWindowSize } from '@/hooks/useWindowSize'
 import { getAcctById } from '@/utils/storage'
 import { useConfigStore } from '@/utils/store/config'
 import { stripTags } from '@/utils/string'
@@ -11,7 +12,7 @@ import * as Localization from 'expo-localization'
 import { Link, useIsPreview, useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, FlatList, PlatformColor, StyleSheet, useColorScheme, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, FlatList, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface StatusExtended extends Entity.Status {
@@ -19,7 +20,7 @@ interface StatusExtended extends Entity.Status {
 	isMain?: boolean
 }
 const SimpleStatus = ({ status, acctId, isBefore }: { status: Entity.Status; acctId: string; isBefore: boolean }) => {
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const { config } = useConfigStore()
 	const isAnimation = config.timeline.animation === 'yes'
 	const beforeBorder = { borderBottomWidth: 1, borderBottomColor: PlatformColor('separator') }
@@ -48,7 +49,7 @@ export default function Index() {
 	const params = useLocalSearchParams()
 	const { config } = useConfigStore()
 	const { acctId, statusId } = params as Record<'acctId' | 'statusId', string>
-	const { width } = useWindowDimensions()
+	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
 	const isDark = colorScheme === 'dark'

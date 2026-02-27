@@ -7,7 +7,7 @@
 			"developmentClient": true,
 			"distribution": "internal",
 			"ios": {
-				"simulator": false
+				"simulator": true
 			},
 			"android": {
 				"buildType": "apk"
