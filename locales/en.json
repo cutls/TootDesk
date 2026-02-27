@@ -28,7 +28,17 @@
 			"sns": "Software",
 			"misskey": "Compatibility with Misskey is not very high. Some features may not work properly.",
 			"misskey_io": "Due to compatibility issues, this software does not guarantee the use of Misskey other than misskey.io."
-		}
+		},
+		"push": {
+			"pushNotificationDenied": "Push notification permission denied. Please allow it in system settings to receive notifications.",
+			"pushSubscribed": "Subscribed to push notifications successfully.",
+			"pushNotificationFailed": "Failed to subscribe to push notifications.",
+			"pushSubscribedMessage": "You have successfully subscribed to push notifications. You will receive notifications for new followers, favourites, boosts, and more. If you have any questions or concerns about push notifications, please contact support.",
+			"dialogTitle": "Use Push Notifications",
+			"dialogMessage": "This application can use push notifications. Data from Mastodon will be encrypted and sent to various notification services decrypted with \"{{domain}}\". A temporary access token will be sent to this server, but it will not be stored."
+		},
+		"deleteAccountConfirm": "Are you sure you want to delete this account? All timelines associated with this account will also be deleted.",
+		"deleteAccountConfirmTitle": "Delete Account"
     },
     "timeline": {
         "notification": {
@@ -298,7 +308,9 @@
 			"template": {
 				"label": "Post template text",
 				"hint": "Template for the Now Playing post. You can use {song}(song name), {artist}(artist name), {album}(album name), {url}(if available), and {Source}(AppleMusic or Spotify) as placeholders."
-			}
+			},
+			"appleMusicFailedTitle": "Failed to fetch from Apple Music",
+			"appleMusicFailedMessage": "1. Please make sure you are playing music.\n\n2. The first time you use this feature, you need to grant permission. To do this, start playing music and restart the app. You should see a permission dialog. After granting permission, please restart the app again."
 		},
 		"unsavedChanges": {
 			"title": "Unsaved Changes",

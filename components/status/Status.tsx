@@ -93,7 +93,7 @@ export const Status = (props: IProps) => {
 			else if (type === 'bookmark' && !status.bookmarked) response = await client.bookmarkStatus(status.id)
 			else if (type === 'bookmark' && status.bookmarked) response = await client.unbookmarkStatus(status.id)
 			const newStatus = response.data as Entity.Status
-			updateStatus(newStatus)
+			updateStatus(newStatus.reblog || newStatus)
 		} finally {
 			setIsProcessing(false)
 		}

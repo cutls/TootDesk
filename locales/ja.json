@@ -28,7 +28,17 @@
 			"sns": "ソフトウェア",
 			"misskey": "Misskeyに対する互換性はあまり高くありません。動作しない機能がある可能性があります。",
 			"misskey_io": "互換性の問題から、このソフトウェアはmisskey.io以外へのログインは推奨・保証していません。"
-		}
+		},
+		"push": {
+			"pushNotificationDenied": "プッシュ通知の許可が拒否されました。通知を受け取るにはシステム設定で許可してください。",
+			"pushSubscribed": "プッシュ通知の購読に成功しました。",
+			"pushNotificationFailed": "プッシュ通知の購読に失敗しました。",
+			"pushSubscribedMessage": "プッシュ通知の購読に成功しました。新しいフォロワー、お気に入り、ブーストなどの通知を受け取ります。プッシュ通知について質問や懸念がある場合は、サポートまでお問い合わせください。",
+			"dialogTitle": "プッシュ通知を使用",
+			"dialogMessage": "このアプリケーションはプッシュ通知を使用できます。Mastodonからのデータは暗号化され、「{{domain}}」で復号され通知サービスに送信されます。一時的なアクセストークンがこのサーバーに送信されますが、保存されることはありません。"
+		},
+		"deleteAccountConfirm": "このアカウントを削除してもよろしいですか？このアカウントに関連するすべてのタイムラインも削除されます。",
+		"deleteAccountConfirmTitle": "アカウントの削除"
 	},
 	"composer": {
 		"post": "投稿",
@@ -298,7 +308,10 @@
 			"template": {
 				"label": "投稿テンプレート",
 				"hint": "{song}(曲名)、{artist}(歌手名)、{album}(アルバム名)、{url}(利用可能な場合)、{Source}(AppleMusicまたはSpotify)が使用できます。"
-			}
+			},
+
+			"appleMusicFailedTitle": "Apple Musicの情報の取得に失敗しました",
+			"appleMusicFailedMessage": "1. 音楽を再生しているか確認してください。\n\n2. 初回使用時はアクセス許可が必要です。音楽を再生中にアプリを再起動させると、アクセス許可のダイアログが表示されます。許可後、再度アプリを再起動してください。"
 		},
 		"unsavedChanges": {
 			"title": "未保存の変更があります",

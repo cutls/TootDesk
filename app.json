@@ -1,21 +1,22 @@
 {
   "expo": {
-    "name": "TootDesk",
+    "name": "TheDesk",
     "slug": "TootDesk",
     "jsEngine": "hermes",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "tootdesk",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "version": "2.0.1",
     "ios": {
+      "buildNumber": "101",
       "supportsTablet": true,
-      "bundleIdentifier": "top.thedesk.ios",
+      "bundleIdentifier": "top.thedesk.toot",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
+    "orientation": "portrait",
+    "icon": "./assets/images/desk.png",
+    "scheme": "tootdesk",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "locales": { "en": "./locales/bundle/en.json", "ja": "./locales/bundle/ja.json" },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +27,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "top.thedesk.ios"
+      "package": "top.thedesk.toot"
     },
     "web": {
       "output": "static",

@@ -17,7 +17,6 @@ export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction,
 	const { width } = useWindowSize()
 	const textColor = PlatformColor('label')
 	const bottomSheetRef = React.useRef<RNBottomSheet>(null)
-	if (!isOpened) return null
 	return (
 		<RNBottomSheet
 			handleComponent={null}
@@ -30,10 +29,19 @@ export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction,
 			backgroundComponent={GlassViewCustom}
 			enableBlurKeyboardOnGesture={true}
 			enableDynamicSizing={false}
+			index={isOpened ? 0 : -1}
 			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
 		>
 			<BottomSheetView style={styles.contentContainer}>
-				<ComposeSheet isInSheet={true} close={() => bottomSheetRef.current?.close()} composeAction={composeAction} clearComposeAction={clearComposeAction} />
+				<ComposeSheet
+					isInSheet={true}
+					open={() => {
+						setIsOpened(true)
+					}}
+					close={() => bottomSheetRef.current?.close()}
+					composeAction={composeAction}
+					clearComposeAction={clearComposeAction}
+				/>
 			</BottomSheetView>
 		</RNBottomSheet>
 	)

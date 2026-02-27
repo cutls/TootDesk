@@ -4,8 +4,11 @@ import { Button, IconButton } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import type { Color } from '@/entities/timeline'
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { confirmDialog, CONTINUE } from '@/utils/alert'
+import { pushNotf } from '@/utils/push'
 import { listAccts, removeAcct, removeTimelinesByAcctId, updateAcct } from '@/utils/storage'
 import { colors, getTextColor } from '@/utils/type'
+import generator from '@cutls/megalodon'
 import { getColorIOS } from 'expo-color-to-hex'
 import { GlassView } from 'expo-glass-effect'
 import { useRouter } from 'expo-router'
@@ -20,6 +23,7 @@ export default function Index() {
 	const { width } = useWindowSize()
 	const styles = createStyles({ width })
 	const colorScheme = useColorScheme()
+	const [isLoading, setIsLoading] = useState(false)
 	const isDark = colorScheme === 'dark'
 	const textColor = PlatformColor('label')
 	const [acct, setAcct] = useState<Account[]>([])
@@ -45,9 +49,39 @@ export default function Index() {
 		load()
 	}
 	const removeAcctId = async (acctId: string) => {
+		const result = await confirmDialog(t('login.deleteAccountConfirmTitle'), t('login.deleteAccountConfirm'), CONTINUE, t)
+		if (result === 0) return
 		await removeAcct(acctId)
 		await removeTimelinesByAcctId(acctId)
 		load()
+		router.replace('/')
+	}
+	const refresh = async (acctId: string) => {
+		const accts = await listAccts()
+		const acct = accts.find((a) => a.id === acctId)
+		if (acct) {
+			setIsLoading(true)
+			try {
+				const domain = 'push.thedesk.top'
+				const authrizedClient = generator(acct.sns, `https://${acct.domain}`, acct.accessToken)
+				const { data: accountData } = await authrizedClient.verifyAccountCredentials()
+				const { data: instanceData } = await authrizedClient.getInstance()
+				const newAcct = {
+					avatar: accountData.avatar,
+					avatarStatic: accountData.avatar_static,
+					streamingUrl: instanceData.urls?.streaming_api || `wss://${domain}`
+				}
+
+				await updateAcct(acctId, newAcct)
+				const d = await pushNotf(acct, acct.pushNotification || domain, t)
+				if (d) {
+					await updateAcct(acctId, { pushNotification: d })
+					load()
+				}
+			} finally {
+				setIsLoading(false)
+			}
+		}
 	}
 	return (
 		<View style={{ flex: 1, alignItems: 'center', padding: 20 }}>
@@ -56,18 +90,24 @@ export default function Index() {
 				keyExtractor={(item, index) => `${item.id}-${index}`}
 				renderItem={({ item: a }) => (
 					<GlassView style={[styles.container, { backgroundColor: PlatformColor(colorToSystemColor(a.color || 'gray4')) }]}>
-						<View style={styles.horizontal}>
-							<View>
-								<Avatar src={a.avatar || a.favicon} fallback={a.sns} color={a.color} size={40} />
+						<View style={[styles.horizontal, { justifyContent: 'space-between', marginBottom: 10 }]}>
+							<View style={styles.horizontal}>
+								<View>
+									<Avatar src={a.avatar || a.favicon} fallback={a.sns} color={a.color} size={40} />
+								</View>
+								<View style={styles.infoContainer}>
+									<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
+										{a.username}
+									</Text>
+									<View style={styles.horizontal}>
+										<Text style={[styles.domain, { color: textColor }]} numberOfLines={1}>
+											{a.domain}
+										</Text>
+										{a.pushNotification && <SymbolView name="bell.badge" type="monochrome" tintColor="green" size={15} style={{ marginLeft: 5 }} />}
+									</View>
+								</View>
 							</View>
-							<View style={styles.infoContainer}>
-								<Text style={[styles.username, { color: textColor }]} numberOfLines={1}>
-									{a.username}
-								</Text>
-								<Text style={[styles.domain, { color: textColor }]} numberOfLines={1}>
-									{a.domain}
-								</Text>
-							</View>
+							<IconButton isLoading={isLoading} onPress={() => refresh(a.id)} style={{ width: 50, height: 50 }} systemImage="arrow.clockwise" width={50} isDark={isDark} />
 						</View>
 						<View style={styles.actions}>
 							<View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, flexShrink: 1 }}>

@@ -143,7 +143,6 @@ export default function Index() {
 							<CustomButton onPress={() => setRSheet(true)} style={{ width: 45, height: 45, marginRight: 2 }}>
 								<BasePerson relation={relation} textColor={textColor} />
 							</CustomButton>
-							<Relation relation={relation} textColor={textColor} />
 						</View>
 					)}
 				</View>
@@ -156,6 +155,7 @@ export default function Index() {
 				<GlassViewFallback isPreview={isPreview} style={styles.infoBar}>
 					<View style={{ width: 80, justifyContent: 'center', alignItems: 'center' }}>
 						<Avatar src={basic.avatar} size={80} />
+						{relation && <View style={styles.relation}><Relation relation={relation} textColor={textColor} /></View>}
 					</View>
 					<View style={{ marginLeft: 5 }}>
 						<AccountName account={basic} fontSize={24} width={width - 145} />
@@ -265,5 +265,13 @@ const createStyles = ({ width }: { width: number }) =>
 			height: 130,
 			left: 20,
 			borderRadius: 20
+		},
+		relation: {
+			position: 'absolute',
+			bottom: 5,
+			right: -5,
+			backgroundColor: PlatformColor('systemBackground'),
+			borderRadius: 10,
+			padding: 2
 		}
 	})

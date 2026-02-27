@@ -6,7 +6,7 @@ import type { Entity, MegalodonInterface } from '@cutls/megalodon'
 import Fontisto from '@expo/vector-icons/Fontisto'
 import React, { useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, Alert, PlatformColor, StyleSheet, useColorScheme, View } from 'react-native'
 import { Text } from '../themed/Text'
 import { Button, CustomButton } from '../ui/Button'
 
@@ -27,13 +27,22 @@ export default function Menu({ changeMode, npSet, client }: Props) {
 	const [isSpotifyLoading, setIsSpotifyLoading] = useState(false)
 	const np = async (type: 'apple' | 'spotify') => {
 		if (!client) return
-		npSet.setUploaded([])
-		if (type === 'spotify') setIsSpotifyLoading(true)
-		const data = await nowplaying(client, type, playing, config.nowPlaying)
-		if (type === 'spotify') setIsSpotifyLoading(false)
-		npSet.setText(data.text)
-		if (data.image) npSet.setUploaded((u) => [...u, data.image])
-		changeMode('compose')
+		try {
+			npSet.setUploaded([])
+			if (type === 'spotify') setIsSpotifyLoading(true)
+			const data = await nowplaying(client, type, playing, config.nowPlaying)
+			if (type === 'spotify') setIsSpotifyLoading(false)
+			if (!data || !data.text) throw new Error('No data')
+			npSet.setText(data.text)
+			if (data.image) npSet.setUploaded((u) => [...u, data.image])
+			changeMode('compose')
+		} catch (e) {
+			if (type === 'spotify') setIsSpotifyLoading(false)
+			console.error(e)
+			if (type === 'apple') {
+				Alert.alert(t('config.nowPlaying.appleMusicFailedTitle'), t('config.nowPlaying.appleMusicFailedMessage'))
+			}
+		}
 	}
 	return (
 		<View style={{ minHeight: 320 }}>
@@ -47,7 +56,9 @@ export default function Menu({ changeMode, npSet, client }: Props) {
 				</CustomButton>
 			</View>
 			<View style={{ height: 5 }} />
-			<Button width={width - 40} isDark={isDark} onPress={() => changeMode('poll')} style={{ height: 50 }}>{t('composer.menu.poll')}</Button>
+			<Button width={width - 40} isDark={isDark} onPress={() => changeMode('poll')} style={{ height: 50 }}>
+				{t('composer.menu.poll')}
+			</Button>
 			<Button width={width - 40} isDark={isDark} onPress={() => changeMode('schedule')} style={{ marginVertical: 10, height: 50 }}>
 				{t('composer.menu.schedule')}
 			</Button>

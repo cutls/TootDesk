@@ -20,6 +20,7 @@ export type Account = {
 	cannotSubscribe: boolean
 	emojiReactions: boolean
 	quoteSupport: boolean
+	pushNotification?: string
 }
 export const mockAccount: Account = {
 	id: 'f7e38316-8d05-4a38-9cd2-0f232ebf0303',

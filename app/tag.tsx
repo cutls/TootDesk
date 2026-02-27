@@ -150,6 +150,7 @@ export default function Index() {
 				data={statuses}
 				keyExtractor={(item) => item.id}
 				refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => load(true)} />}
+				style={{ marginBottom: 60 }}
 			/>
 		</View>
 	)

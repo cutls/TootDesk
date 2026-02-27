@@ -20,6 +20,7 @@ import { Text } from './themed/Text'
 import { IconButton } from './ui/Button'
 
 interface Props {
+	open: () => void
 	close: () => void
 	composeAction: ActionProps | null
 	clearComposeAction: (acctId: string) => void
@@ -32,7 +33,7 @@ interface IOptional {
 	in_reply_to_id?: string
 	quoted_status_id?: string
 }
-export default function ComposeSheet({ close, composeAction, clearComposeAction, isInSheet }: Props) {
+export default function ComposeSheet({ close, open, composeAction, clearComposeAction, isInSheet }: Props) {
 	const { t } = useTranslation()
 	const { width } = useWindowSize()
 	const styles = createStyles({ width })
@@ -130,6 +131,7 @@ export default function ComposeSheet({ close, composeAction, clearComposeAction,
 			if (composeAction?.type === 'reply') setOptional((o) => ({ ...o, in_reply_to_id: composeAction.targetId }))
 			if (composeAction?.type === 'quote') setOptional((o) => ({ ...o, quoted_status_id: composeAction.targetId }))
 			if (composeAction?.type === 'edit') setOptional((o) => ({ ...o, editTargetId: composeAction.targetId }))
+			if (composeAction?.type) open()
 			if (composeAction?.visibility) {
 				const priv = composeAction.visibility
 				if (['public', 'unlisted', 'private', 'direct'].includes(priv || '')) setVis((priv as any) || 'public')
@@ -189,8 +191,10 @@ export default function ComposeSheet({ close, composeAction, clearComposeAction,
 						<View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 5, marginLeft: 5 }}>
 							{optional.scheduled_at && <SymbolView type="monochrome" tintColor={textColor} name="clock" size={16} />}
 							{optional.poll && <SymbolView type="monochrome" tintColor={textColor} name="checklist" size={16} />}
+							{optional.in_reply_to_id && <SymbolView type="monochrome" tintColor={textColor} name="arrowshape.turn.up.left" size={16} />}
+							{optional.quoted_status_id && <SymbolView type="monochrome" tintColor={textColor} name="quote.bubble.fill" size={16} />}
 							<Text>{maxChars - text.length}</Text>
-							<IconButton onPress={() => closeCk()} systemImage="xmark" style={{ width: 40, height: 40 }} width={40} isDark={isDark} />
+							{isInSheet && <IconButton onPress={() => closeCk()} systemImage="xmark" style={{ width: 40, height: 40 }} width={40} isDark={isDark} />}
 						</View>
 					</View>
 					{composeAction?.type && (

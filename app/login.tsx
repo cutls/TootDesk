@@ -3,6 +3,7 @@ import { Text } from '@/components/themed/Text'
 import { Button } from '@/components/ui/Button'
 import type { Account } from '@/entities/account'
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { pushNotf } from '@/utils/push'
 import { listAccts, saveAccts } from '@/utils/storage'
 import { capitalizeFirst } from '@/utils/string'
 import { staticStyles } from '@/utils/theme'
@@ -69,6 +70,7 @@ interface GetData {
 	version: string
 	semanticVersionCompatibleNumber: string
 }
+const pushDomain = 'push.thedesk.top'
 export default function Index() {
 	const { t } = useTranslation()
 
@@ -104,13 +106,14 @@ export default function Index() {
 			setIsLoading(false)
 		}
 	}
+	
 	const login = async () => {
 		if (!client || !snsData) return
 		setIsLoading(true)
 		try {
 			const { compatibleSns: sns, semanticVersionCompatibleNumber } = snsData
 			const isMisskey = sns === 'misskey'
-			const scopes = isMisskey ? misskeyPremission : ['read', 'write', 'follow']
+			const scopes = isMisskey ? misskeyPremission : ['read', 'write', 'follow', 'push']
 			const redirectUrl = Linking.createURL('login')
 			const app = await client.registerApp('TheDesk(mobile)', { scopes, redirect_uris: redirectUrl, website: 'https://thedesk.top' })
 			if (!app || !app.url) throw new Error('Cannot register app.')
@@ -123,7 +126,6 @@ export default function Index() {
 				const authrizedClient = generator(sns, domainWithProtocol, token.access_token)
 				const { data: accountData } = await authrizedClient.verifyAccountCredentials()
 				const { data: instanceData } = await authrizedClient.getInstance()
-
 				const accounts = await listAccts()
 				const id = randomUUID()
 				const account: Account = {
@@ -147,7 +149,10 @@ export default function Index() {
 					emojiReactions: sns === 'misskey' || domain === 'fedibird.com',
 					quoteSupport: sns === 'misskey' || domain === 'fedibird.com' || (sns === 'mastodon' && !semver.lt(semanticVersionCompatibleNumber, '4.5.0'))
 				}
-				accounts.push(account)
+				// Push Notification
+				const pushNotification = await pushNotf(account, pushDomain, t)
+				// end
+				accounts.push(pushNotification ? {...account, pushNotification } : account)
 				await saveAccts(accounts)
 				router.replace('/')
 			} else {
@@ -218,21 +223,27 @@ export default function Index() {
 										<Text style={{ flexShrink: 1 }}>{rule.text}</Text>
 									</View>
 								))}
-							{snsData?.compatibleSns === 'misskey' && (<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
-								<Text style={[]}>{t('login.instance.misskey')}</Text>
-							</View>)}
-							{snsData?.compatibleSns === 'misskey' && domain !== 'misskey.io' && (<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
-								<Text style={[]}>{t('login.instance.misskey_io')}</Text>
-							</View>)}
+							{snsData?.compatibleSns === 'misskey' && (
+								<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
+									<Text style={[]}>{t('login.instance.misskey')}</Text>
+								</View>
+							)}
+							{snsData?.compatibleSns === 'misskey' && domain !== 'misskey.io' && (
+								<View style={{ borderWidth: 2, borderColor: PlatformColor('systemRed'), padding: 5, borderRadius: 10, marginTop: 10 }}>
+									<Text style={[]}>{t('login.instance.misskey_io')}</Text>
+								</View>
+							)}
 						</ScrollView>
-						<Button color="teal" isPrimary={true} style={{width: width - 40, height: 45, ...styles.link}} onPress={() => login()} width={width} isDark={isDark}>
+						<Button color="teal" isPrimary={true} style={{ width: width - 40, height: 45, ...styles.link }} onPress={() => login()} width={width} isDark={isDark}>
 							{t('continue')}
 						</Button>
 					</View>
 				)
-			) : <Button isLoading={isLoading} color="teal" isPrimary={true} style={{width: width - 40, height: 45, ...styles.link}} onPress={() => preLogin()} width={width} isDark={isDark}>
+			) : (
+				<Button isLoading={isLoading} color="teal" isPrimary={true} style={{ width: width - 40, height: 45, ...styles.link }} onPress={() => preLogin()} width={width} isDark={isDark}>
 					{t('screen.login')}
-				</Button>}
+				</Button>
+			)}
 		</KeyboardAvoidingView>
 	)
 }
