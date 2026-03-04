@@ -97,9 +97,11 @@ export default function Composer({ acct, post, changeMode, textState, cwState, u
 		return null
 	}
 	useEffect(() => {
-		if (isOpened) setTimeout(() => textInput.current?.focus(), 700)
-		if (!isOpened) textInput.current?.blur()
-	}, [isOpened])
+		//if (isOpened) setTimeout(() => textInput.current?.focus(), 500)
+		// if (!isOpened) textInput.current?.blur()
+		textInput.current?.focus()
+	//}, [isOpened])
+	}, [])
 	useEffect(() => {
 		const main = async () => {
 			//setSuggestLoading(true)

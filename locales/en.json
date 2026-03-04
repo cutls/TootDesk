@@ -9,6 +9,7 @@
     "no": "No",
 	"empty": "No data",
     "screen": {
+		"about": "About this app",
         "login": "Login",
         "acct": "Account Manager",
 		"detail": "Detail",

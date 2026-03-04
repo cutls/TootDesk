@@ -2,6 +2,7 @@
   "name": "tootdesk",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",

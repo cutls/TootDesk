@@ -30,19 +30,18 @@ export default function ComposeSheetBase({ isOpened, setIsOpened, composeAction,
 			enableBlurKeyboardOnGesture={true}
 			enableDynamicSizing={false}
 			index={isOpened ? 0 : -1}
+			animationConfigs={{ duration: 10 }}
 			backdropComponent={(props) => <BottomSheetBackdrop {...props} opacity={0.5} onPress={() => bottomSheetRef.current?.close()} disappearsOnIndex={-1} />}
 		>
 			<BottomSheetView style={styles.contentContainer}>
-				<ComposeSheet
+				{isOpened && <ComposeSheet
 					isOpened={isOpened}
 					isInSheet={true}
-					open={() => {
-						setIsOpened(true)
-					}}
+					open={() => setIsOpened(true)}
 					close={() => bottomSheetRef.current?.close()}
 					composeAction={composeAction}
 					clearComposeAction={clearComposeAction}
-				/>
+				/>}
 			</BottomSheetView>
 		</RNBottomSheet>
 	)

@@ -1,5 +1,7 @@
 # TheDesk mobile
 
+(Old name: TootDesk)
+
 The new generation of Mastodon client for iOS!!
 
 

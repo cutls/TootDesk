@@ -31,6 +31,7 @@ export default function RootLayout() {
 					<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
 						<Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
 							<Stack.Screen name="index" options={{ headerShown: false, title: '' }} />
+							<Stack.Screen name="about" options={{ title: t('screen.about') }} />
 							<Stack.Screen name="login" options={{ title: t('screen.login') }} />
 							<Stack.Screen name="acct" options={{ title: t('screen.acct') }} />
 							<Stack.Screen name="detail" options={{ title: t('screen.detail') }} />

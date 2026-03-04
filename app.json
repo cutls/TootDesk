@@ -3,9 +3,9 @@
     "name": "TheDesk",
     "slug": "TootDesk",
     "jsEngine": "hermes",
-    "version": "2.0.1",
+    "version": "2.0.3",
     "ios": {
-      "buildNumber": "101",
+      "buildNumber": "103",
       "supportsTablet": true,
       "bundleIdentifier": "top.thedesk.toot",
       "infoPlist": {
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/desk.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

@@ -119,10 +119,9 @@ export default function Index() {
 				<Button onPress={() => router.push('/acct')} style={{ padding: 10 }} systemImage="person" width={width - 20} isDark={isDark}>
 					{t('screen.acct')}
 				</Button>
-				<Button isPrimary={true} onPress={handleSave} style={{ padding: 10 }} systemImage="checkmark" width={width - 20} isDark={isDark}>
-					{t('config.save')}
+				<Button onPress={() => router.push('/about')} style={{ padding: 10 }} systemImage="info.circle" width={width - 20} isDark={isDark}>
+					{t('screen.about')}
 				</Button>
-
 				<Text style={styles.sectionHeader}>{t('config.timeline.title')}</Text>
 
 				<GlassView style={styles.card}>
@@ -278,6 +277,10 @@ export default function Index() {
 					/>
 				</View>
 			</InputAccessoryView>
+			<View style={{ height: 80 }} />
+			<Button isPrimary={true} onPress={handleSave} style={styles.save} systemImage="checkmark" width={width - 20} isDark={isDark}>
+				{t('config.save')}
+			</Button>
 		</>
 	)
 }
@@ -352,5 +355,12 @@ const createStyles = (_: { width: number }) =>
 			display: 'flex',
 			flexDirection: 'row',
 			alignItems: 'center'
+		},
+		save: {
+			position: 'absolute',
+			bottom: 20,
+			left: 20,
+			right: 20,
+			padding: 10
 		}
 	})

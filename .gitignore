@@ -53,3 +53,5 @@ app-example
 *.aab
 *.ipa
 prompt.txt
+thirdparty.js
+thirdparty.txt
