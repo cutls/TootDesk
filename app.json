@@ -3,9 +3,9 @@
     "name": "TheDesk",
     "slug": "TootDesk",
     "jsEngine": "hermes",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "ios": {
-      "buildNumber": "103",
+      "buildNumber": "104",
       "supportsTablet": true,
       "bundleIdentifier": "top.thedesk.toot",
       "infoPlist": {

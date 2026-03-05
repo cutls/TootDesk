@@ -36,7 +36,7 @@
 			"pushNotificationFailed": "Failed to subscribe to push notifications.",
 			"pushSubscribedMessage": "You have successfully subscribed to push notifications. You will receive notifications for new followers, favourites, boosts, and more. If you have any questions or concerns about push notifications, please contact support.",
 			"dialogTitle": "Use Push Notifications",
-			"dialogMessage": "This application can use push notifications. Data from Mastodon will be encrypted and sent to various notification services decrypted with \"{{domain}}\". A temporary access token will be sent to this server, but it will not be stored."
+			"dialogMessage": "This application can use push notifications. Data from Mastodon will be encrypted and sent to various notification services decrypted with \"{{domain}}\"."
 		},
 		"deleteAccountConfirm": "Are you sure you want to delete this account? All timelines associated with this account will also be deleted.",
 		"deleteAccountConfirmTitle": "Delete Account"

@@ -19,8 +19,7 @@ export const pushNotf = async (acct: Account, pushDomain: string, t: (s: string,
 					return false
 				}
 				try {
-					token = (await Notifications.getExpoPushTokenAsync()).data
-					console.log(token)
+					token = (await Notifications.getDevicePushTokenAsync()).data
 					if (!token) {
 						Alert.alert(t('login.push.pushNotificationFailed'))
 						return false
@@ -32,18 +31,66 @@ export const pushNotf = async (acct: Account, pushDomain: string, t: (s: string,
 			} else {
 				Alert.alert(t('login.push.pushNotificationFailed'))
 			}
-			await fetch(`https://${pushDomain}/subscribe`, {
+			const prepareRaw = await fetch(`https://${pushDomain}/v2/prepare`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					at: acct.accessToken,
 					domain: acct.domain,
 					token,
-					platform: 'expo'
+					platform: 'ios'
 				})
 			})
+			const prepare = await prepareRaw.json()
+			if (!prepare.success) {
+				console.log('prepare error')
+				Alert.alert(t('login.push.pushNotificationFailed'))
+				return false
+			}
+			await fetch(`https://${acct.domain}/api/v1/push/subscription`, {
+				method: 'DELETE',
+				headers: {
+					Authorization: `Bearer ${acct.accessToken}`,
+					'content-type': 'application/json'
+				}
+			})
+			const param = {
+				subscription: prepare.data.subscription,
+				data: {
+					alerts: {
+						poll: true,
+						follow: true,
+						favourite: true,
+						reblog: true,
+						mention: true
+					}
+				}
+			}
+			const postRaw = await fetch(`https://${acct.domain}/api/v1/push/subscription`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${acct.accessToken}`,
+					'content-type': 'application/json'
+				},
+				body: JSON.stringify(param)
+			})
+			const post = await postRaw.json()
+			if (!postRaw.ok) {
+				Alert.alert(t('login.push.pushNotificationFailed'))
+				return false
+			}
+			await fetch(`https://${pushDomain}/v2/subscribe`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					id: prepare.data.id,
+					serverKey: post.server_key
+				})
+			})
+
 			Alert.alert(t('login.push.pushSubscribed'), t('login.push.pushSubscribedMessage'))
 			return true
 		} catch (e) {
@@ -61,5 +108,30 @@ export const pushNotf = async (acct: Account, pushDomain: string, t: (s: string,
 		} else {
 			return null
 		}
+	}
+}
+export const pushDebug = async () => {
+	const { status: existingStatus } = await Notifications.getPermissionsAsync()
+	let finalStatus = existingStatus
+	if (existingStatus !== 'granted') {
+		const { status } = await Notifications.requestPermissionsAsync()
+		finalStatus = status
+	}
+	if (finalStatus !== 'granted') {
+		Alert.alert('login.push.pushNotificationDenied')
+		return null
+	}
+	let token: string
+	try {
+		token = (await Notifications.getDevicePushTokenAsync()).data
+		console.log(token)
+		if (!token) {
+			Alert.alert('login.push.pushNotificationFailed')
+			return null
+		}
+		return token
+	} catch (e) {
+		Alert.alert('login.push.pushNotificationFailed')
+		return null
 	}
 }

@@ -12,7 +12,6 @@ const logo = require('../assets/images/desk.png')
 export default function About() {
 	const { width } = useWindowSize()
 	const styles = createStyles({ width })
-
 	return (
 		<ScrollView style={{ padding: 10 }}>
 			<View style={{ alignItems: 'center', marginBottom: 20, flexDirection: 'column' }}>
