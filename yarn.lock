@@ -6513,6 +6513,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-iap@npm:3.4.1-rc.1":
+  version: 3.4.1-rc.1
+  resolution: "expo-iap@npm:3.4.1-rc.1"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/715b192fd6ac692d28c5337e920422eaa50270029c91c370aa98d02a5365a49763f5a57b3c207159682d36508c91d4c30c39ff74f0351f68a33b310ea174bb16
+  languageName: node
+  linkType: hard
+
 "expo-image-loader@npm:~6.0.0":
   version: 6.0.0
   resolution: "expo-image-loader@npm:6.0.0"
@@ -12260,6 +12271,7 @@ __metadata:
     expo-font: "npm:~14.0.9"
     expo-glass-effect: "npm:~0.1.7"
     expo-haptics: "npm:~15.0.7"
+    expo-iap: "npm:3.4.1-rc.1"
     expo-image: "npm:~3.0.10"
     expo-image-manipulator: "npm:~14.0.8"
     expo-image-picker: "npm:~17.0.8"
