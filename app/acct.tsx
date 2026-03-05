@@ -73,7 +73,7 @@ export default function Index() {
 				}
 
 				await updateAcct(acctId, newAcct)
-				const d = await pushNotf(acct, acct.pushNotification || domain, t)
+				const d = await pushNotf(acct, domain, t)
 				if (d) {
 					await updateAcct(acctId, { pushNotification: d })
 					load()

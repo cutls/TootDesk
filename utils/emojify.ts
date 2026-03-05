@@ -10,7 +10,8 @@ export const emojify = (content: string, emojis: Entity.Emoji[], fontSize = 20, 
 		const isOnlyEmojiReg = new RegExp(`^s?:${emoji.shortcode}:s?$`, 'g')
 		// なぜか絵文字だけのpostだった場合に、その絵文字が中央に寄ってしまうので、ゼロ幅スペースをいれて誤魔化す
 		const isOnlyEmoji = !!stripTags(content).match(isOnlyEmojiReg)
-		const emojiHtml = `${isOnlyEmoji ? '​' : ''}${emojiHtmlRaw}${isOnlyEmoji ? '' : ''}`
+		//const emojiHtml = `${isOnlyEmoji ? '​' : ''}${emojiHtmlRaw}${isOnlyEmoji ? '' : ''}`]
+		const emojiHtml = `${'​'}${emojiHtmlRaw}${'​'}`
 		emojified = emojified.replace(reg, emojiHtml)
 	}
 
